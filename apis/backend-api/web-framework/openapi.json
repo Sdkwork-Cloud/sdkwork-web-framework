@@ -1,0 +1,790 @@
+{
+  "components": {
+    "securitySchemes": {
+      "sdkworkAccessToken": {
+        "description": "Signed JWT access_token (`header.payload.signature`). Required on all non-open-api routes, including public and refresh-token entrypoints, for tenant isolation.",
+        "in": "header",
+        "name": "Access-Token",
+        "type": "apiKey"
+      },
+      "sdkworkDualToken": {
+        "description": "Protected routes require Authorization: Bearer <auth_token JWT> and Access-Token: <access_token JWT>.",
+        "in": "header",
+        "name": "Access-Token",
+        "type": "apiKey"
+      }
+    }
+  },
+  "info": {
+    "title": "SDKWork Web Framework Control Plane",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/backend/v3/api/web-framework/audit-events": {
+      "get": {
+        "operationId": "webFramework.auditEvents.list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "environment",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tenant_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "sdkworkDualToken": []
+          }
+        ],
+        "summary": "webFramework.auditEvents.list",
+        "tags": [
+          "WebFramework"
+        ],
+        "x-sdkwork-alternate-permissions": [
+          "web-framework.platform.read"
+        ],
+        "x-sdkwork-api-surface": "backend-api",
+        "x-sdkwork-auth-mode": "dual-token",
+        "x-sdkwork-permission": "web-framework.tenant.admin",
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-required-surface": "organizationMember",
+        "x-sdkwork-route-auth": "dual-token"
+      }
+    },
+    "/backend/v3/api/web-framework/control-nodes": {
+      "get": {
+        "operationId": "webFramework.controlNodes.list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "environment",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "sdkworkDualToken": []
+          }
+        ],
+        "summary": "webFramework.controlNodes.list",
+        "tags": [
+          "WebFramework"
+        ],
+        "x-sdkwork-api-surface": "backend-api",
+        "x-sdkwork-auth-mode": "dual-token",
+        "x-sdkwork-permission": "web-framework.control-plane",
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-required-surface": "organizationMember",
+        "x-sdkwork-route-auth": "dual-token"
+      },
+      "post": {
+        "operationId": "webFramework.controlNodes.register",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "413": {
+            "description": "Payload Too Large"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "sdkworkDualToken": []
+          }
+        ],
+        "summary": "webFramework.controlNodes.register",
+        "tags": [
+          "WebFramework"
+        ],
+        "x-sdkwork-api-surface": "backend-api",
+        "x-sdkwork-auth-mode": "dual-token",
+        "x-sdkwork-permission": "web-framework.control-plane",
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-required-surface": "organizationMember",
+        "x-sdkwork-route-auth": "dual-token"
+      }
+    },
+    "/backend/v3/api/web-framework/control-nodes/{node_id}": {
+      "delete": {
+        "operationId": "webFramework.controlNodes.delete",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "sdkworkDualToken": []
+          }
+        ],
+        "summary": "webFramework.controlNodes.delete",
+        "tags": [
+          "WebFramework"
+        ],
+        "x-sdkwork-api-surface": "backend-api",
+        "x-sdkwork-auth-mode": "dual-token",
+        "x-sdkwork-permission": "web-framework.control-plane",
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-required-surface": "organizationMember",
+        "x-sdkwork-route-auth": "dual-token"
+      }
+    },
+    "/backend/v3/api/web-framework/control-nodes/{node_id}/heartbeat": {
+      "post": {
+        "operationId": "webFramework.controlNodes.heartbeat",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "413": {
+            "description": "Payload Too Large"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "sdkworkDualToken": []
+          }
+        ],
+        "summary": "webFramework.controlNodes.heartbeat",
+        "tags": [
+          "WebFramework"
+        ],
+        "x-sdkwork-api-surface": "backend-api",
+        "x-sdkwork-auth-mode": "dual-token",
+        "x-sdkwork-permission": "web-framework.control-plane",
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-required-surface": "organizationMember",
+        "x-sdkwork-route-auth": "dual-token"
+      }
+    },
+    "/backend/v3/api/web-framework/cors-policies": {
+      "get": {
+        "operationId": "webFramework.corsPolicies.list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "environment",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tenant_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "sdkworkDualToken": []
+          }
+        ],
+        "summary": "webFramework.corsPolicies.list",
+        "tags": [
+          "WebFramework"
+        ],
+        "x-sdkwork-alternate-permissions": [
+          "web-framework.platform.read"
+        ],
+        "x-sdkwork-api-surface": "backend-api",
+        "x-sdkwork-auth-mode": "dual-token",
+        "x-sdkwork-permission": "web-framework.tenant.admin",
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-required-surface": "organizationMember",
+        "x-sdkwork-route-auth": "dual-token"
+      },
+      "put": {
+        "operationId": "webFramework.corsPolicies.upsert",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "413": {
+            "description": "Payload Too Large"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "sdkworkDualToken": []
+          }
+        ],
+        "summary": "webFramework.corsPolicies.upsert",
+        "tags": [
+          "WebFramework"
+        ],
+        "x-sdkwork-api-surface": "backend-api",
+        "x-sdkwork-auth-mode": "dual-token",
+        "x-sdkwork-permission": "web-framework.tenant.admin",
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-required-surface": "organizationMember",
+        "x-sdkwork-route-auth": "dual-token"
+      }
+    },
+    "/backend/v3/api/web-framework/optional-features": {
+      "get": {
+        "operationId": "webFramework.optionalFeatures.snapshot",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "sdkworkDualToken": []
+          }
+        ],
+        "summary": "webFramework.optionalFeatures.snapshot",
+        "tags": [
+          "WebFramework"
+        ],
+        "x-sdkwork-api-surface": "backend-api",
+        "x-sdkwork-auth-mode": "dual-token",
+        "x-sdkwork-permission": "web-framework.tenant.admin",
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-required-surface": "organizationMember",
+        "x-sdkwork-route-auth": "dual-token"
+      }
+    },
+    "/backend/v3/api/web-framework/rate-limit-policies": {
+      "get": {
+        "operationId": "webFramework.rateLimitPolicies.list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "environment",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tenant_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "sdkworkDualToken": []
+          }
+        ],
+        "summary": "webFramework.rateLimitPolicies.list",
+        "tags": [
+          "WebFramework"
+        ],
+        "x-sdkwork-alternate-permissions": [
+          "web-framework.platform.read"
+        ],
+        "x-sdkwork-api-surface": "backend-api",
+        "x-sdkwork-auth-mode": "dual-token",
+        "x-sdkwork-permission": "web-framework.tenant.admin",
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-required-surface": "organizationMember",
+        "x-sdkwork-route-auth": "dual-token"
+      },
+      "put": {
+        "operationId": "webFramework.rateLimitPolicies.upsert",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "413": {
+            "description": "Payload Too Large"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "sdkworkDualToken": []
+          }
+        ],
+        "summary": "webFramework.rateLimitPolicies.upsert",
+        "tags": [
+          "WebFramework"
+        ],
+        "x-sdkwork-api-surface": "backend-api",
+        "x-sdkwork-auth-mode": "dual-token",
+        "x-sdkwork-permission": "web-framework.tenant.admin",
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-required-surface": "organizationMember",
+        "x-sdkwork-route-auth": "dual-token"
+      }
+    },
+    "/backend/v3/api/web-framework/runtime-defaults": {
+      "get": {
+        "operationId": "webFramework.runtimeDefaults.snapshot",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "sdkworkDualToken": []
+          }
+        ],
+        "summary": "webFramework.runtimeDefaults.snapshot",
+        "tags": [
+          "WebFramework"
+        ],
+        "x-sdkwork-api-surface": "backend-api",
+        "x-sdkwork-auth-mode": "dual-token",
+        "x-sdkwork-permission": "web-framework.tenant.admin",
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-required-surface": "organizationMember",
+        "x-sdkwork-route-auth": "dual-token"
+      }
+    },
+    "/backend/v3/api/web-framework/security-events": {
+      "get": {
+        "operationId": "webFramework.securityEvents.list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "sdkworkDualToken": []
+          }
+        ],
+        "summary": "webFramework.securityEvents.list",
+        "tags": [
+          "WebFramework"
+        ],
+        "x-sdkwork-api-surface": "backend-api",
+        "x-sdkwork-auth-mode": "dual-token",
+        "x-sdkwork-permission": "web-framework.control-plane",
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-required-surface": "organizationMember",
+        "x-sdkwork-route-auth": "dual-token"
+      }
+    },
+    "/backend/v3/api/web-framework/tenant-runtime-profiles": {
+      "get": {
+        "operationId": "webFramework.tenantRuntimeProfiles.list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "environment",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tenant_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "sdkworkDualToken": []
+          }
+        ],
+        "summary": "webFramework.tenantRuntimeProfiles.list",
+        "tags": [
+          "WebFramework"
+        ],
+        "x-sdkwork-alternate-permissions": [
+          "web-framework.platform.read"
+        ],
+        "x-sdkwork-api-surface": "backend-api",
+        "x-sdkwork-auth-mode": "dual-token",
+        "x-sdkwork-permission": "web-framework.tenant.admin",
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-required-surface": "organizationMember",
+        "x-sdkwork-route-auth": "dual-token"
+      },
+      "put": {
+        "operationId": "webFramework.tenantRuntimeProfiles.upsert",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "413": {
+            "description": "Payload Too Large"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "sdkworkDualToken": []
+          }
+        ],
+        "summary": "webFramework.tenantRuntimeProfiles.upsert",
+        "tags": [
+          "WebFramework"
+        ],
+        "x-sdkwork-api-surface": "backend-api",
+        "x-sdkwork-auth-mode": "dual-token",
+        "x-sdkwork-permission": "web-framework.tenant.admin",
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-required-surface": "organizationMember",
+        "x-sdkwork-route-auth": "dual-token"
+      }
+    }
+  }
+}

@@ -1,0 +1,14 @@
+target/
+**/dist/
+**/node_modules/
+**/.pnpm-store/
+**/__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+**/.gradle/
+**/build/
+**/bin/
+**/obj/
+**/vendor/
+.packages/
