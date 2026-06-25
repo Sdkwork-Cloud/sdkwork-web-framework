@@ -1,5 +1,3 @@
-# Repository plugins
+# Repository Plugins
 
-Add repository-local SDKWork plugins here when they extend framework development workflows.
-
-Generated SDK `.sdkwork/` output is owned by `sdkgen`, not this directory.
+Add repository-local plugins under `.sdkwork/plugins/<plugin-name>/.codex-plugin/plugin.json`.
