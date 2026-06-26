@@ -41,7 +41,7 @@
 | `sdkwork-web-bootstrap` | M3 |
 | `sdkwork-web-store-redis` | M3 |
 | `sdkwork-web-store-sqlx` | M3 |
-| `sdkwork-router-web-framework-backend-api` | M3 |
+| `sdkwork-routes-web-framework-backend-api` | M3 |
 | `sdkwork-web-admin-server` | M3 |
 | `sdkwork-web-test-utils` | M3 |
 | `sdkwork-web-schema-registry` | M2 |

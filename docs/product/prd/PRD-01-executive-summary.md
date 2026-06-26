@@ -26,7 +26,7 @@ SDKWork 各带 API 的产品共享 HTTP 契约（`/app/v3/api`、`/backend/v3/ap
 ## 4. 非目标
 
 - 不实现 `apps/` 前端
-- 不在本仓库放置业务 `sdkwork-router-<产品>-*`（框架 control-plane 例外：`sdkwork-router-web-framework-backend-api`，见 `WEB_FRAMEWORK_STANDARD.md` §8）
+- 不在本仓库放置业务 `sdkwork-routes-<产品>-*`（框架 control-plane 例外：`sdkwork-routes-web-framework-backend-api`，见 `WEB_FRAMEWORK_STANDARD.md` §8）
 - 不实现 IAM/电商/网关等业务 API
 - 不依赖任何业务 crate
 
@@ -39,7 +39,7 @@ SDKWork 各带 API 的产品共享 HTTP 契约（`/app/v3/api`、`/backend/v3/ap
 | 上下文 | `WebRequestContext`（框架类型，与 API_SPEC 词汇对齐） |
 | 领域上下文 | `DomainContextInjector` trait，IAM 适配在 appbase |
 | 认证实现 | `WebRequestContextResolver` trait，生产实现仅在业务侧 |
-| Crate 拆分 | contract / core / axum / bootstrap / store（可选） / router-web-framework-backend-api（control-plane） |
+| Crate 拆分 | contract / core / axum / bootstrap / store（可选） / routes-web-framework-backend-api（control-plane） |
 | 路由所有权 | 业务产品在业务仓库；本仓库仅 framework control-plane backend-api |
 
 ## 6. 框架 Crate 一览（目标）

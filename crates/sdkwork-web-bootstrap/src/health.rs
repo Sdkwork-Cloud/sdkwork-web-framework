@@ -5,6 +5,16 @@ use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
 
+/// Canonical infrastructure paths that bypass auth and interceptor chains.
+pub fn infra_public_path_prefixes() -> Vec<String> {
+    vec![
+        "/healthz".to_owned(),
+        "/readyz".to_owned(),
+        "/livez".to_owned(),
+        "/metrics".to_owned(),
+    ]
+}
+
 pub type ReadinessFuture<'a> = Pin<Box<dyn Future<Output = Result<(), String>> + Send + 'a>>;
 
 /// Optional readiness probe injected by the application.
@@ -52,6 +62,11 @@ impl ReadinessCheck for CompositeReadinessCheck {
 
 pub async fn healthz_handler() -> impl IntoResponse {
     (StatusCode::OK, axum::Json(json!({ "status": "ok" })))
+}
+
+/// Kubernetes-style liveness alias; delegates to [`healthz_handler`].
+pub async fn livez_handler() -> impl IntoResponse {
+    healthz_handler().await
 }
 
 /// Client-safe readiness failure message (`SECURITY_SPEC.md` §3 — no dependency internals).

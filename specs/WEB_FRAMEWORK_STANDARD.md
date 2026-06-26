@@ -163,7 +163,7 @@ Production SaaS assembly `MUST` use `tenant_bound_saas_verifying_web_request_res
 
 Route crates for **business** capabilities `MUST NOT` live in `sdkwork-web-framework`.
 
-**Exception (framework control-plane):** `sdkwork-router-web-framework-backend-api` is the explicit framework-owned backend-api route crate for web-framework admin/control-plane surfaces (`/backend/v3/api/web-framework`). It follows the same `WebRequestContext`, manifest, OpenAPI, and security rules as application route crates. See `apis/backend-api/web-framework/` and `WEB_FRAMEWORK_SPEC.md` §6.
+**Exception (framework control-plane):** `sdkwork-routes-web-framework-backend-api` is the explicit framework-owned backend-api route crate for web-framework admin/control-plane surfaces (`/backend/v3/api/web-framework`). It follows the same `WebRequestContext`, manifest, OpenAPI, and security rules as application route crates. See `apis/backend-api/web-framework/` and `WEB_FRAMEWORK_SPEC.md` §6.
 
 ## 9. Secure Defaults
 

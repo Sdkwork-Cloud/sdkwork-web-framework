@@ -81,7 +81,7 @@ fn production_code_must_not_use_problem_correlation_default() {
 #[test]
 fn api_problem_must_not_implement_bare_into_response() {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../crates/sdkwork-router-web-framework-backend-api/src/response.rs");
+        .join("../../crates/sdkwork-routes-web-framework-backend-api/src/response.rs");
     let source = fs::read_to_string(&path).expect("read response.rs");
     assert!(
         !source.contains("impl IntoResponse for ApiProblem"),

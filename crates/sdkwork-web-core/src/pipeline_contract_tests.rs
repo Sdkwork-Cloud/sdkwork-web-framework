@@ -624,6 +624,44 @@ async fn manifest_open_api_public_route_skips_open_api_credentials() {
 }
 
 #[tokio::test]
+async fn open_api_protected_route_accepts_dual_token_credentials() {
+    use sdkwork_web_contract::{HttpMethod, HttpRoute, RouteAuth};
+
+    const ROUTES: &[HttpRoute] = &[HttpRoute::new(
+        HttpMethod::Get,
+        "/im/v3/api/chat/inbox",
+        "conversations",
+        "inbox.list",
+        RouteAuth::OpenApiFlexible,
+    )];
+
+    let profile = WebRequestContextProfile {
+        open_api_prefixes: vec!["/im/v3/api".to_owned()],
+        ..Default::default()
+    };
+    let runtime = WebCallRuntime::new(DefaultWebRequestContextResolver::default())
+        .with_profile(profile)
+        .with_route_manifest(HttpRouteManifest::new(ROUTES));
+    let chain = WebCallInterceptorChain::standard();
+    let auth_value = fixture_auth_header();
+    let access_value = fixture_access_header();
+    let mut request = Request::builder()
+        .method("GET")
+        .uri("/im/v3/api/chat/inbox")
+        .header("Authorization", auth_value)
+        .header("Access-Token", access_value)
+        .body(Body::empty())
+        .expect("request");
+    let mut state = WebCallState::from_request(&request);
+    chain
+        .before(&mut state, &mut request, &runtime)
+        .await
+        .expect("open-api protected route must accept dual-token app credentials");
+    assert_eq!(WebAuthMode::DualToken, state.auth_mode);
+    assert!(state.principal.is_some());
+}
+
+#[tokio::test]
 async fn manifest_refresh_token_route_skips_dual_token_requirement() {
     use sdkwork_web_contract::{HttpMethod, HttpRoute, RouteAuth};
 

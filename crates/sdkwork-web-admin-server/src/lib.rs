@@ -1,6 +1,6 @@
 //! Control-plane admin server assembly (`control_plane_standalone` profile).
 
-use sdkwork_router_web_framework_backend_api::ROUTES;
+use sdkwork_routes_web_framework_backend_api::ROUTES;
 use sdkwork_web_bootstrap::{
     connect_sqlite, CompositeReadinessCheck, RedisReadinessCheck, SqliteReadinessCheck,
     WebFramework, WebFrameworkEnv,

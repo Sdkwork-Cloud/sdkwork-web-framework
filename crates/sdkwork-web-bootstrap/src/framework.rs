@@ -360,7 +360,7 @@ where
         #[cfg(feature = "admin-api")]
         let route_manifest = if self.route_manifest.is_none() && self.admin_api_pool.is_some() {
             Some(HttpRouteManifest::new(
-                sdkwork_router_web_framework_backend_api::ROUTES,
+                sdkwork_routes_web_framework_backend_api::ROUTES,
             ))
         } else {
             self.route_manifest

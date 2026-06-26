@@ -1,5 +1,5 @@
 use axum::Router;
-use sdkwork_router_web_framework_backend_api::build_admin_router_with_options;
+use sdkwork_routes_web_framework_backend_api::build_admin_router_with_options;
 use sdkwork_web_axum::{with_web_request_context, WebFrameworkLayer};
 use sdkwork_web_core::{DynamicPolicyCaches, WebRequestContextResolver};
 use sqlx::SqlitePool;

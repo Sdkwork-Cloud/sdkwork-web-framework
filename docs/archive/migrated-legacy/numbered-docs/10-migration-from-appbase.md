@@ -106,7 +106,7 @@ sdkwork-web-axum = { path = "../sdkwork-web-framework/crates/sdkwork-web-axum" }
 
 ### Phase C — appbase 路由接入
 
-1. `sdkwork-router-iam-app-api` 使用 `with_web_request_context`
+1. `sdkwork-routes-iam-app-api` 使用 `with_web_request_context`
 2. 删除 handler 内手工 header 解析
 
 ### Phase D — appbase 清理

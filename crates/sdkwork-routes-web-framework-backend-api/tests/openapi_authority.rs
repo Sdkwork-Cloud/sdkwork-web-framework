@@ -1,7 +1,7 @@
 //! OpenAPI authority contract for the framework control-plane backend-api.
 
-use sdkwork_router_web_framework_backend_api::paths;
-use sdkwork_router_web_framework_backend_api::ROUTES;
+use sdkwork_routes_web_framework_backend_api::paths;
+use sdkwork_routes_web_framework_backend_api::ROUTES;
 use sdkwork_web_contract::{
     build_openapi_document, validate_openapi_document_context_selectors,
     validate_openapi_routes_context_selectors, HttpMethod, OPENAPI_API_SURFACE_EXTENSION,
@@ -46,7 +46,7 @@ fn committed_openapi_authority_matches_runtime_contract() {
     assert_eq!(
         expected, committed,
         "apis/backend-api/web-framework/openapi.json is stale; run \
-         cargo test -p sdkwork-router-web-framework-backend-api materialize_openapi_authority_file -- --ignored"
+         cargo test -p sdkwork-routes-web-framework-backend-api materialize_openapi_authority_file -- --ignored"
     );
 }
 
@@ -62,7 +62,7 @@ fn committed_route_manifest_matches_runtime_contract() {
     assert_eq!(
         expected, committed,
         "apis/backend-api/web-framework/routes.manifest.json is stale; run \
-         cargo test -p sdkwork-router-web-framework-backend-api materialize_openapi_authority_file -- --ignored"
+         cargo test -p sdkwork-routes-web-framework-backend-api materialize_openapi_authority_file -- --ignored"
     );
 }
 

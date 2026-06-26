@@ -4,7 +4,7 @@ use std::fs;
 use std::path::PathBuf;
 
 const ROUTE_HANDLER_FILES: &[&str] =
-    &["../../crates/sdkwork-router-web-framework-backend-api/src/handlers.rs"];
+    &["../../crates/sdkwork-routes-web-framework-backend-api/src/handlers.rs"];
 
 const FORBIDDEN_HANDLER_PATTERNS: &[&str] = &[
     "headers().get(\"authorization\")",

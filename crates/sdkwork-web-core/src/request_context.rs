@@ -187,9 +187,9 @@ impl Default for WebRequestContextProfile {
             backend_api_prefix: crate::constants::BACKEND_API_PREFIX.to_owned(),
             open_api_prefixes: vec![crate::constants::OPEN_API_PREFIX.to_owned()],
             public_path_prefixes: vec![
-                "/health".to_owned(),
                 "/healthz".to_owned(),
                 "/readyz".to_owned(),
+                "/livez".to_owned(),
                 "/metrics".to_owned(),
             ],
             gateway_api_prefixes: vec![crate::constants::GATEWAY_API_PREFIX.to_owned()],

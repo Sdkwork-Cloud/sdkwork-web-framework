@@ -19,11 +19,11 @@ cargo test -p sdkwork-web-bootstrap --test integration
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Write-Host "Running openapi authority contract tests..."
-cargo test -p sdkwork-router-web-framework-backend-api --test openapi_authority
+cargo test -p sdkwork-routes-web-framework-backend-api --test openapi_authority
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Write-Host "Running admin route manifest contract tests..."
-cargo test -p sdkwork-router-web-framework-backend-api --test routes_contract
+cargo test -p sdkwork-routes-web-framework-backend-api --test routes_contract
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Write-Host "Running admin-api readiness integration test..."

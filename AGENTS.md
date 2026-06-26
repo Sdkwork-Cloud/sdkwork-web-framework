@@ -61,7 +61,7 @@ This repository is a platform framework workspace, not an SDKWork application ro
 ## 定位
 
 - **是**：`WebRequestContext`、Interceptor 链、安全策略、HTTP bootstrap、契约类型
-- **不是**：IAM、电商、网关等业务；不包含 `sdkwork-router-<业务>-*`
+- **不是**：IAM、电商、网关等业务；不包含 `sdkwork-routes-<业务>-*`
 - **依赖**：`sdkwork-appbase` → 本仓库（单向，本仓库 **不** 依赖 appbase）
 
 ## Code Style Rules
@@ -83,8 +83,8 @@ Or run the core gates directly:
 cargo test --workspace
 cargo test -p sdkwork-web-architecture-tests
 cargo test -p sdkwork-web-bootstrap --test integration
-cargo test -p sdkwork-router-web-framework-backend-api --test openapi_authority
-cargo test -p sdkwork-router-web-framework-backend-api --test routes_contract
+cargo test -p sdkwork-routes-web-framework-backend-api --test openapi_authority
+cargo test -p sdkwork-routes-web-framework-backend-api --test routes_contract
 cargo test -p sdkwork-web-bootstrap --features admin-api --test admin_api_readiness
 node tests/contract/database-framework.contract.test.mjs
 node tests/contract/pc-admin-operations.contract.test.mjs

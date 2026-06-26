@@ -82,7 +82,7 @@ WebFramework::builder(iam_resolver) // 业务 adapter，见 10-migration-from-ap
 
 响应含服务端 `requestId` 与 `traceId`（W3C `traceparent` 传播）。
 
-`enable_admin_api` 时，builder 自动从 `sdkwork-router-web-framework-backend-api::ROUTES` 推导 manifest。
+`enable_admin_api` 时，builder 自动从 `sdkwork-routes-web-framework-backend-api::ROUTES` 推导 manifest。
 
 ## 5. service_router 基座（H1）
 

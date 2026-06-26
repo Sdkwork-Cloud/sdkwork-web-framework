@@ -10,7 +10,7 @@
 | 框架定义 | 框架不定义 |
 | --- | --- |
 | 三接口面 **语义**与前缀 **标准** | 具体业务 path/operationId |
-| `ApiSurface`、`HttpRoute`、`RouteAuth` 类型 | 任何 `sdkwork-router-<业务>-*` |
+| `ApiSurface`、`HttpRoute`、`RouteAuth` 类型 | 任何 `sdkwork-routes-<业务>-*` |
 | `contract_fallback` **行为**（501/404 规则） | 产品 OpenAPI authority 内容 |
 | `service_router` 基础设施路径 | IAM/电商/网关业务 Handler |
 
@@ -28,7 +28,7 @@
 ## 3. 业务路由所有权（WEB_BACKEND_SPEC）
 
 ```text
-<业务仓库>/crates/sdkwork-router-<capability>-<surface>/
+<业务仓库>/crates/sdkwork-routes-<capability>-<surface>/
   paths.rs / routes.rs / handlers.rs / manifest.rs
 ```
 
@@ -36,9 +36,9 @@
 
 | 仓库 | Route crate |
 | --- | --- |
-| sdkwork-appbase | `sdkwork-router-iam-app-api` |
-| sdkwork-claw-router | `sdkwork-router-app-api`（产品域） |
-| sdkwork-commerce | `sdkwork-router-commerce-app-api` |
+| sdkwork-appbase | `sdkwork-routes-iam-app-api` |
+| sdkwork-claw-router | `sdkwork-routes-clawrouter-app-api`（产品域） |
+| sdkwork-commerce | `sdkwork-routes-commerce-app-api` |
 
 ## 4. 框架基础设施路径（sdkwork-web-bootstrap）
 
@@ -87,11 +87,11 @@ x-sdkwork-api-surface: app-api
 
 | 组件 | 说明 |
 | --- | --- |
-| `sdkwork-router-web-framework-backend-api` | `/backend/v3/api/web-framework/*` 治理 API |
+| `sdkwork-routes-web-framework-backend-api` | `/backend/v3/api/web-framework/*` 治理 API |
 | `apis/backend-api/web-framework/` | OpenAPI authority + routes manifest |
 | `apps/sdkwork-web-framework-pc` | 可选 PC 运维控制台（UI → hook → service → SDK） |
 
-跨产品 Web 运行时治理 **可以** 在本仓库通过上述 control-plane 面完成；业务产品 **不得** 新增 `sdkwork-router-<业务>-*` crate 到本仓库。
+跨产品 Web 运行时治理 **可以** 在本仓库通过上述 control-plane 面完成；业务产品 **不得** 新增 `sdkwork-routes-<业务>-*` crate 到本仓库。
 
 ## 9. 错误契约
 
@@ -100,7 +100,7 @@ x-sdkwork-api-surface: app-api
 
 ## 10. 验收
 
-- [x] 无 **业务** `sdkwork-router-*` crate（允许 `sdkwork-router-web-framework-backend-api` control-plane 例外）
+- [x] 无 **业务** `sdkwork-routes-*` crate（允许 `sdkwork-routes-web-framework-backend-api` control-plane 例外）
 - [x] 框架 manifest 仅含 `webFramework.*` operationId（`routes_contract` / `openapi_authority`）
 - [ ] appbase/claw-router 各自 manifest 使用 `HttpRoute` 类型（消费者仓库验收）
 

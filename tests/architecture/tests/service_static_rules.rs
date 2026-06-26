@@ -4,8 +4,8 @@ use std::fs;
 use std::path::PathBuf;
 
 const SERVICE_FILES: &[&str] = &[
-    "../../crates/sdkwork-router-web-framework-backend-api/src/services/admin_service.rs",
-    "../../crates/sdkwork-router-web-framework-backend-api/src/services/validation.rs",
+    "../../crates/sdkwork-routes-web-framework-backend-api/src/services/admin_service.rs",
+    "../../crates/sdkwork-routes-web-framework-backend-api/src/services/validation.rs",
 ];
 
 const FORBIDDEN_SERVICE_PATTERNS: &[&str] = &[

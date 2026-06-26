@@ -1,9 +1,9 @@
 use axum::body::{to_bytes, Body};
 use axum::http::{Request, StatusCode};
 use axum::Router;
-use sdkwork_router_web_framework_backend_api::build_admin_router;
-use sdkwork_router_web_framework_backend_api::paths;
-use sdkwork_router_web_framework_backend_api::ROUTES;
+use sdkwork_routes_web_framework_backend_api::build_admin_router;
+use sdkwork_routes_web_framework_backend_api::paths;
+use sdkwork_routes_web_framework_backend_api::ROUTES;
 use sdkwork_web_axum::with_web_request_context;
 use sdkwork_web_core::DefaultWebRequestContextResolver;
 use sdkwork_web_core::{HttpRouteManifest, ManifestAuthorizationPolicy};

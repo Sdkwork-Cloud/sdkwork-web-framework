@@ -29,8 +29,8 @@ pub use env_config::WebFrameworkEnv;
 pub use fallback::{contract_fallback_handler, ContractFallbackConfig};
 pub use framework::{WebFramework, WebFrameworkBuilder};
 pub use health::{
-    healthz_handler, readyz_handler, AlwaysReady, CompositeReadinessCheck, ReadinessCheck,
-    ReadinessFuture, READINESS_DEPENDENCY_UNAVAILABLE,
+    healthz_handler, infra_public_path_prefixes, livez_handler, readyz_handler, AlwaysReady,
+    CompositeReadinessCheck, ReadinessCheck, ReadinessFuture, READINESS_DEPENDENCY_UNAVAILABLE,
 };
 pub use lifecycle::{
     CompositeWebFrameworkLifecycle, NoOpWebFrameworkLifecycle, WebFrameworkLifecycle,
@@ -46,10 +46,10 @@ pub use redis_stores::{
     shared_concurrent_admission_store, shared_idempotency_store, shared_rate_limit_store,
     RedisConcurrentAdmissionStore, RedisIdempotencyStore, RedisRateLimitStore,
 };
-pub use router::{service_router, ServiceRouterConfig};
+pub use router::{mount_infra_routes, service_router, ServiceRouterConfig};
 pub use serve::{serve, serve_with_lifecycle};
 #[cfg(feature = "sqlx")]
-pub use sqlx_readiness::SqliteReadinessCheck;
+pub use sqlx_readiness::{PgPoolReadinessCheck, SqliteReadinessCheck};
 #[cfg(feature = "sqlx")]
 pub use sqlx_stores::{
     connect_sqlite, shared_audit_emitter as shared_sqlx_audit_emitter,

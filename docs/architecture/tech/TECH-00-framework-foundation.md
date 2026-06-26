@@ -25,7 +25,7 @@
         └─────────────────┴─────────────────┴─────────────────┘
                           │
                     各产品 route crate
-              sdkwork-router-<capability>-<surface>
+              sdkwork-routes-<capability>-<surface>
 ```
 
 ### 2.1 依赖方向（铁律）
@@ -44,7 +44,7 @@
 | 归属 | 内容 |
 | --- | --- |
 | **框架独有** | `WebRequestContext`、Interceptor 链、SecurityPolicy、Resolver **trait**、Axum 中间件封装、`service_router` 基座、契约类型 `HttpRoute`/`ApiSurface`、Problem+json、框架 `web_*` 运行时表契约、内存/可插拔 Store 默认实现 |
-| **业务独有** | IAM 用户/会话/API Key 表、`IamAppContext`、具体 `WebRequestContextResolver` 实现、`AuthorizationPolicy` 业务规则、所有 `sdkwork-router-*` 路由与 Handler、OpenAPI authority、产品 SDK 家族 |
+| **业务独有** | IAM 用户/会话/API Key 表、`IamAppContext`、具体 `WebRequestContextResolver` 实现、`AuthorizationPolicy` 业务规则、所有 `sdkwork-routes-*` 路由与 Handler、OpenAPI authority、产品 SDK 家族 |
 | **框架定义标准、业务实现扩展** | 双 Token 解析流程、API Key / OAuth Bearer 查找接口、open-api 凭证 scheme 检测、租户隔离校验接口、审计/流控 **语义与挂载点** |
 
 ## 4. 技术依赖白名单
@@ -61,7 +61,7 @@
 | 缓存/存储适配 | `redis`, `sqlx`, `sdkwork-database-config`, `sdkwork-database-sqlx` | **仅** `sdkwork-web-store-*` 可选 crate；连接池经 `sdkwork-database-sqlx` 创建，store 实现只访问 `web_*` 表 |
 | 错误 | `thiserror` | 库边界 |
 
-**禁止依赖（示例）**：`sdkwork_iam_context_service`、`sdkwork-claw-*`、`sdkwork-commerce-*`、任何 `sdkwork-router-*`。
+**禁止依赖（示例）**：`sdkwork_iam_context_service`、`sdkwork-claw-*`、`sdkwork-commerce-*`、任何 `sdkwork-routes-*`。
 
 ## 5. 框架提供的「封装抽象」
 
@@ -70,7 +70,7 @@
 ```text
 ┌─────────────────────────────────────────────────────────────┐
 │  Application（业务仓库）                                       │
-│  sdkwork-router-iam-app-api / sdkwork-router-product-app-api │
+│  sdkwork-routes-iam-app-api / sdkwork-routes-merchandise-app-api │
 ├─────────────────────────────────────────────────────────────┤
 │  sdkwork-web-bootstrap     service_router / health / metrics │
 │  sdkwork-web-axum          with_web_request_context Layer    │
@@ -140,7 +140,7 @@ pub trait DomainContextInjector: Send + Sync {
 
 ### 8.2 本仓库 **不包含**
 
-- 任何 `sdkwork-router-<业务>-*` 路由 crate
+- 任何 `sdkwork-routes-<业务>-*` 路由 crate
 - IAM / 电商 / 网关等业务 Handler
 - 业务数据库 migration（`iam_*` 等）
 - 业务产品前端（`apps/` 仅保留 **框架自有** PC 管理台 demo：`sdkwork-web-framework-pc`，见 H8）
@@ -156,7 +156,7 @@ sdkwork-appbase/Cargo.toml:
 sdkwork-appbase 新增/调整:
   sdkwork-iam-web-adapter/     # IamWebRequestContextResolver, IamApiKeyLookupService, IamOAuthTokenLookupService, IamOpenApiWebRequestContextResolver
   sdkwork-iam-web-adapter/     # IamDomainContextInjector, IamAuthorizationPolicy
-  sdkwork-router-iam-*         # 挂载 with_web_request_context(adapter_runtime)
+  sdkwork-routes-iam-*         # 挂载 with_web_request_context(adapter_runtime)
 ```
 
 **所有 IAM 相关代码留在 appbase；框架只定义 trait 与调用时机。**

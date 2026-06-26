@@ -1,12 +1,12 @@
 [package]
-name = "sdkwork-router-web-framework-backend-api"
+name = "sdkwork-routes-web-framework-backend-api"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 description = "Platform backend-api for web framework runtime governance (web_* config, control nodes)."
 
 [lib]
-name = "sdkwork_router_web_framework_backend_api"
+name = "sdkwork_routes_web_framework_backend_api"
 path = "src/lib.rs"
 
 [dependencies]

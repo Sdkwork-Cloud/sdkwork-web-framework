@@ -1,0 +1,125 @@
+-- Consolidated legacy baseline imported by bootstrap-database-module.mjs
+-- Review and replace with contract-first migrations.
+
+-- source: crates/sdkwork-web-store-sqlx/migrations/001_web_stores.sql
+CREATE TABLE IF NOT EXISTS web_idempotency_record (
+    idempotency_key TEXT PRIMARY KEY NOT NULL,
+    fingerprint TEXT NOT NULL,
+    response_status INTEGER,
+    response_body BLOB,
+    content_type TEXT,
+    created_at INTEGER NOT NULL,
+    expires_at INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_web_idempotency_expires
+    ON web_idempotency_record (expires_at);
+
+CREATE TABLE IF NOT EXISTS web_security_event (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    kind TEXT NOT NULL,
+    request_id TEXT,
+    path TEXT NOT NULL,
+    method TEXT NOT NULL,
+    api_surface TEXT NOT NULL,
+    origin TEXT,
+    detail TEXT NOT NULL,
+    created_at INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_web_security_event_created
+    ON web_security_event (created_at);
+
+-- source: crates/sdkwork-web-store-sqlx/migrations/002_web_rate_limit_bucket.sql
+CREATE TABLE IF NOT EXISTS web_rate_limit_bucket (
+    bucket_key TEXT PRIMARY KEY NOT NULL,
+    request_count INTEGER NOT NULL,
+    window_start INTEGER NOT NULL,
+    expires_at INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_web_rate_limit_expires
+    ON web_rate_limit_bucket (expires_at);
+
+-- source: crates/sdkwork-web-store-sqlx/migrations/003_web_audit_event.sql
+CREATE TABLE IF NOT EXISTS web_audit_event (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    request_id TEXT NOT NULL,
+    tenant_id TEXT,
+    user_id TEXT,
+    api_surface TEXT NOT NULL,
+    path TEXT NOT NULL,
+    method TEXT NOT NULL,
+    operation_id TEXT,
+    created_at INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_web_audit_event_created
+    ON web_audit_event (created_at);
+
+CREATE INDEX IF NOT EXISTS idx_web_audit_event_request
+    ON web_audit_event (request_id);
+
+CREATE INDEX IF NOT EXISTS idx_web_audit_event_tenant
+    ON web_audit_event (tenant_id);
+
+-- source: crates/sdkwork-web-store-sqlx/migrations/004_web_cors_policy.sql
+CREATE TABLE IF NOT EXISTS web_cors_policy (
+    tenant_id TEXT NOT NULL,
+    environment TEXT NOT NULL,
+    allow_all_origins INTEGER NOT NULL DEFAULT 0,
+    allowed_origins TEXT NOT NULL,
+    allow_credentials INTEGER NOT NULL DEFAULT 1,
+    PRIMARY KEY (tenant_id, environment)
+);
+
+CREATE INDEX IF NOT EXISTS idx_web_cors_policy_tenant
+    ON web_cors_policy (tenant_id);
+
+-- source: crates/sdkwork-web-store-sqlx/migrations/005_web_rate_limit_policy.sql
+CREATE TABLE IF NOT EXISTS web_rate_limit_policy (
+    tenant_id TEXT NOT NULL,
+    environment TEXT NOT NULL,
+    tier_key TEXT NOT NULL DEFAULT 'default',
+    max_requests INTEGER NOT NULL,
+    window_secs INTEGER NOT NULL,
+    enabled INTEGER NOT NULL DEFAULT 1,
+    PRIMARY KEY (tenant_id, environment, tier_key)
+);
+
+CREATE INDEX IF NOT EXISTS idx_web_rate_limit_policy_tenant
+    ON web_rate_limit_policy (tenant_id);
+
+-- source: crates/sdkwork-web-store-sqlx/migrations/006_web_tenant_runtime_profile.sql
+CREATE TABLE IF NOT EXISTS web_tenant_runtime_profile (
+    tenant_id TEXT NOT NULL,
+    environment TEXT NOT NULL,
+    rate_limit_enabled INTEGER,
+    max_content_length INTEGER,
+    PRIMARY KEY (tenant_id, environment)
+);
+
+CREATE INDEX IF NOT EXISTS idx_web_tenant_runtime_profile_tenant
+    ON web_tenant_runtime_profile (tenant_id);
+
+-- source: crates/sdkwork-web-store-sqlx/migrations/007_web_control_node.sql
+CREATE TABLE IF NOT EXISTS web_control_node (
+    node_id TEXT PRIMARY KEY NOT NULL,
+    region TEXT NOT NULL DEFAULT 'default',
+    base_url TEXT NOT NULL,
+    environment TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'registered',
+    last_heartbeat_at INTEGER,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_web_control_node_environment
+    ON web_control_node (environment);
+
+CREATE INDEX IF NOT EXISTS idx_web_control_node_region
+    ON web_control_node (region);
+
+-- source: crates/sdkwork-web-store-sqlx/migrations/008_tenant_concurrent_limit.sql
+ALTER TABLE web_tenant_runtime_profile ADD COLUMN max_concurrent_requests INTEGER;
+

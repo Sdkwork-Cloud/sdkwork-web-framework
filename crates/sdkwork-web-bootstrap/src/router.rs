@@ -1,6 +1,7 @@
 use crate::fallback::{contract_fallback_handler, ContractFallbackConfig};
 use crate::health::{
-    healthz_handler, readyz_handler, AlwaysReady, CompositeReadinessCheck, ReadinessCheck,
+    healthz_handler, livez_handler, readyz_handler, AlwaysReady, CompositeReadinessCheck,
+    ReadinessCheck,
 };
 use crate::observability::{metrics_handler, HttpMetricsRegistry};
 #[cfg(feature = "redis")]
@@ -75,6 +76,14 @@ impl ServiceRouterConfig {
 
 /// Mounts `/healthz`, `/readyz`, `/metrics`, and optional contract fallback on the supplied router.
 pub fn service_router(router: Router, config: ServiceRouterConfig) -> Router {
+    mount_infra_routes(router, config)
+}
+
+/// Same as [`service_router`] but preserves router state type `S` (for `Router<AppState>` processes).
+pub fn mount_infra_routes<S>(router: Router<S>, config: ServiceRouterConfig) -> Router<S>
+where
+    S: Clone + Send + Sync + 'static,
+{
     let metrics = match config.metrics {
         Some(metrics) => metrics,
         None => HttpMetricsRegistry::new(),
@@ -82,6 +91,7 @@ pub fn service_router(router: Router, config: ServiceRouterConfig) -> Router {
     let readiness = config.readiness;
     let mut router = router
         .route("/healthz", get(healthz_handler))
+        .route("/livez", get(livez_handler))
         .route(
             "/readyz",
             get(move || {

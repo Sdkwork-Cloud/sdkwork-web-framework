@@ -32,7 +32,7 @@ Intentionally absent at root (narrow-purpose framework repo): `sdks/`, `jobs/`, 
 | `sdkwork-web-store-redis` | Redis rate limit + idempotency adapters |
 | `sdkwork-web-store-sqlx` | SQLx store adapters (`web_*` tables) via `sdkwork-database-sqlx` pools |
 | `sdkwork-web-test-utils` | Test runtime helpers |
-| `sdkwork-router-web-framework-backend-api` | Framework control-plane backend-api routes |
+| `sdkwork-routes-web-framework-backend-api` | Framework control-plane backend-api routes |
 | `sdkwork-web-admin-server` | Standalone admin server binary |
 
 ## Quick start
@@ -98,3 +98,6 @@ Or run individual gates (workspace tests, architecture tests, contract tests, PC
 - [docs/product/prd/PRD.md](docs/product/prd/PRD.md)
 - [docs/architecture/tech/TECH_ARCHITECTURE.md](docs/architecture/tech/TECH_ARCHITECTURE.md)
 
+## Application Roots
+
+- [apps directory index](apps/README.md)

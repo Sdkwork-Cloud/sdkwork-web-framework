@@ -1,7 +1,7 @@
 //! Mounted admin router paths must match the route manifest contract.
 
-use sdkwork_router_web_framework_backend_api::paths;
-use sdkwork_router_web_framework_backend_api::ROUTES;
+use sdkwork_routes_web_framework_backend_api::paths;
+use sdkwork_routes_web_framework_backend_api::ROUTES;
 use sdkwork_web_contract::HttpMethod;
 use std::collections::HashMap;
 

@@ -14,10 +14,10 @@ echo "Running bootstrap integration tests (contract fallback, production assembl
 cargo test -p sdkwork-web-bootstrap --test integration
 
 echo "Running openapi authority contract tests..."
-cargo test -p sdkwork-router-web-framework-backend-api --test openapi_authority
+cargo test -p sdkwork-routes-web-framework-backend-api --test openapi_authority
 
 echo "Running admin route manifest contract tests..."
-cargo test -p sdkwork-router-web-framework-backend-api --test routes_contract
+cargo test -p sdkwork-routes-web-framework-backend-api --test routes_contract
 
 echo "Running admin-api readiness integration test..."
 cargo test -p sdkwork-web-bootstrap --features admin-api --test admin_api_readiness

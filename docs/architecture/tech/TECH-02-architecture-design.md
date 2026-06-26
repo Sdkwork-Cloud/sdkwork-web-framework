@@ -21,7 +21,7 @@
 │ L3  Application Roots（apps/、Tauri host、gateway 装配）            │
 ├──────────────────────────────────────────────────────────────────┤
 │ L2  Business Capability Repos（appbase, claw-router, commerce…） │
-│     • sdkwork-router-<capability>-<surface>  （路由+Handler）     │
+│     • sdkwork-routes-<capability>-<surface>  （路由+Handler）     │
 │     • *-service / *-repository               （业务逻辑）          │
 │     • *-web-adapter                          （实现框架 trait）    │
 ├──────────────────────────────────────────────────────────────────┤
@@ -96,7 +96,7 @@ pub struct WebFrameworkRuntime<R, A> {
 IamWebRequestContextResolver
 IamAuthorizationPolicy
 IamDomainContextInjector  → WebFrameworkRuntime → with_web_request_context
-                                                      → sdkwork-router-iam-app-api
+                                                      → sdkwork-routes-iam-app-api
 ```
 
 ## 5. 请求路径（框架视角）
@@ -161,7 +161,7 @@ tenant_id → organization_id → app_id → environment → deployment_mode
 | 项 | 关系 |
 | --- | --- |
 | 依赖方向 | appbase **依赖** web-framework |
-| IAM 路由 | 留在 appbase `sdkwork-router-iam-*` |
+| IAM 路由 | 留在 appbase `sdkwork-routes-iam-*` |
 | IAM 验签 / API Key / OAuth Bearer 查表 | appbase `sdkwork-iam-web-adapter` 实现框架 trait |
 | `IamAppContext` | 仅 appbase；经 `DomainContextInjector` 注入 |
 

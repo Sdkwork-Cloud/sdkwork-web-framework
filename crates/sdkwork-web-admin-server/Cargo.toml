@@ -15,7 +15,7 @@ path = "src/main.rs"
 
 [dependencies]
 axum.workspace = true
-sdkwork-router-web-framework-backend-api.workspace = true
+sdkwork-routes-web-framework-backend-api.workspace = true
 sdkwork-web-bootstrap = { workspace = true, features = ["admin-api", "sqlx", "redis", "otel"] }
 sdkwork-web-core.workspace = true
 sdkwork-web-store-sqlx.workspace = true

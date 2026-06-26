@@ -11,7 +11,7 @@ const WORKSPACE_CRATES: &[&str] = &[
     "sdkwork-web-store-sqlx",
     "sdkwork-web-test-utils",
     "sdkwork-web-framework-admin-repository-sqlx",
-    "sdkwork-router-web-framework-backend-api",
+    "sdkwork-routes-web-framework-backend-api",
     "sdkwork-web-admin-server",
     "sdkwork-webstore-database-host",
     "sdkwork-web-schema-registry",

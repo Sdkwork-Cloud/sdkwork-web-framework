@@ -66,7 +66,7 @@ fn enable_admin_api_auto_derives_route_manifest_for_contract_fallback() {
         "enable_admin_api must auto-derive route_manifest when none is set"
     );
     assert!(
-        source.contains("sdkwork_router_web_framework_backend_api::ROUTES"),
+        source.contains("sdkwork_routes_web_framework_backend_api::ROUTES"),
         "admin-api auto manifest must use backend-api ROUTES authority"
     );
 }

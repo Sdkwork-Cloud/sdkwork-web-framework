@@ -118,7 +118,7 @@
         { "id": "H4", "name": "graceful-shutdown", "targetM": "M2", "designStatus": "defined", "implStatus": "implemented", "modules": ["bootstrap:serve"] },
         { "id": "H6", "name": "cargo-feature-redis", "targetM": "M2", "designStatus": "defined", "implStatus": "implemented", "modules": ["bootstrap:redis feature"] },
         { "id": "H5", "name": "env-config", "targetM": "M2", "designStatus": "defined", "implStatus": "implemented", "modules": ["WebFrameworkEnv", "SDKWORK_WEB_FRAMEWORK_*"] },
-        { "id": "H7", "name": "admin-api-optional", "targetM": "M2", "designStatus": "defined", "implStatus": "implemented", "modules": ["bootstrap:admin-api feature", "sdkwork-router-web-framework-backend-api"] },
+        { "id": "H7", "name": "admin-api-optional", "targetM": "M2", "designStatus": "defined", "implStatus": "implemented", "modules": ["bootstrap:admin-api feature", "sdkwork-routes-web-framework-backend-api"] },
         { "id": "H8", "name": "pc-admin-console", "targetM": "M2", "designStatus": "defined", "implStatus": "implemented", "modules": ["apps/sdkwork-web-framework-pc"] }
       ]
     },

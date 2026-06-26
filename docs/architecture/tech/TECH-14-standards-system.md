@@ -43,7 +43,7 @@
 | `CACHE_SPEC.md` | Redis 限流命名空间 |
 | `CONFIG_SPEC.md` | `SDKWORK_WEB_*` 环境键（L1 定义） |
 | `TEST_SPEC.md` | 契约测试、上下文测试、架构测试 |
-| `NAMING_SPEC.md` | crate `sdkwork-web-*`；业务 `sdkwork-router-*` |
+| `NAMING_SPEC.md` | crate `sdkwork-web-*`；业务 `sdkwork-routes-*` |
 | `MIGRATION_SPEC.md` | appbase 迁出流程 |
 
 ## 3. L1 框架专属标准（本仓库权威）

@@ -15,7 +15,7 @@ const operationsPath = path.join(
 );
 const pathsRsPath = path.join(
   repoRoot,
-  'crates/sdkwork-router-web-framework-backend-api/src/paths.rs',
+  'crates/sdkwork-routes-web-framework-backend-api/src/paths.rs',
 );
 
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));

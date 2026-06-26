@@ -34,7 +34,7 @@ async fn enable_admin_api_wires_sqlite_readiness_probe() {
 async fn enable_admin_api_auto_manifest_contract_fallback_returns_501() {
     use axum::body::to_bytes;
     use axum::http::Method;
-    use sdkwork_router_web_framework_backend_api::paths;
+    use sdkwork_routes_web_framework_backend_api::paths;
 
     let _env = IsolatedDeploymentEnv::enter();
     let pool = connect_sqlite("sqlite::memory:", 1).await.expect("pool");
