@@ -177,7 +177,7 @@ mod tests {
     #[test]
     fn rejects_enabled_rate_limit_with_zero_max_requests() {
         let body = UpsertRateLimitPolicyRequest {
-            tenant_id: "tenant-a".to_owned(),
+            tenant_id: "100001".to_owned(),
             environment: "prod".to_owned(),
             tier_key: "default".to_owned(),
             max_requests: 0,
@@ -190,7 +190,7 @@ mod tests {
     #[test]
     fn rejects_oversized_tenant_runtime_profile() {
         let body = UpsertTenantRuntimeProfileRequest {
-            tenant_id: "tenant-a".to_owned(),
+            tenant_id: "100001".to_owned(),
             environment: "prod".to_owned(),
             rate_limit_enabled: None,
             max_content_length: Some(MAX_CONTENT_LENGTH_BYTES + 1),
@@ -219,7 +219,7 @@ mod tests {
     #[test]
     fn rejects_allow_all_origins_in_prod() {
         let body = UpsertCorsPolicyRequest {
-            tenant_id: "tenant-a".to_owned(),
+            tenant_id: "100001".to_owned(),
             environment: "prod".to_owned(),
             allow_all_origins: true,
             allowed_origins: vec![],
@@ -231,7 +231,7 @@ mod tests {
     #[test]
     fn rejects_oversized_cors_origin_list() {
         let body = UpsertCorsPolicyRequest {
-            tenant_id: "tenant-a".to_owned(),
+            tenant_id: "100001".to_owned(),
             environment: "prod".to_owned(),
             allow_all_origins: false,
             allowed_origins: (0..257)

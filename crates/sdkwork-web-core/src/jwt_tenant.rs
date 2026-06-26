@@ -379,14 +379,14 @@ mod tests {
     fn tenant_bound_verifier_accepts_matching_kid_and_tenant() {
         let lookup = StaticTenantSigningKeyLookup::new(BTreeMap::from([(
             "kid-1".to_owned(),
-            TenantSigningKeyMaterial::hs256("tenant-1", "kid-1", b"secret-1"),
+            TenantSigningKeyMaterial::hs256("100001", "kid-1", b"secret-1"),
         )]));
         let token = encode_hs256_test_jwt_with_kid(
             "secret-1",
             "kid-1",
             json!({
                 "token_type": "access",
-                "tenant_id": "tenant-1",
+                "tenant_id": "100001",
                 "user_id": "user-1",
                 "app_id": "appbase",
                 "environment": "prod",
@@ -399,7 +399,7 @@ mod tests {
             .verify_and_decode_claims(&token)
             .expect("valid tenant-bound token");
         assert_eq!(
-            "tenant-1",
+            "100001",
             claims.get("tenant_id").map(String::as_str).unwrap()
         );
     }
@@ -408,14 +408,14 @@ mod tests {
     fn tenant_bound_verifier_rejects_mismatched_tenant_claim() {
         let lookup = StaticTenantSigningKeyLookup::new(BTreeMap::from([(
             "kid-1".to_owned(),
-            TenantSigningKeyMaterial::hs256("tenant-1", "kid-1", b"secret-1"),
+            TenantSigningKeyMaterial::hs256("100001", "kid-1", b"secret-1"),
         )]));
         let token = encode_hs256_test_jwt_with_kid(
             "secret-1",
             "kid-1",
             json!({
                 "token_type": "access",
-                "tenant_id": "tenant-other",
+                "tenant_id": "100002",
                 "user_id": "user-1",
                 "app_id": "appbase",
                 "environment": "prod",
@@ -438,11 +438,11 @@ mod tests {
         let lookup = StaticTenantSigningKeyLookup::new(BTreeMap::from([
             (
                 "kid-old".to_owned(),
-                TenantSigningKeyMaterial::hs256("tenant-1", "kid-old", b"secret-old"),
+                TenantSigningKeyMaterial::hs256("100001", "kid-old", b"secret-old"),
             ),
             (
                 "kid-new".to_owned(),
-                TenantSigningKeyMaterial::hs256("tenant-1", "kid-new", b"secret-new"),
+                TenantSigningKeyMaterial::hs256("100001", "kid-new", b"secret-new"),
             ),
         ]));
         let verifier = TenantBoundJwtVerifier::new(lookup);
@@ -451,7 +451,7 @@ mod tests {
             "kid-old",
             json!({
                 "token_type": "access",
-                "tenant_id": "tenant-1",
+                "tenant_id": "100001",
                 "user_id": "user-1",
                 "app_id": "appbase",
                 "environment": "prod",
@@ -464,7 +464,7 @@ mod tests {
             "kid-new",
             json!({
                 "token_type": "access",
-                "tenant_id": "tenant-1",
+                "tenant_id": "100001",
                 "user_id": "user-1",
                 "app_id": "appbase",
                 "environment": "prod",
@@ -484,14 +484,14 @@ mod tests {
     fn tenant_bound_verifier_rejects_revoked_session() {
         let lookup = StaticTenantSigningKeyLookup::new(BTreeMap::from([(
             "kid-1".to_owned(),
-            TenantSigningKeyMaterial::hs256("tenant-1", "kid-1", b"secret-1"),
+            TenantSigningKeyMaterial::hs256("100001", "kid-1", b"secret-1"),
         )]));
         let token = encode_hs256_test_jwt_with_kid(
             "secret-1",
             "kid-1",
             json!({
                 "token_type": "access",
-                "tenant_id": "tenant-1",
+                "tenant_id": "100001",
                 "user_id": "user-1",
                 "session_id": "session-revoked",
                 "app_id": "appbase",
@@ -517,14 +517,14 @@ mod tests {
     fn tenant_bound_verifier_rejects_wrong_issuer() {
         let lookup = StaticTenantSigningKeyLookup::new(BTreeMap::from([(
             "kid-1".to_owned(),
-            TenantSigningKeyMaterial::hs256("tenant-1", "kid-1", b"secret-1"),
+            TenantSigningKeyMaterial::hs256("100001", "kid-1", b"secret-1"),
         )]));
         let token = encode_hs256_test_jwt_with_kid(
             "secret-1",
             "kid-1",
             json!({
                 "token_type": "access",
-                "tenant_id": "tenant-1",
+                "tenant_id": "100001",
                 "user_id": "user-1",
                 "app_id": "appbase",
                 "environment": "prod",
@@ -554,14 +554,14 @@ mod tests {
     fn tenant_bound_verifier_rejects_wrong_audience() {
         let lookup = StaticTenantSigningKeyLookup::new(BTreeMap::from([(
             "kid-1".to_owned(),
-            TenantSigningKeyMaterial::hs256("tenant-1", "kid-1", b"secret-1"),
+            TenantSigningKeyMaterial::hs256("100001", "kid-1", b"secret-1"),
         )]));
         let token = encode_hs256_test_jwt_with_kid(
             "secret-1",
             "kid-1",
             json!({
                 "token_type": "access",
-                "tenant_id": "tenant-1",
+                "tenant_id": "100001",
                 "user_id": "user-1",
                 "app_id": "appbase",
                 "environment": "prod",
@@ -594,14 +594,14 @@ mod tests {
         let (private_key, spki_der) = generate_rs256_test_keypair();
         let lookup = StaticTenantSigningKeyLookup::new(BTreeMap::from([(
             "kid-rs256".to_owned(),
-            TenantSigningKeyMaterial::rs256_spki("tenant-1", "kid-rs256", spki_der),
+            TenantSigningKeyMaterial::rs256_spki("100001", "kid-rs256", spki_der),
         )]));
         let token = encode_rs256_test_jwt_with_kid(
             &private_key,
             "kid-rs256",
             json!({
                 "token_type": "access",
-                "tenant_id": "tenant-1",
+                "tenant_id": "100001",
                 "user_id": "user-1",
                 "app_id": "appbase",
                 "environment": "prod",

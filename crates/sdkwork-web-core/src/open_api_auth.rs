@@ -239,7 +239,7 @@ mod tests {
             auth_token: None,
             access_token: None,
             api_key: Some(
-                "api_key_id=key-1;tenant_id=tenant-1;user_id=user-1;app_id=appbase".to_owned(),
+                "api_key_id=key-1;tenant_id=100001;user_id=30;app_id=appbase".to_owned(),
             ),
             oauth_bearer: None,
         };
@@ -253,7 +253,7 @@ mod tests {
         .await
         .expect("resolved");
         assert_eq!(WebAuthMode::ApiKey, auth_mode);
-        assert_eq!("tenant-1", principal.tenant_id());
+        assert_eq!("100001", principal.tenant_id());
     }
 
     #[tokio::test]
@@ -264,7 +264,7 @@ mod tests {
             access_token: None,
             api_key: None,
             oauth_bearer: Some(
-                "token_id=tok-1;tenant_id=tenant-oauth;user_id=user-oauth;app_id=appbase"
+                "token_id=tok-1;tenant_id=100001;user_id=user-oauth;app_id=appbase"
                     .to_owned(),
             ),
         };
@@ -278,6 +278,6 @@ mod tests {
         .await
         .expect("resolved");
         assert_eq!(WebAuthMode::OAuth, auth_mode);
-        assert_eq!("tenant-oauth", principal.tenant_id());
+        assert_eq!("100001", principal.tenant_id());
     }
 }

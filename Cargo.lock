@@ -1954,6 +1954,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "sdkwork-web-framework-gateway-assembly"
+version = "0.1.0"
+dependencies = [
+ "axum 0.8.9",
+ "sdkwork-routes-web-framework-backend-api",
+ "tokio",
+]
+
+[[package]]
 name = "sdkwork-web-schema-registry"
 version = "0.1.0"
 dependencies = [

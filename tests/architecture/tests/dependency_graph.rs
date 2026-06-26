@@ -19,7 +19,7 @@ const WORKSPACE_CRATES: &[&str] = &[
 
 const FORBIDDEN_DEPENDENCY_FRAGMENTS: &[&str] = &[
     "sdkwork-appbase",
-    "sdkwork-claw-router",
+    "sdkwork-clawrouter",
     "openchat",
     "sdkwork-iam",
 ];

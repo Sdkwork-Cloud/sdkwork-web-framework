@@ -228,7 +228,7 @@ mod tests {
         let parser = DefaultAccessTokenParser;
         let token = encode_unsigned_test_jwt(json!({
             "token_type": "access",
-            "tenant_id": "tenant-1",
+            "tenant_id": "100001",
             "user_id": "user-1",
             "session_id": "session-1",
             "app_id": "appbase",
@@ -250,8 +250,8 @@ mod tests {
     #[tokio::test]
     async fn accepts_unsigned_test_access_token_jwt() {
         let parser = DefaultAccessTokenParser;
-        let token = access_token_jwt("tenant-1", "user-1", "session-1", "appbase");
+        let token = access_token_jwt("100001", "user-1", "session-1", "appbase");
         let claims = parser.parse_access_token(&token).await.expect("jwt");
-        assert_eq!("tenant-1", claims.tenant_id);
+        assert_eq!("100001", claims.tenant_id);
     }
 }

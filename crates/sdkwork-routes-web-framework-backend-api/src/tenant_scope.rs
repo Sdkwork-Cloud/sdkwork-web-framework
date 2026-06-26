@@ -124,8 +124,8 @@ mod tests {
 
     fn ctx_with_permissions(permissions: &[&str]) -> WebRequestContext {
         let principal = WebRequestPrincipal::builder()
-            .tenant_id("tenant-test")
-            .organization_id(Some("org-test".to_owned()))
+            .tenant_id("100001")
+            .organization_id(Some("0".to_owned()))
             .login_scope(WebLoginScope::Tenant)
             .user_id("user-test")
             .session_id(Some("session-test".to_owned()))
@@ -165,7 +165,7 @@ mod tests {
     fn tenant_admin_scope_excludes_platform_all() {
         let ctx = ctx_with_permissions(&["web-framework.tenant.admin"]);
         let scope = resolve_audit_event_list_scope(&ctx, None).expect("scope");
-        assert_eq!(AuditEventListScope::Tenant("tenant-test".to_owned()), scope);
+        assert_eq!(AuditEventListScope::Tenant("100001".to_owned()), scope);
     }
 
     #[test]
@@ -180,28 +180,28 @@ mod tests {
     fn platform_read_allows_cross_tenant_upsert() {
         let ctx =
             ctx_with_permissions(&["web-framework.tenant.admin", "web-framework.platform.read"]);
-        require_upsert_tenant_id(&ctx, "tenant-other").expect("platform upsert");
+        require_upsert_tenant_id(&ctx, "100002").expect("platform upsert");
     }
 
     #[test]
     fn tenant_admin_rejects_cross_tenant_upsert() {
         let ctx = ctx_with_permissions(&["web-framework.tenant.admin"]);
-        assert!(require_upsert_tenant_id(&ctx, "tenant-other").is_err());
+        assert!(require_upsert_tenant_id(&ctx, "100002").is_err());
     }
 
     #[test]
     fn tenant_admin_rejects_cross_tenant_list_query() {
         let ctx = ctx_with_permissions(&["web-framework.tenant.admin"]);
-        assert!(resolve_list_tenant_id(&ctx, Some("tenant-other")).is_err());
+        assert!(resolve_list_tenant_id(&ctx, Some("100002")).is_err());
     }
 
     #[test]
     fn platform_read_scopes_audit_list_to_requested_tenant() {
         let ctx =
             ctx_with_permissions(&["web-framework.tenant.admin", "web-framework.platform.read"]);
-        let scope = resolve_audit_event_list_scope(&ctx, Some("tenant-other")).expect("scope");
+        let scope = resolve_audit_event_list_scope(&ctx, Some("100002")).expect("scope");
         assert_eq!(
-            AuditEventListScope::PlatformTenant("tenant-other".to_owned()),
+            AuditEventListScope::PlatformTenant("100002".to_owned()),
             scope
         );
     }

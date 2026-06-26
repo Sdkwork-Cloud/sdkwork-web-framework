@@ -16,7 +16,7 @@
                           │
         ┌─────────────────┼─────────────────┬─────────────────┐
         ▼                 ▼                 ▼                 ▼
- sdkwork-appbase   sdkwork-claw-router  sdkwork-commerce   sdkwork-aiot
+ sdkwork-appbase   sdkwork-clawrouter  sdkwork-commerce   sdkwork-aiot
  （IAM 等业务）      （AI 网关等业务）     （电商等业务）      （物联网等业务）
         │                 │                 │                 │
         └─────────────────┴─────────────────┴─────────────────┘

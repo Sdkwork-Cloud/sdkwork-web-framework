@@ -109,7 +109,7 @@ pub mod fixtures {
 
     pub fn auth_token_tenant_admin() -> String {
         auth_token_jwt_with_permissions(
-            "tenant-test",
+            "100001",
             "user-test",
             "session-test",
             "appbase",
@@ -119,7 +119,7 @@ pub mod fixtures {
 
     pub fn auth_token_control_plane() -> String {
         auth_token_jwt_with_permissions(
-            "tenant-test",
+            "100001",
             "user-test",
             "session-test",
             "appbase",
@@ -129,7 +129,7 @@ pub mod fixtures {
 
     pub fn auth_token_platform_read() -> String {
         auth_token_jwt_with_permissions(
-            "tenant-test",
+            "100001",
             "user-test",
             "session-test",
             "appbase",
@@ -143,15 +143,15 @@ pub mod fixtures {
     }
 
     pub fn access_token() -> String {
-        access_token_jwt("tenant-test", "user-test", "session-test", "appbase")
+        access_token_jwt("100001", "user-test", "session-test", "appbase")
     }
 
     pub fn bootstrap_access_token() -> String {
-        bootstrap_access_token_jwt("tenant-bootstrap", "app_tenant-bootstrap")
+        bootstrap_access_token_jwt("100001", "app_tenant-bootstrap")
     }
 
     pub fn api_key() -> &'static str {
-        "api_key_id=key-test;tenant_id=tenant-test;organization_id=org-test;user_id=user-test;app_id=appbase;environment=prod;deployment_mode=saas;data_scope=tenant;permission_scope=iam.read"
+        "api_key_id=key-test;tenant_id=100001;organization_id=0;user_id=user-test;app_id=appbase;environment=prod;deployment_mode=saas;data_scope=tenant;permission_scope=iam.read"
     }
 
     pub fn app_api_path() -> &'static str {

@@ -44,7 +44,7 @@ fn production_builder_sets_default_request_timeout() {
     };
     use std::time::Duration;
 
-    let lookup = EnvBootstrapTenantSigningKeyLookup::new("tenant-1", "kid-1", b"secret");
+    let lookup = EnvBootstrapTenantSigningKeyLookup::new("100001", "kid-1", b"secret");
     let resolver = tenant_bound_verifying_web_request_resolver(lookup, DefaultApiKeyLookupService);
     let framework = WebFramework::builder(resolver)
         .production_defaults()
@@ -72,7 +72,7 @@ fn production_builder_sets_default_shutdown_grace_period() {
     };
     use std::time::Duration;
 
-    let lookup = EnvBootstrapTenantSigningKeyLookup::new("tenant-1", "kid-1", b"secret");
+    let lookup = EnvBootstrapTenantSigningKeyLookup::new("100001", "kid-1", b"secret");
     let resolver = tenant_bound_verifying_web_request_resolver(lookup, DefaultApiKeyLookupService);
     let framework = WebFramework::builder(resolver)
         .production_defaults()
@@ -98,7 +98,7 @@ fn production_saas_builder_rejects_missing_readiness_probe() {
         production_test_audit_emitter, production_test_security_event_emitter,
     };
 
-    let lookup = EnvBootstrapTenantSigningKeyLookup::new("tenant-1", "kid-1", b"secret");
+    let lookup = EnvBootstrapTenantSigningKeyLookup::new("100001", "kid-1", b"secret");
     let resolver = tenant_bound_saas_verifying_web_request_resolver(
         lookup,
         NoOpJwtSessionRevocationChecker,
@@ -215,7 +215,7 @@ fn production_saas_builder_rejects_missing_iss_aud_claim_policy() {
         }
     }
 
-    let lookup = EnvBootstrapTenantSigningKeyLookup::new("tenant-1", "kid-1", b"secret");
+    let lookup = EnvBootstrapTenantSigningKeyLookup::new("100001", "kid-1", b"secret");
     let resolver = tenant_bound_saas_verifying_web_request_resolver(
         lookup,
         NoOpJwtSessionRevocationChecker,
@@ -277,7 +277,7 @@ fn production_builder_accepts_tenant_bound_verifying_resolver() {
         production_test_audit_emitter, production_test_security_event_emitter,
     };
 
-    let lookup = EnvBootstrapTenantSigningKeyLookup::new("tenant-1", "kid-1", b"secret");
+    let lookup = EnvBootstrapTenantSigningKeyLookup::new("100001", "kid-1", b"secret");
     let resolver = tenant_bound_verifying_web_request_resolver(lookup, DefaultApiKeyLookupService);
     let framework = WebFramework::builder(resolver)
         .production_defaults()
@@ -631,7 +631,7 @@ async fn manifest_public_route_reaches_handler_with_access_token_jwt() {
             axum::routing::post(|ctx: sdkwork_web_core::WebRequestContext| async move {
                 assert_eq!(sdkwork_web_core::WebAuthMode::Public, ctx.auth_mode);
                 assert_eq!(
-                    "tenant-bootstrap",
+                    "100001",
                     ctx.principal
                         .as_ref()
                         .expect("tenant isolation principal")
@@ -649,7 +649,7 @@ async fn manifest_public_route_reaches_handler_with_access_token_jwt() {
                 .uri("/app/v3/api/auth/sessions")
                 .header(
                     "Access-Token",
-                    bootstrap_access_token_jwt("tenant-bootstrap", "app_tenant-bootstrap"),
+                    bootstrap_access_token_jwt("100001", "app_tenant-bootstrap"),
                 )
                 .body(Body::empty())
                 .unwrap(),

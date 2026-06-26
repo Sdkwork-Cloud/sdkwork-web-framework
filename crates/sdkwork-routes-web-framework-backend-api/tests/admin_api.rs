@@ -112,7 +112,7 @@ async fn admin_api_upserts_cors_policy() {
                 "PUT",
                 paths::cors::PATH,
                 Some(
-                    r#"{"tenant_id":"tenant-test","environment":"prod","allow_all_origins":false,"allowed_origins":["https://app.example"],"allow_credentials":true}"#,
+                    r#"{"tenant_id":"100001","environment":"prod","allow_all_origins":false,"allowed_origins":["https://app.example"],"allow_credentials":true}"#,
                 ),
             ),
         )
@@ -130,7 +130,7 @@ async fn admin_api_upserts_rate_limit_policy() {
             "PUT",
             paths::rate_limit::PATH,
             Some(
-                r#"{"tenant_id":"tenant-test","environment":"prod","tier_key":"default","max_requests":100,"window_secs":60,"enabled":true}"#,
+                r#"{"tenant_id":"100001","environment":"prod","tier_key":"default","max_requests":100,"window_secs":60,"enabled":true}"#,
             ),
         ))
         .await
@@ -149,7 +149,7 @@ async fn admin_api_upserts_tenant_runtime_profile() {
             "PUT",
             paths::tenant_runtime::PATH,
             Some(
-                r#"{"tenant_id":"tenant-test","environment":"prod","rate_limit_enabled":true,"max_content_length":1048576,"max_concurrent_requests":32}"#,
+                r#"{"tenant_id":"100001","environment":"prod","rate_limit_enabled":true,"max_content_length":1048576,"max_concurrent_requests":32}"#,
             ),
         ))
         .await
@@ -191,7 +191,7 @@ async fn admin_api_rejects_unsafe_prod_cors_policy() {
                 "PUT",
                 paths::cors::PATH,
                 Some(
-                    r#"{"tenant_id":"tenant-test","environment":"prod","allow_all_origins":true,"allowed_origins":[],"allow_credentials":true}"#,
+                    r#"{"tenant_id":"100001","environment":"prod","allow_all_origins":true,"allowed_origins":[],"allow_credentials":true}"#,
                 ),
             ),
         )
@@ -210,7 +210,7 @@ async fn admin_api_rejects_invalid_tenant_runtime_profile() {
                 "PUT",
                 paths::tenant_runtime::PATH,
                 Some(
-                    r#"{"tenant_id":"tenant-test","environment":"prod","max_content_length":999999999999}"#,
+                    r#"{"tenant_id":"100001","environment":"prod","max_content_length":999999999999}"#,
                 ),
             ),
         )
@@ -229,7 +229,7 @@ async fn admin_api_rejects_invalid_rate_limit_policy() {
                 "PUT",
                 paths::rate_limit::PATH,
                 Some(
-                    r#"{"tenant_id":"tenant-test","environment":"prod","tier_key":"default","max_requests":0,"window_secs":60,"enabled":true}"#,
+                    r#"{"tenant_id":"100001","environment":"prod","tier_key":"default","max_requests":0,"window_secs":60,"enabled":true}"#,
                 ),
             ),
         )
@@ -375,7 +375,7 @@ async fn admin_api_audit_events_exclude_null_tenant_rows_for_tenant_admin() {
     .expect("insert global audit row");
     sqlx::query(
         "INSERT INTO web_audit_event (request_id, tenant_id, user_id, api_surface, path, method, operation_id, status_code, duration_ms, created_at) \
-         VALUES ('req-tenant', 'tenant-test', 'user-test', 'backendApi', ?1, 'GET', 'webFramework.runtimeDefaults.snapshot', 200, 2, 2)",
+         VALUES ('req-tenant', '100001', 'user-test', 'backendApi', ?1, 'GET', 'webFramework.runtimeDefaults.snapshot', 200, 2, 2)",
     )
     .bind(paths::runtime_defaults::PATH)
     .execute(&pool)
@@ -395,7 +395,7 @@ async fn admin_api_audit_events_exclude_null_tenant_rows_for_tenant_admin() {
     let payload = response_json(response).await;
     let rows = payload["data"].as_array().expect("audit rows");
     assert_eq!(1, rows.len());
-    assert_eq!("tenant-test", rows[0]["tenant_id"].as_str().unwrap());
+    assert_eq!("100001", rows[0]["tenant_id"].as_str().unwrap());
 }
 
 #[tokio::test]
@@ -537,7 +537,7 @@ async fn admin_api_rejects_oversized_cors_origin_list() {
         .map(|index| format!("https://origin-{index}.example"))
         .collect::<Vec<_>>();
     let body = serde_json::json!({
-        "tenant_id": "tenant-test",
+        "tenant_id": "100001",
         "environment": "prod",
         "allow_all_origins": false,
         "allowed_origins": origins,
@@ -590,7 +590,7 @@ async fn seed_tenant_audit_rows(pool: &sqlx::SqlitePool, count: usize) {
     for index in 0..count {
         sqlx::query(
             "INSERT INTO web_audit_event (request_id, tenant_id, user_id, api_surface, path, method, operation_id, status_code, duration_ms, created_at) \
-             VALUES (?1, 'tenant-test', 'user-test', 'backendApi', ?2, 'GET', 'webFramework.runtimeDefaults.snapshot', 200, 1, ?3)",
+             VALUES (?1, '100001', 'user-test', 'backendApi', ?2, 'GET', 'webFramework.runtimeDefaults.snapshot', 200, 1, ?3)",
         )
         .bind(format!("req-{index}"))
         .bind(paths::runtime_defaults::PATH)
@@ -644,7 +644,7 @@ async fn admin_api_rejects_allow_all_origins_without_credentials_in_prod() {
             "PUT",
             paths::cors::PATH,
             Some(
-                r#"{"tenant_id":"tenant-other","environment":"prod","allow_all_origins":true,"allowed_origins":[],"allow_credentials":false}"#,
+                r#"{"tenant_id":"100002","environment":"prod","allow_all_origins":true,"allowed_origins":[],"allow_credentials":false}"#,
             ),
             fixtures::auth_token_platform_read(),
         ))
@@ -662,7 +662,7 @@ async fn admin_api_platform_read_can_upsert_other_tenant_cors_policy() {
             "PUT",
             paths::cors::PATH,
             Some(
-                r#"{"tenant_id":"tenant-other","environment":"prod","allow_all_origins":false,"allowed_origins":["https://other.example"],"allow_credentials":false}"#,
+                r#"{"tenant_id":"100002","environment":"prod","allow_all_origins":false,"allowed_origins":["https://other.example"],"allow_credentials":false}"#,
             ),
             fixtures::auth_token_platform_read(),
         ))
@@ -671,7 +671,7 @@ async fn admin_api_platform_read_can_upsert_other_tenant_cors_policy() {
     assert_eq!(StatusCode::OK, response.status());
     let payload = response_json(response).await;
     assert_eq!(
-        "tenant-other",
+        "100002",
         payload["data"]["tenant_id"].as_str().unwrap()
     );
 }
@@ -767,7 +767,7 @@ async fn admin_api_rejects_cross_tenant_audit_query_for_tenant_admin() {
     let pool = test_pool().await;
     let app = protected_app(pool);
     let uri = format!(
-        "{}?tenant_id=tenant-other&limit=10",
+        "{}?tenant_id=100002&limit=10",
         paths::audit_events::PATH
     );
     let response = app

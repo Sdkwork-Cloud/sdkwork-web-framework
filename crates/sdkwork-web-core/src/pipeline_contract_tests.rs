@@ -14,16 +14,16 @@ use std::sync::Arc;
 fn fixture_auth_header() -> String {
     format!(
         "Bearer {}",
-        auth_token_jwt("tenant-1", "user-1", "s-1", "appbase")
+        auth_token_jwt("100001", "30", "s-1", "appbase")
     )
 }
 
 fn fixture_access_header() -> String {
-    access_token_jwt("tenant-1", "user-1", "s-1", "appbase")
+    access_token_jwt("100001", "30", "s-1", "appbase")
 }
 
 fn fixture_bootstrap_access_header() -> String {
-    bootstrap_access_token_jwt("tenant-bootstrap", "app_tenant-bootstrap")
+    bootstrap_access_token_jwt("100001", "app_tenant-bootstrap")
 }
 
 fn security_with_idempotency(
@@ -288,8 +288,8 @@ async fn audit_fact_includes_tenant_and_user_from_principal() {
         .expect("audit after");
     let captured = facts.lock().expect("mutex");
     assert_eq!(1, captured.len());
-    assert_eq!(Some("tenant-1".to_owned()), captured[0].tenant_id);
-    assert_eq!(Some("user-1".to_owned()), captured[0].user_id);
+    assert_eq!(Some("100001".to_owned()), captured[0].tenant_id);
+    assert_eq!(Some("30".to_owned()), captured[0].user_id);
     assert_eq!("/app/v3/api/users", captured[0].path.as_str());
     assert_eq!(Some(200), captured[0].status_code);
     assert!(captured[0].duration_ms.is_some());
@@ -402,7 +402,7 @@ async fn manifest_credential_entry_route_requires_access_token_jwt() {
         .await
         .expect("credential-entry route accepts bootstrap access token jwt");
     assert_eq!(
-        "tenant-bootstrap",
+        "100001",
         state
             .principal
             .as_ref()
@@ -515,7 +515,7 @@ async fn manifest_public_route_rejects_malformed_optional_access_token() {
         .uri("/app/v3/api/system/health")
         .header(
             "Access-Token",
-            "tenant_id=tenant-1;app_id=appbase;environment=prod;deployment_mode=saas",
+            "tenant_id=100001;app_id=appbase;environment=prod;deployment_mode=saas",
         )
         .body(Body::empty())
         .expect("request");

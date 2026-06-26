@@ -56,7 +56,7 @@ async fn websocket_oversized_message_is_rejected() {
     let chain = WebSocketCallInterceptorChain::standard();
     let mut state = ws_state_with_principal(Some(
         WebRequestPrincipal::builder()
-            .tenant_id("tenant-1")
+            .tenant_id("100001")
             .user_id("user-1")
             .app_id("app-1")
             .build(),
@@ -85,7 +85,7 @@ async fn websocket_message_rate_limit_blocks_burst_traffic() {
     let chain = WebSocketCallInterceptorChain::standard();
     let mut state = ws_state_with_principal(Some(
         WebRequestPrincipal::builder()
-            .tenant_id("tenant-1")
+            .tenant_id("100001")
             .user_id("user-1")
             .app_id("app-1")
             .build(),

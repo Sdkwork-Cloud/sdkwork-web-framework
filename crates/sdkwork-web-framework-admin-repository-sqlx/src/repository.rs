@@ -556,7 +556,7 @@ mod repository_tests {
     async fn list_cors_policies_returns_empty_for_unknown_tenant() {
         let repo = test_repository().await;
         let rows = repo
-            .list_cors_policies("tenant-unknown", None, 10)
+            .list_cors_policies("199999", None, 10)
             .await
             .expect("list");
         assert!(rows.is_empty());
@@ -567,7 +567,7 @@ mod repository_tests {
         let repo = test_repository().await;
         let saved = repo
             .upsert_cors_policy(UpsertCorsPolicyRecord {
-                tenant_id: "tenant-1".to_owned(),
+                tenant_id: "100001".to_owned(),
                 environment: "prod".to_owned(),
                 allow_all_origins: false,
                 allowed_origins: vec!["https://console.example".to_owned()],
@@ -575,7 +575,7 @@ mod repository_tests {
             })
             .await
             .expect("upsert");
-        assert_eq!("tenant-1", saved.tenant_id);
+        assert_eq!("100001", saved.tenant_id);
         assert_eq!("prod", saved.environment);
         assert!(!saved.allow_all_origins);
         assert_eq!(
@@ -584,7 +584,7 @@ mod repository_tests {
         );
 
         let listed = repo
-            .list_cors_policies("tenant-1", Some("prod".to_owned()), 10)
+            .list_cors_policies("100001", Some("prod".to_owned()), 10)
             .await
             .expect("list");
         assert_eq!(1, listed.len());

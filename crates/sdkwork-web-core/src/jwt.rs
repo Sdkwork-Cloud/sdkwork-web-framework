@@ -386,7 +386,7 @@ mod tests {
             "test-secret",
             json!({
                 "token_type": "access",
-                "tenant_id": "tenant-1",
+                "tenant_id": "100001",
                 "user_id": "user-1",
                 "app_id": "appbase",
                 "environment": "prod",
@@ -399,7 +399,7 @@ mod tests {
             .verify_and_decode_claims(&token)
             .expect("valid hs256 token");
         assert_eq!(
-            "tenant-1",
+            "100001",
             claims.get("tenant_id").map(String::as_str).unwrap()
         );
     }
@@ -411,7 +411,7 @@ mod tests {
             "test-secret",
             json!({
                 "token_type": "access",
-                "tenant_id": "tenant-1",
+                "tenant_id": "100001",
                 "user_id": "user-1",
                 "app_id": "appbase",
                 "environment": "prod",

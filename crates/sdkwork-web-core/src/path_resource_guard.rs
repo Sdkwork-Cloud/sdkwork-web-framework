@@ -182,10 +182,10 @@ mod tests {
     #[test]
     fn rejects_mismatched_tenant_path_resource_on_app_api() {
         let ctx = principal_context(
-            "tenant-a",
+            "100001",
             None,
             &[],
-            "/app/v3/api/resources/tenant-b/items",
+            "/app/v3/api/resources/100002/items",
         );
         let error = verify_path_resource_ids_match_principal(
             &ctx,
@@ -193,16 +193,16 @@ mod tests {
             None,
         )
         .expect_err("tenant mismatch");
-        assert!(error.message.contains("tenant-b"));
+        assert!(error.message.contains("100002"));
     }
 
     #[test]
     fn allows_backend_cross_tenant_resource_with_required_permission() {
         let mut ctx = principal_context(
-            "tenant-a",
+            "100001",
             None,
             &["web-framework.cors-policies.write"],
-            "/backend/v3/api/web-framework/tenants/tenant-b/cors-policies",
+            "/backend/v3/api/web-framework/tenants/100002/cors-policies",
         );
         ctx.api_surface = WebApiSurface::BackendApi;
         verify_path_resource_ids_match_principal(

@@ -158,7 +158,7 @@ mod tests {
             auth_mode: WebAuthMode::DualToken,
             principal: Some(
                 WebRequestPrincipal::builder()
-                    .tenant_id("tenant-1")
+                    .tenant_id("100001")
                     .user_id("user-1")
                     .app_id("app-1")
                     .build(),

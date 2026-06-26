@@ -227,11 +227,11 @@ mod tests {
         let caches = DynamicPolicyCaches::new(Duration::from_secs(60));
         caches
             .cors()
-            .insert("tenant-a|prod|AppApi", Some(CorsPolicy::default()));
-        caches.cors().insert("tenant-b|prod|AppApi", None);
-        caches.invalidate_tenant_environment("tenant-a", "prod");
-        assert_eq!(None, caches.cors().get_valid("tenant-a|prod|AppApi"));
-        assert!(caches.cors().get_valid("tenant-b|prod|AppApi").is_some());
+            .insert("100001|prod|AppApi", Some(CorsPolicy::default()));
+        caches.cors().insert("100002|prod|AppApi", None);
+        caches.invalidate_tenant_environment("100001", "prod");
+        assert_eq!(None, caches.cors().get_valid("100001|prod|AppApi"));
+        assert!(caches.cors().get_valid("100002|prod|AppApi").is_some());
     }
 
     #[tokio::test]
@@ -260,7 +260,7 @@ mod tests {
         });
         let source = CachingDynamicCorsPolicySource::new(inner.clone(), cache);
         let ctx = CorsPolicyContext {
-            tenant_id: Some("tenant-1".to_owned()),
+            tenant_id: Some("100001".to_owned()),
             environment: WebEnvironment::Prod,
             api_surface: WebApiSurface::AppApi,
             origin: None,

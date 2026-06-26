@@ -14,11 +14,11 @@ fn sample_protected_request() -> Request<Body> {
         .uri("/app/v3/api/users")
         .header(
             "Authorization",
-            "Bearer api_key_id=key;tenant_id=tenant;organization_id=org;user_id=user;app_id=app;environment=prod;deployment_mode=saas;data_scope=tenant;permission_scope=read",
+            "Bearer api_key_id=key;tenant_id=100001;organization_id=0;user_id=30;app_id=app;environment=prod;deployment_mode=saas;data_scope=tenant;permission_scope=read",
         )
         .header(
             "Access-Token",
-            "tenant_id=tenant;organization_id=org;user_id=user;app_id=app;environment=prod;deployment_mode=saas",
+            "tenant_id=100001;organization_id=0;user_id=30;app_id=app;environment=prod;deployment_mode=saas",
         )
         .body(Body::empty())
         .expect("request")
@@ -110,7 +110,7 @@ async fn rate_limit_exceeded_maps_to_expected_error_kind() {
             .header("x-forwarded-for", "203.0.113.55")
             .header(
                 "Access-Token",
-                sdkwork_web_core::bootstrap_access_token_jwt("tenant-bootstrap", "app_tenant-bootstrap"),
+                sdkwork_web_core::bootstrap_access_token_jwt("100001", "app_tenant-bootstrap"),
             )
             .body(Body::empty())
             .expect("request");
@@ -127,7 +127,7 @@ async fn rate_limit_exceeded_maps_to_expected_error_kind() {
         .header("x-forwarded-for", "203.0.113.55")
         .header(
             "Access-Token",
-            sdkwork_web_core::bootstrap_access_token_jwt("tenant-bootstrap", "app_tenant-bootstrap"),
+            sdkwork_web_core::bootstrap_access_token_jwt("100001", "app_tenant-bootstrap"),
         )
         .body(Body::empty())
         .expect("request");

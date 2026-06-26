@@ -179,7 +179,7 @@ mod tests {
     fn rejects_tenant_id_query_on_app_api_surface() {
         let error = reject_client_context_selectors(
             "/app/v3/api/orders",
-            Some("tenant_id=tenant-1"),
+            Some("tenant_id=100001"),
             WebApiSurface::AppApi,
         )
         .expect_err("tenant selector");
@@ -190,7 +190,7 @@ mod tests {
     fn allows_tenant_id_query_on_backend_api_surface() {
         reject_client_context_selectors(
             "/backend/v3/api/web-framework/cors-policies",
-            Some("tenant_id=tenant-1"),
+            Some("tenant_id=100001"),
             WebApiSurface::BackendApi,
         )
         .expect("platform admin filter");
@@ -219,7 +219,7 @@ mod tests {
 
     #[test]
     fn rejects_tenant_id_body_field_on_app_api_surface() {
-        let error = reject_forbidden_context_body_json(br#"{"tenantId":"tenant-1","name":"x"}"#)
+        let error = reject_forbidden_context_body_json(br#"{"tenantId":"100001","name":"x"}"#)
             .expect_err("tenant body selector");
         assert!(error.message.contains("tenantId"));
     }
@@ -231,7 +231,7 @@ mod tests {
             .uri("/backend/v3/api/web-framework/cors-policies")
             .header("content-type", "application/json")
             .header("content-length", "25")
-            .body(Body::from(r#"{"tenantId":"tenant-1"}"#))
+            .body(Body::from(r#"{"tenantId":"100001"}"#))
             .expect("request");
         inspect_json_body_context_selectors(&mut request, 1024, WebApiSurface::BackendApi)
             .await

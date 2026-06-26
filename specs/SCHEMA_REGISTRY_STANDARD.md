@@ -59,7 +59,7 @@ Missing dependency registry files produce a structured error. Release applicatio
 ```bash
 cargo run -p sdkwork-web-schema-registry -- \
   compose tables \
-  --app-root ../sdkwork-claw-router \
+  --app-root ../sdkwork-clawrouter \
   --registry docs/schema-registry/sdkwork-clawrouter.tables.yaml \
   --output generated/schema/registry/sdkwork-clawrouter.tables.effective.yaml
 ```

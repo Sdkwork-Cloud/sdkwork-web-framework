@@ -144,7 +144,7 @@ tenant_id → organization_id → app_id → environment → deployment_mode
 
 业务 Domain Pipeline **不得**替代 HTTP 链的认证与租户隔离。
 
-## 9. 与 sdkwork-claw-router 关系
+## 9. 与 sdkwork-clawrouter 关系
 
 | 项 | 关系 |
 | --- | --- |

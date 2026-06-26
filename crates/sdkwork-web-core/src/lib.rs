@@ -296,7 +296,7 @@ mod tests {
     #[test]
     fn workspace_manifest_has_no_business_dependencies() {
         let manifest = include_str!("../Cargo.toml");
-        for forbidden in ["sdkwork-appbase", "sdkwork-claw-router", "openchat"] {
+        for forbidden in ["sdkwork-appbase", "sdkwork-clawrouter", "openchat"] {
             assert!(
                 !manifest.contains(forbidden),
                 "core crate must not depend on {forbidden}"
@@ -320,7 +320,7 @@ mod tests {
             auth_mode: WebAuthMode::DualToken,
             principal: Some(
                 WebRequestPrincipal::builder()
-                    .tenant_id("tenant-1")
+                    .tenant_id("100001")
                     .user_id("user-1")
                     .app_id("appbase")
                     .build(),
@@ -357,8 +357,8 @@ mod tests {
         );
         let error = resolver
             .resolve_dual_token(
-                "tenant_id=tenant-a;user_id=user-1;session_id=session-1;app_id=appbase;auth_level=password",
-                "tenant_id=tenant-a;user_id=user-1;session_id=session-1;app_id=appbase;environment=prod;deployment_mode=saas",
+                "tenant_id=100001;user_id=30;session_id=session-1;app_id=appbase;auth_level=password",
+                "tenant_id=100001;user_id=30;session_id=session-1;app_id=appbase;environment=prod;deployment_mode=saas",
             )
             .await
             .expect_err("inline claims rejected");
@@ -370,14 +370,14 @@ mod tests {
         let resolver = DefaultWebRequestContextResolver::default();
         let principal = resolver
             .resolve_api_key(
-                "api_key_id=key-1;tenant_id=tenant-1;organization_id=org-1;user_id=user-1;app_id=appbase;environment=prod;deployment_mode=saas;data_scope=tenant;permission_scope=iam.read,settings.read",
+                "api_key_id=key-1;tenant_id=100001;organization_id=0;user_id=30;app_id=appbase;environment=prod;deployment_mode=saas;data_scope=tenant;permission_scope=iam.read,settings.read",
             )
             .await
             .expect("principal");
 
-        assert_eq!("tenant-1", principal.tenant_id());
-        assert_eq!(Some("org-1"), principal.organization_id());
-        assert_eq!("user-1", principal.user_id());
+        assert_eq!("100001", principal.tenant_id());
+        assert_eq!(Some("0"), principal.organization_id());
+        assert_eq!("30", principal.user_id());
         assert_eq!(Some("key-1"), principal.api_key_id());
         assert_eq!(WebAuthLevel::ApiKey, principal.auth_level());
     }
@@ -386,11 +386,11 @@ mod tests {
     async fn default_access_token_resolver_establishes_tenant_isolation() {
         let resolver = DefaultWebRequestContextResolver::default();
         let principal = resolver
-            .resolve_access_token(&bootstrap_access_token_jwt("tenant-bootstrap", "app_tenant-bootstrap"))
+            .resolve_access_token(&bootstrap_access_token_jwt("100001", "app_tenant-bootstrap"))
             .await
             .expect("access token principal");
 
-        assert_eq!("tenant-bootstrap", principal.tenant_id());
+        assert_eq!("100001", principal.tenant_id());
         assert_eq!("app_tenant-bootstrap", principal.app_id());
         assert_eq!(WebAuthLevel::Anonymous, principal.auth_level());
     }
@@ -400,8 +400,8 @@ mod tests {
         let resolver = DefaultWebRequestContextResolver::default();
         let error = resolver
             .resolve_dual_token(
-                &auth_token_jwt("tenant-a", "user-1", "session-1", "appbase"),
-                &access_token_jwt("tenant-b", "user-1", "session-1", "appbase"),
+                &auth_token_jwt("100001", "1", "session-1", "appbase"),
+                &access_token_jwt("100002", "1", "session-1", "appbase"),
             )
             .await
             .expect_err("mismatch");
@@ -423,8 +423,8 @@ mod tests {
                 assert_eq!("plain-secret-key", credential.raw_value);
                 Ok(ApiKeyPrincipalRecord {
                     api_key_id: "custom-key-1".to_owned(),
-                    tenant_id: "tenant-custom".to_owned(),
-                    organization_id: Some("org-custom".to_owned()),
+                    tenant_id: "100001".to_owned(),
+                    organization_id: Some("0".to_owned()),
                     user_id: "user-custom".to_owned(),
                     app_id: "appbase".to_owned(),
                     environment: WebEnvironment::Prod,
@@ -449,7 +449,7 @@ mod tests {
             .await
             .expect("principal");
 
-        assert_eq!("tenant-custom", principal.tenant_id());
+        assert_eq!("100001", principal.tenant_id());
         assert_eq!(Some("custom-key-1"), principal.api_key_id());
     }
 
@@ -458,13 +458,13 @@ mod tests {
         let resolver = DefaultOpenApiWebRequestContextResolver::default();
         let principal = resolver
             .resolve_oauth_bearer(
-                "token_id=tok-1;tenant_id=tenant-oauth;user_id=user-oauth;app_id=appbase;environment=prod",
+                "token_id=tok-1;tenant_id=100001;user_id=30;app_id=appbase;environment=prod",
             )
             .await
             .expect("oauth principal");
 
-        assert_eq!("tenant-oauth", principal.tenant_id());
-        assert_eq!("user-oauth", principal.user_id());
+        assert_eq!("100001", principal.tenant_id());
+        assert_eq!("30", principal.user_id());
         assert_eq!(WebSubjectType::Service, principal.subject.subject_type);
     }
 

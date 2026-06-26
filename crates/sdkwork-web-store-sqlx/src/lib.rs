@@ -261,7 +261,7 @@ mod tests {
         emitter
             .emit(AuditFact {
                 request_id: "req-audit-1".to_owned(),
-                tenant_id: Some("tenant-1".to_owned()),
+                tenant_id: Some("100001".to_owned()),
                 user_id: Some("user-1".to_owned()),
                 api_surface: WebApiSurface::AppApi,
                 path: "/app/v3/api/users/:id".to_owned(),
@@ -278,7 +278,7 @@ mod tests {
                 .await
                 .expect("row");
         assert_eq!("req-audit-1", row.0);
-        assert_eq!(Some("tenant-1".to_owned()), row.1);
+        assert_eq!(Some("100001".to_owned()), row.1);
         assert_eq!(Some("user-1".to_owned()), row.2);
     }
 
@@ -287,7 +287,7 @@ mod tests {
         let pool = test_pool().await;
         sqlx::query(
             "INSERT INTO web_cors_policy (tenant_id, environment, allow_all_origins, allowed_origins, allow_credentials) \
-             VALUES ('tenant-1', 'prod', 0, '[\"https://app.example\"]', 1)",
+             VALUES ('100001', 'prod', 0, '[\"https://app.example\"]', 1)",
         )
         .execute(&pool)
         .await
@@ -295,7 +295,7 @@ mod tests {
         let source = SqlxCorsPolicySource::new(pool);
         let policy = source
             .resolve(&sdkwork_web_core::CorsPolicyContext {
-                tenant_id: Some("tenant-1".to_owned()),
+                tenant_id: Some("100001".to_owned()),
                 environment: sdkwork_web_core::WebEnvironment::Prod,
                 api_surface: WebApiSurface::AppApi,
                 origin: Some("https://app.example".to_owned()),
@@ -313,7 +313,7 @@ mod tests {
         let pool = test_pool().await;
         sqlx::query(
             "INSERT INTO web_rate_limit_policy (tenant_id, environment, tier_key, max_requests, window_secs, enabled) \
-             VALUES ('tenant-1', 'prod', 'auth_critical', 3, 60, 1)",
+             VALUES ('100001', 'prod', 'auth_critical', 3, 60, 1)",
         )
         .execute(&pool)
         .await
@@ -321,7 +321,7 @@ mod tests {
         let source = SqlxRateLimitPolicySource::new(pool);
         let policy = source
             .resolve(&sdkwork_web_core::RateLimitPolicyContext {
-                tenant_id: Some("tenant-1".to_owned()),
+                tenant_id: Some("100001".to_owned()),
                 environment: sdkwork_web_core::WebEnvironment::Prod,
                 api_surface: WebApiSurface::AppApi,
                 rate_limit_tier: Some(RateLimitTier::AuthCritical),
@@ -338,7 +338,7 @@ mod tests {
         let pool = test_pool().await;
         sqlx::query(
             "INSERT INTO web_tenant_runtime_profile (tenant_id, environment, rate_limit_enabled, max_content_length, max_concurrent_requests) \
-             VALUES ('tenant-1', 'prod', 0, 4096, 2)",
+             VALUES ('100001', 'prod', 0, 4096, 2)",
         )
         .execute(&pool)
         .await
@@ -346,7 +346,7 @@ mod tests {
         let source = SqlxTenantRuntimeProfileSource::new(pool);
         let profile = source
             .resolve(&sdkwork_web_core::TenantRuntimeProfileContext {
-                tenant_id: Some("tenant-1".to_owned()),
+                tenant_id: Some("100001".to_owned()),
                 environment: sdkwork_web_core::WebEnvironment::Prod,
                 api_surface: WebApiSurface::AppApi,
             })
@@ -363,14 +363,14 @@ mod tests {
         let pool = test_pool().await;
         sqlx::query(
             "INSERT INTO web_cors_policy (tenant_id, environment, allow_all_origins, allowed_origins, allow_credentials) \
-             VALUES ('tenant-1', 'prod', 0, '[\"https://app.example\"]', 1)",
+             VALUES ('100001', 'prod', 0, '[\"https://app.example\"]', 1)",
         )
         .execute(&pool)
         .await
         .expect("seed cors");
         let bundle = shared_dynamic_policy_bundle(pool);
         let ctx = sdkwork_web_core::CorsPolicyContext {
-            tenant_id: Some("tenant-1".to_owned()),
+            tenant_id: Some("100001".to_owned()),
             environment: sdkwork_web_core::WebEnvironment::Prod,
             api_surface: WebApiSurface::AppApi,
             origin: Some("https://app.example".to_owned()),
@@ -390,7 +390,7 @@ mod tests {
         assert_eq!(first.allowed_origins, second.allowed_origins);
         bundle
             .caches
-            .invalidate_tenant_environment("tenant-1", "prod");
+            .invalidate_tenant_environment("100001", "prod");
         let after_invalidate = bundle
             .cors_policy_source
             .resolve(&ctx)

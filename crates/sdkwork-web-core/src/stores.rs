@@ -335,7 +335,7 @@ mod tests {
                 &fingerprint,
                 IdempotencyResponseRecord {
                     status_code: 201,
-                    body: b"tenant-a".to_vec(),
+                    body: b"100001".to_vec(),
                     content_type: None,
                 },
                 ttl,
@@ -382,15 +382,15 @@ mod tests {
     #[tokio::test]
     async fn concurrent_admission_enforces_limit() {
         let store = MemoryConcurrentAdmissionStore::default();
-        store.try_acquire("tenant-a", 1).await.expect("first");
+        store.try_acquire("100001", 1).await.expect("first");
         let error = store
-            .try_acquire("tenant-a", 1)
+            .try_acquire("100001", 1)
             .await
             .expect_err("second exceeds limit");
         assert_eq!(crate::WebFrameworkErrorKind::RateLimitExceeded, error.kind);
-        store.release("tenant-a").await.expect("release");
+        store.release("100001").await.expect("release");
         store
-            .try_acquire("tenant-a", 1)
+            .try_acquire("100001", 1)
             .await
             .expect("after release");
     }

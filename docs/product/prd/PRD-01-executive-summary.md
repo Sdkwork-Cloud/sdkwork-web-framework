@@ -5,7 +5,7 @@
 
 ## 1. 背景
 
-SDKWork 各带 API 的产品共享 HTTP 契约（`/app/v3/api`、`/backend/v3/api`、领域 open-api）与 SaaS 多租户模型。通用 Web 能力曾落在 `sdkwork-appbase`，并与 IAM 耦合；`sdkwork-claw-router` 等又重复实现 Axum 中间件。缺少 **独立的、零业务依赖的 Web 基础框架**。
+SDKWork 各带 API 的产品共享 HTTP 契约（`/app/v3/api`、`/backend/v3/api`、领域 open-api）与 SaaS 多租户模型。通用 Web 能力曾落在 `sdkwork-appbase`，并与 IAM 耦合；`sdkwork-clawrouter` 等又重复实现 Axum 中间件。缺少 **独立的、零业务依赖的 Web 基础框架**。
 
 ## 2. 定位（修订）
 

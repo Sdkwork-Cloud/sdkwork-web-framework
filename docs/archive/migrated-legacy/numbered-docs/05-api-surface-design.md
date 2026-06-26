@@ -34,7 +34,7 @@
 | 仓库 | Route crate |
 | --- | --- |
 | sdkwork-appbase | `sdkwork-routes-iam-app-api` |
-| sdkwork-claw-router | `sdkwork-routes-clawrouter-app-api`（产品域） |
+| sdkwork-clawrouter | `sdkwork-routes-clawrouter-app-api`（产品域） |
 | sdkwork-commerce | `sdkwork-routes-commerce-app-api` |
 
 ## 4. 框架基础设施路径（sdkwork-web-bootstrap）

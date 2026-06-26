@@ -99,8 +99,8 @@ mod tests {
     #[test]
     fn preserves_safe_log_fields() {
         assert_eq!(
-            "tenant-1",
-            redact_sensitive_log_value("tenant_id", "tenant-1")
+            "100001",
+            redact_sensitive_log_value("tenant_id", "100001")
         );
     }
 }

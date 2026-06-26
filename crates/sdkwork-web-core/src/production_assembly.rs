@@ -515,7 +515,7 @@ mod tests {
         use crate::jwt_tenant::EnvBootstrapTenantSigningKeyLookup;
         use crate::tenant_bound_verifying_web_request_resolver;
 
-        let lookup = EnvBootstrapTenantSigningKeyLookup::new("tenant-1", "kid-1", b"secret");
+        let lookup = EnvBootstrapTenantSigningKeyLookup::new("100001", "kid-1", b"secret");
         let resolver =
             tenant_bound_verifying_web_request_resolver(lookup, crate::DefaultApiKeyLookupService);
         let security = SecurityPolicy::production();
@@ -564,7 +564,7 @@ mod tests {
             }
         }
 
-        let lookup = EnvBootstrapTenantSigningKeyLookup::new("tenant-1", "kid-1", b"secret");
+        let lookup = EnvBootstrapTenantSigningKeyLookup::new("100001", "kid-1", b"secret");
         let resolver = tenant_bound_saas_verifying_web_request_resolver_with_claim_policy(
             lookup,
             NoOpJwtSessionRevocationChecker,
@@ -607,7 +607,7 @@ mod tests {
         use crate::jwt_tenant::EnvBootstrapTenantSigningKeyLookup;
         use crate::tenant_bound_verifying_web_request_resolver;
 
-        let lookup = EnvBootstrapTenantSigningKeyLookup::new("tenant-1", "kid-1", b"secret");
+        let lookup = EnvBootstrapTenantSigningKeyLookup::new("100001", "kid-1", b"secret");
         let resolver =
             tenant_bound_verifying_web_request_resolver(lookup, crate::DefaultApiKeyLookupService);
         let security = SecurityPolicy::production();
@@ -737,7 +737,7 @@ mod tests {
         let concurrent =
             Arc::new(RedisConcurrentAdmissionStoreStub) as Arc<dyn ConcurrentAdmissionStore>;
 
-        let lookup = EnvBootstrapTenantSigningKeyLookup::new("tenant-1", "kid-1", b"secret");
+        let lookup = EnvBootstrapTenantSigningKeyLookup::new("100001", "kid-1", b"secret");
         let resolver = tenant_bound_saas_verifying_web_request_resolver(
             lookup,
             NoOpJwtSessionRevocationChecker,
@@ -870,7 +870,7 @@ mod tests {
         let concurrent =
             Arc::new(RedisConcurrentAdmissionStoreStub) as Arc<dyn ConcurrentAdmissionStore>;
 
-        let lookup = EnvBootstrapTenantSigningKeyLookup::new("tenant-1", "kid-1", b"secret");
+        let lookup = EnvBootstrapTenantSigningKeyLookup::new("100001", "kid-1", b"secret");
         let resolver = tenant_bound_saas_verifying_web_request_resolver_with_claim_policy(
             lookup,
             NoOpJwtSessionRevocationChecker,
@@ -936,7 +936,7 @@ mod tests {
         use crate::jwt_tenant::EnvBootstrapTenantSigningKeyLookup;
         use crate::tenant_bound_verifying_web_request_resolver;
 
-        let lookup = EnvBootstrapTenantSigningKeyLookup::new("tenant-1", "kid-1", b"secret");
+        let lookup = EnvBootstrapTenantSigningKeyLookup::new("100001", "kid-1", b"secret");
         let resolver =
             tenant_bound_verifying_web_request_resolver(lookup, crate::DefaultApiKeyLookupService);
         let mut security = SecurityPolicy::production();
@@ -970,7 +970,7 @@ mod tests {
         use crate::jwt_tenant::EnvBootstrapTenantSigningKeyLookup;
         use crate::tenant_bound_verifying_web_request_resolver;
 
-        let lookup = EnvBootstrapTenantSigningKeyLookup::new("tenant-1", "kid-1", b"secret");
+        let lookup = EnvBootstrapTenantSigningKeyLookup::new("100001", "kid-1", b"secret");
         let resolver =
             tenant_bound_verifying_web_request_resolver(lookup, crate::DefaultApiKeyLookupService);
         let mut security = SecurityPolicy::production();

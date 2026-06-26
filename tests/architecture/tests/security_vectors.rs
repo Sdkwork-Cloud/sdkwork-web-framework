@@ -291,12 +291,12 @@ async fn deny_all_authorization_policy_blocks_protected_routes() {
             "Authorization",
             format!(
                 "Bearer {}",
-                sdkwork_web_core::auth_token_jwt("tenant-1", "user-1", "s-1", "appbase")
+                sdkwork_web_core::auth_token_jwt("100001", "30", "s-1", "appbase")
             ),
         )
         .header(
             "Access-Token",
-            sdkwork_web_core::access_token_jwt("tenant-1", "user-1", "s-1", "appbase"),
+            sdkwork_web_core::access_token_jwt("100001", "30", "s-1", "appbase"),
         )
         .body(Body::empty())
         .expect("request");
@@ -487,12 +487,12 @@ async fn tenant_concurrent_limit_blocks_extra_inflight_requests() {
             "Authorization",
             format!(
                 "Bearer {}",
-                sdkwork_web_core::auth_token_jwt("tenant-1", "user-1", "s-1", "appbase")
+                sdkwork_web_core::auth_token_jwt("100001", "30", "s-1", "appbase")
             ),
         )
         .header(
             "Access-Token",
-            sdkwork_web_core::access_token_jwt("tenant-1", "user-1", "s-1", "appbase"),
+            sdkwork_web_core::access_token_jwt("100001", "30", "s-1", "appbase"),
         )
         .body(Body::empty())
         .expect("request");
@@ -508,12 +508,12 @@ async fn tenant_concurrent_limit_blocks_extra_inflight_requests() {
             "Authorization",
             format!(
                 "Bearer {}",
-                sdkwork_web_core::auth_token_jwt("tenant-1", "user-1", "s-1", "appbase")
+                sdkwork_web_core::auth_token_jwt("100001", "30", "s-1", "appbase")
             ),
         )
         .header(
             "Access-Token",
-            sdkwork_web_core::access_token_jwt("tenant-1", "user-1", "s-1", "appbase"),
+            sdkwork_web_core::access_token_jwt("100001", "30", "s-1", "appbase"),
         )
         .body(Body::empty())
         .expect("request");
@@ -540,7 +540,7 @@ async fn open_api_api_key_resolves_authenticated_principal() {
         .uri("/open/v3/api/messages")
         .header(
             "x-api-key",
-            "api_key_id=key-1;tenant_id=tenant-1;user_id=user-1;app_id=appbase",
+            "api_key_id=key-1;tenant_id=100001;user_id=30;app_id=appbase",
         )
         .body(Body::empty())
         .expect("request");
@@ -551,7 +551,7 @@ async fn open_api_api_key_resolves_authenticated_principal() {
         .expect("open-api api key auth");
     assert_eq!(WebAuthMode::ApiKey, state.auth_mode);
     assert_eq!(
-        "tenant-1",
+        "100001",
         state.principal.as_ref().expect("principal").tenant_id()
     );
 }
@@ -565,7 +565,7 @@ async fn open_api_oauth_bearer_resolves_authenticated_principal() {
         .uri("/open/v3/api/messages")
         .header(
             "Authorization",
-            "Bearer token_id=tok-1;tenant_id=tenant-oauth;user_id=user-oauth;app_id=appbase",
+            "Bearer token_id=tok-1;tenant_id=100001;user_id=user-oauth;app_id=appbase",
         )
         .body(Body::empty())
         .expect("request");
@@ -576,7 +576,7 @@ async fn open_api_oauth_bearer_resolves_authenticated_principal() {
         .expect("open-api oauth auth");
     assert_eq!(WebAuthMode::OAuth, state.auth_mode);
     assert_eq!(
-        "tenant-oauth",
+        "100001",
         state.principal.as_ref().expect("principal").tenant_id()
     );
 }
@@ -642,7 +642,7 @@ async fn public_app_api_rejects_semicolon_claim_string_access_token() {
         .uri("/app/v3/api/auth/sessions/refresh")
         .header(
             "Access-Token",
-            "tenant_id=tenant-1;app_id=appbase;environment=prod;deployment_mode=saas",
+            "tenant_id=100001;app_id=appbase;environment=prod;deployment_mode=saas",
         )
         .body(Body::empty())
         .expect("request");
@@ -660,7 +660,7 @@ async fn app_api_rejects_tenant_id_query_selector() {
     let runtime = WebCallRuntime::new(DefaultWebRequestContextResolver::default());
     let chain = WebCallInterceptorChain::standard();
     let mut request = Request::builder()
-        .uri("/app/v3/api/users?tenant_id=tenant-1")
+        .uri("/app/v3/api/users?tenant_id=100001")
         .header("Authorization", auth)
         .header("Access-Token", access)
         .body(Body::empty())
@@ -678,7 +678,7 @@ async fn app_api_rejects_tenant_id_query_selector() {
 async fn app_api_rejects_tenant_id_body_selector() {
     let runtime = WebCallRuntime::new(DefaultWebRequestContextResolver::default());
     let chain = WebCallInterceptorChain::standard();
-    let body = r#"{"tenantId":"tenant-1","displayName":"Acme"}"#;
+    let body = r#"{"tenantId":"100001","displayName":"Acme"}"#;
     let mut request = Request::builder()
         .method("POST")
         .uri("/app/v3/api/users")
@@ -735,7 +735,7 @@ async fn protected_route_rejects_mismatched_tenant_path_resource_id() {
     let chain = WebCallInterceptorChain::standard();
     let mut request = Request::builder()
         .method("GET")
-        .uri("/backend/v3/api/web-framework/tenants/tenant-other/runtime-defaults")
+        .uri("/backend/v3/api/web-framework/tenants/100002/runtime-defaults")
         .header("Authorization", auth)
         .header("Access-Token", access)
         .body(Body::empty())
@@ -746,21 +746,21 @@ async fn protected_route_rejects_mismatched_tenant_path_resource_id() {
         .await
         .expect_err("path tenant mismatch");
     assert_eq!(WebFrameworkErrorKind::Forbidden, error.kind);
-    assert!(error.message.contains("tenant-other"));
+    assert!(error.message.contains("100002"));
 }
 
 fn dual_token_fixture_headers() -> (String, String) {
     (
         format!(
             "Bearer {}",
-            sdkwork_web_core::auth_token_jwt("tenant-1", "user-1", "s-1", "appbase")
+            sdkwork_web_core::auth_token_jwt("100001", "30", "s-1", "appbase")
         ),
-        sdkwork_web_core::access_token_jwt("tenant-1", "user-1", "s-1", "appbase"),
+        sdkwork_web_core::access_token_jwt("100001", "30", "s-1", "appbase"),
     )
 }
 
 fn bootstrap_access_header() -> String {
-    sdkwork_web_core::bootstrap_access_token_jwt("tenant-bootstrap", "app_tenant-bootstrap")
+    sdkwork_web_core::bootstrap_access_token_jwt("100001", "app_tenant-bootstrap")
 }
 
 #[tokio::test]
@@ -871,7 +871,7 @@ async fn non_open_api_with_dual_tokens_resolves_principal() {
     assert_eq!(WebAuthMode::DualToken, state.auth_mode);
     assert!(state.credentials.access_token.is_some());
     assert_eq!(
-        "tenant-1",
+        "100001",
         state.principal.as_ref().expect("principal").tenant_id()
     );
 }
@@ -929,7 +929,7 @@ async fn credential_entry_route_accepts_bootstrap_access_token_jwt() {
         .await
         .expect("bootstrap access token jwt accepted");
     assert_eq!(
-        "tenant-bootstrap",
+        "100001",
         state.principal.as_ref().expect("principal").tenant_id()
     );
 }
@@ -1002,7 +1002,7 @@ async fn tenant_bound_verifier_rejects_mismatched_tenant_claim_in_pipeline() {
 
     let lookup = StaticTenantSigningKeyLookup::new(BTreeMap::from([(
         "kid-1".to_owned(),
-        TenantSigningKeyMaterial::hs256("tenant-1", "kid-1", b"secret-1"),
+        TenantSigningKeyMaterial::hs256("100001", "kid-1", b"secret-1"),
     )]));
     let resolver = tenant_bound_verifying_web_request_resolver(lookup, DefaultApiKeyLookupService);
     let mut runtime = WebCallRuntime::new(resolver);
@@ -1013,7 +1013,7 @@ async fn tenant_bound_verifier_rejects_mismatched_tenant_claim_in_pipeline() {
         "kid-1",
         json!({
             "token_type": "auth",
-            "tenant_id": "tenant-other",
+            "tenant_id": "100002",
             "user_id": "user-1",
             "session_id": "s-1",
             "app_id": "appbase",
@@ -1026,7 +1026,7 @@ async fn tenant_bound_verifier_rejects_mismatched_tenant_claim_in_pipeline() {
         "kid-1",
         json!({
             "token_type": "access",
-            "tenant_id": "tenant-other",
+            "tenant_id": "100002",
             "user_id": "user-1",
             "session_id": "s-1",
             "app_id": "appbase",
@@ -1047,7 +1047,7 @@ async fn tenant_bound_verifier_rejects_mismatched_tenant_claim_in_pipeline() {
         .await
         .expect_err("tenant-bound jwt tenant mismatch");
     assert_eq!(WebFrameworkErrorKind::InvalidCredentials, error.kind);
-    assert!(error.message.contains("tenant-other"));
+    assert!(error.message.contains("100002"));
 }
 
 #[tokio::test]
@@ -1062,7 +1062,7 @@ async fn tenant_bound_verifier_accepts_valid_dual_token_in_pipeline() {
 
     let lookup = StaticTenantSigningKeyLookup::new(BTreeMap::from([(
         "kid-1".to_owned(),
-        TenantSigningKeyMaterial::hs256("tenant-1", "kid-1", b"secret-1"),
+        TenantSigningKeyMaterial::hs256("100001", "kid-1", b"secret-1"),
     )]));
     let resolver = tenant_bound_verifying_web_request_resolver(lookup, DefaultApiKeyLookupService);
     let mut runtime = WebCallRuntime::new(resolver);
@@ -1073,7 +1073,7 @@ async fn tenant_bound_verifier_accepts_valid_dual_token_in_pipeline() {
         "kid-1",
         json!({
             "token_type": "auth",
-            "tenant_id": "tenant-1",
+            "tenant_id": "100001",
             "user_id": "user-1",
             "session_id": "s-1",
             "app_id": "appbase",
@@ -1086,7 +1086,7 @@ async fn tenant_bound_verifier_accepts_valid_dual_token_in_pipeline() {
         "kid-1",
         json!({
             "token_type": "access",
-            "tenant_id": "tenant-1",
+            "tenant_id": "100001",
             "user_id": "user-1",
             "session_id": "s-1",
             "app_id": "appbase",
@@ -1107,7 +1107,7 @@ async fn tenant_bound_verifier_accepts_valid_dual_token_in_pipeline() {
         .await
         .expect("valid tenant-bound dual token");
     let principal = state.principal.as_ref().expect("principal");
-    assert_eq!("tenant-1", principal.tenancy.tenant_id);
+    assert_eq!("100001", principal.tenancy.tenant_id);
 }
 
 #[tokio::test]
@@ -1123,7 +1123,7 @@ async fn tenant_bound_verifier_rejects_jwt_without_kid_in_pipeline() {
 
     let lookup = StaticTenantSigningKeyLookup::new(BTreeMap::from([(
         "kid-1".to_owned(),
-        TenantSigningKeyMaterial::hs256("tenant-1", "kid-1", b"secret-1"),
+        TenantSigningKeyMaterial::hs256("100001", "kid-1", b"secret-1"),
     )]));
     let resolver = tenant_bound_verifying_web_request_resolver(lookup, DefaultApiKeyLookupService);
     let mut runtime = WebCallRuntime::new(resolver);
@@ -1134,7 +1134,7 @@ async fn tenant_bound_verifier_rejects_jwt_without_kid_in_pipeline() {
         "kid-1",
         json!({
             "token_type": "auth",
-            "tenant_id": "tenant-1",
+            "tenant_id": "100001",
             "user_id": "user-1",
             "session_id": "s-1",
             "app_id": "appbase",
@@ -1146,7 +1146,7 @@ async fn tenant_bound_verifier_rejects_jwt_without_kid_in_pipeline() {
         "secret-1",
         json!({
             "token_type": "access",
-            "tenant_id": "tenant-1",
+            "tenant_id": "100001",
             "user_id": "user-1",
             "session_id": "s-1",
             "app_id": "appbase",
@@ -1182,7 +1182,7 @@ async fn tenant_bound_verifier_rejects_unknown_kid_in_pipeline() {
 
     let lookup = StaticTenantSigningKeyLookup::new(BTreeMap::from([(
         "kid-1".to_owned(),
-        TenantSigningKeyMaterial::hs256("tenant-1", "kid-1", b"secret-1"),
+        TenantSigningKeyMaterial::hs256("100001", "kid-1", b"secret-1"),
     )]));
     let resolver = tenant_bound_verifying_web_request_resolver(lookup, DefaultApiKeyLookupService);
     let mut runtime = WebCallRuntime::new(resolver);
@@ -1193,7 +1193,7 @@ async fn tenant_bound_verifier_rejects_unknown_kid_in_pipeline() {
         "kid-1",
         json!({
             "token_type": "auth",
-            "tenant_id": "tenant-1",
+            "tenant_id": "100001",
             "user_id": "user-1",
             "session_id": "s-1",
             "app_id": "appbase",
@@ -1206,7 +1206,7 @@ async fn tenant_bound_verifier_rejects_unknown_kid_in_pipeline() {
         "kid-revoked",
         json!({
             "token_type": "access",
-            "tenant_id": "tenant-1",
+            "tenant_id": "100001",
             "user_id": "user-1",
             "session_id": "s-1",
             "app_id": "appbase",
@@ -1241,7 +1241,7 @@ async fn tenant_bound_verifier_rejects_expired_token_in_pipeline() {
 
     let lookup = StaticTenantSigningKeyLookup::new(BTreeMap::from([(
         "kid-1".to_owned(),
-        TenantSigningKeyMaterial::hs256("tenant-1", "kid-1", b"secret-1"),
+        TenantSigningKeyMaterial::hs256("100001", "kid-1", b"secret-1"),
     )]));
     let resolver = tenant_bound_verifying_web_request_resolver(lookup, DefaultApiKeyLookupService);
     let mut runtime = WebCallRuntime::new(resolver);
@@ -1252,7 +1252,7 @@ async fn tenant_bound_verifier_rejects_expired_token_in_pipeline() {
         "kid-1",
         json!({
             "token_type": "auth",
-            "tenant_id": "tenant-1",
+            "tenant_id": "100001",
             "user_id": "user-1",
             "session_id": "s-1",
             "app_id": "appbase",
@@ -1267,7 +1267,7 @@ async fn tenant_bound_verifier_rejects_expired_token_in_pipeline() {
         "kid-1",
         json!({
             "token_type": "access",
-            "tenant_id": "tenant-1",
+            "tenant_id": "100001",
             "user_id": "user-1",
             "session_id": "s-1",
             "app_id": "appbase",
@@ -1305,7 +1305,7 @@ async fn tenant_bound_verifier_rejects_wrong_token_type_in_pipeline() {
 
     let lookup = StaticTenantSigningKeyLookup::new(BTreeMap::from([(
         "kid-1".to_owned(),
-        TenantSigningKeyMaterial::hs256("tenant-1", "kid-1", b"secret-1"),
+        TenantSigningKeyMaterial::hs256("100001", "kid-1", b"secret-1"),
     )]));
     let resolver = tenant_bound_verifying_web_request_resolver(lookup, DefaultApiKeyLookupService);
     let mut runtime = WebCallRuntime::new(resolver);
@@ -1316,7 +1316,7 @@ async fn tenant_bound_verifier_rejects_wrong_token_type_in_pipeline() {
         "kid-1",
         json!({
             "token_type": "auth",
-            "tenant_id": "tenant-1",
+            "tenant_id": "100001",
             "user_id": "user-1",
             "session_id": "s-1",
             "app_id": "appbase",
@@ -1329,7 +1329,7 @@ async fn tenant_bound_verifier_rejects_wrong_token_type_in_pipeline() {
         "kid-1",
         json!({
             "token_type": "auth",
-            "tenant_id": "tenant-1",
+            "tenant_id": "100001",
             "user_id": "user-1",
             "session_id": "s-1",
             "app_id": "appbase",
@@ -1366,7 +1366,7 @@ async fn tenant_bound_verifier_rejects_wrong_issuer_in_pipeline() {
 
     let lookup = StaticTenantSigningKeyLookup::new(BTreeMap::from([(
         "kid-1".to_owned(),
-        TenantSigningKeyMaterial::hs256("tenant-1", "kid-1", b"secret-1"),
+        TenantSigningKeyMaterial::hs256("100001", "kid-1", b"secret-1"),
     )]));
     let resolver = tenant_bound_verifying_web_request_resolver_with_claim_policy(
         lookup,
@@ -1384,7 +1384,7 @@ async fn tenant_bound_verifier_rejects_wrong_issuer_in_pipeline() {
         "kid-1",
         json!({
             "token_type": "auth",
-            "tenant_id": "tenant-1",
+            "tenant_id": "100001",
             "user_id": "user-1",
             "session_id": "s-1",
             "app_id": "appbase",
@@ -1399,7 +1399,7 @@ async fn tenant_bound_verifier_rejects_wrong_issuer_in_pipeline() {
         "kid-1",
         json!({
             "token_type": "access",
-            "tenant_id": "tenant-1",
+            "tenant_id": "100001",
             "user_id": "user-1",
             "session_id": "s-1",
             "app_id": "appbase",
@@ -1438,7 +1438,7 @@ async fn tenant_bound_verifier_rejects_wrong_audience_in_pipeline() {
 
     let lookup = StaticTenantSigningKeyLookup::new(BTreeMap::from([(
         "kid-1".to_owned(),
-        TenantSigningKeyMaterial::hs256("tenant-1", "kid-1", b"secret-1"),
+        TenantSigningKeyMaterial::hs256("100001", "kid-1", b"secret-1"),
     )]));
     let resolver = tenant_bound_verifying_web_request_resolver_with_claim_policy(
         lookup,
@@ -1456,7 +1456,7 @@ async fn tenant_bound_verifier_rejects_wrong_audience_in_pipeline() {
         "kid-1",
         json!({
             "token_type": "auth",
-            "tenant_id": "tenant-1",
+            "tenant_id": "100001",
             "user_id": "user-1",
             "session_id": "s-1",
             "app_id": "appbase",
@@ -1471,7 +1471,7 @@ async fn tenant_bound_verifier_rejects_wrong_audience_in_pipeline() {
         "kid-1",
         json!({
             "token_type": "access",
-            "tenant_id": "tenant-1",
+            "tenant_id": "100001",
             "user_id": "user-1",
             "session_id": "s-1",
             "app_id": "appbase",
@@ -1510,7 +1510,7 @@ async fn tenant_bound_saas_verifier_rejects_revoked_session_in_pipeline() {
 
     let lookup = StaticTenantSigningKeyLookup::new(BTreeMap::from([(
         "kid-1".to_owned(),
-        TenantSigningKeyMaterial::hs256("tenant-1", "kid-1", b"secret-1"),
+        TenantSigningKeyMaterial::hs256("100001", "kid-1", b"secret-1"),
     )]));
     let resolver = tenant_bound_saas_verifying_web_request_resolver(
         lookup,
@@ -1525,7 +1525,7 @@ async fn tenant_bound_saas_verifier_rejects_revoked_session_in_pipeline() {
         "kid-1",
         json!({
             "token_type": "auth",
-            "tenant_id": "tenant-1",
+            "tenant_id": "100001",
             "user_id": "user-1",
             "session_id": "session-revoked",
             "app_id": "appbase",
@@ -1538,7 +1538,7 @@ async fn tenant_bound_saas_verifier_rejects_revoked_session_in_pipeline() {
         "kid-1",
         json!({
             "token_type": "access",
-            "tenant_id": "tenant-1",
+            "tenant_id": "100001",
             "user_id": "user-1",
             "session_id": "session-revoked",
             "app_id": "appbase",
@@ -1575,7 +1575,7 @@ async fn tenant_bound_verifier_accepts_rs256_dual_token_in_pipeline() {
     let (private_key, spki_der) = generate_rs256_test_keypair();
     let lookup = StaticTenantSigningKeyLookup::new(BTreeMap::from([(
         "kid-rs256".to_owned(),
-        TenantSigningKeyMaterial::rs256_spki("tenant-1", "kid-rs256", spki_der),
+        TenantSigningKeyMaterial::rs256_spki("100001", "kid-rs256", spki_der),
     )]));
     let resolver = tenant_bound_verifying_web_request_resolver(lookup, DefaultApiKeyLookupService);
     let mut runtime = WebCallRuntime::new(resolver);
@@ -1586,7 +1586,7 @@ async fn tenant_bound_verifier_accepts_rs256_dual_token_in_pipeline() {
         "kid-rs256",
         json!({
             "token_type": "auth",
-            "tenant_id": "tenant-1",
+            "tenant_id": "100001",
             "user_id": "user-1",
             "session_id": "s-1",
             "app_id": "appbase",
@@ -1599,7 +1599,7 @@ async fn tenant_bound_verifier_accepts_rs256_dual_token_in_pipeline() {
         "kid-rs256",
         json!({
             "token_type": "access",
-            "tenant_id": "tenant-1",
+            "tenant_id": "100001",
             "user_id": "user-1",
             "session_id": "s-1",
             "app_id": "appbase",
