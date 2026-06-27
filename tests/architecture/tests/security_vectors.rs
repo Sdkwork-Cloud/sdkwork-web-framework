@@ -351,7 +351,7 @@ async fn json_content_type_guard_is_optional() {
     let chain = WebCallInterceptorChain::standard();
     let mut request = Request::builder()
         .method("POST")
-        .uri("/health")
+        .uri("/healthz")
         .header("content-length", "12")
         .header("content-type", "text/plain")
         .body(Body::empty())
@@ -395,7 +395,7 @@ async fn dynamic_cors_overlay_allows_tenant_specific_origin() {
     let chain = WebCallInterceptorChain::standard();
     let mut request = Request::builder()
         .method("POST")
-        .uri("/health")
+        .uri("/healthz")
         .header("origin", "https://tenant.example")
         .body(Body::empty())
         .expect("request");

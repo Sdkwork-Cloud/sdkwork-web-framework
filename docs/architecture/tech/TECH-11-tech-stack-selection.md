@@ -1,9 +1,9 @@
-> Migrated from `docs/11-tech-stack-selection.md` on 2026-06-24.
+> Migrated from `docs/architecture/tech/TECH-11-tech-stack-selection.md` on 2026-06-24.
 > Owner: SDKWork maintainers
 
 # 技术选型
 
-> 前置阅读：[00-framework-foundation.md](./00-framework-foundation.md)
+> 前置阅读：[TECH-00-framework-foundation.md](./TECH-00-framework-foundation.md)
 
 ## 1. 定位
 

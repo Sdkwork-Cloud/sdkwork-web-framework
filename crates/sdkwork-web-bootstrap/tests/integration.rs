@@ -6,9 +6,9 @@ use axum::routing::get;
 use axum::Router;
 use sdkwork_web_axum::with_web_request_context;
 use sdkwork_web_bootstrap::{
-    build_openapi_document, contract_fallback_handler, service_router, ContractFallbackConfig,
-    HttpMethod, HttpRoute, ReadinessCheck, ReadinessFuture, RouteAuth, ServiceRouterConfig,
-    WebFramework, READINESS_DEPENDENCY_UNAVAILABLE,
+    assemble_multi_surface_router, build_openapi_document, contract_fallback_handler, service_router,
+    ContractFallbackConfig, HttpMethod, HttpRoute, ReadinessCheck, ReadinessFuture, RouteAuth,
+    ServiceRouterConfig, WebFramework, READINESS_DEPENDENCY_UNAVAILABLE,
 };
 use sdkwork_web_core::DefaultWebRequestContextResolver;
 use sdkwork_web_core::{bootstrap_access_token_jwt, HttpRouteManifest, WebRequestContextProfile};
@@ -337,6 +337,30 @@ async fn service_router_readyz_is_not_ready_without_probe() {
         .await
         .expect("readyz");
     assert_eq!(StatusCode::SERVICE_UNAVAILABLE, response.status());
+}
+
+#[tokio::test]
+async fn assemble_multi_surface_router_mounts_infra_once() {
+    let surface_a = Router::new().route("/app/v3/api/example/a", get(|| async { "a" }));
+    let surface_b = Router::new().route("/app/v3/api/example/b", get(|| async { "b" }));
+    let app = assemble_multi_surface_router(
+        [surface_a, surface_b],
+        ServiceRouterConfig::default().with_always_ready(),
+    );
+
+    for path in ["/healthz", "/livez", "/readyz", "/metrics"] {
+        let response = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .uri(path)
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .expect(path);
+        assert_eq!(StatusCode::OK, response.status(), "expected {path} to succeed");
+    }
 }
 
 #[tokio::test]

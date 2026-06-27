@@ -13,10 +13,15 @@ permissions:
 
 jobs:
   verify:
-    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - name: Checkout sibling SDKWork dependencies
+        shell: bash
         run: |
           git clone --depth 1 https://github.com/Sdkwork-Cloud/sdkwork-database.git "${GITHUB_WORKSPACE}/../sdkwork-database"
           git clone --depth 1 https://github.com/Sdkwork-Cloud/sdkwork-id.git "${GITHUB_WORKSPACE}/../sdkwork-id" || true
@@ -24,11 +29,18 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
           cache-dependency-path: apps/sdkwork-web-framework-pc/package-lock.json
-      - name: Verify workspace
+      - name: Verify workspace (Linux)
+        if: runner.os == 'Linux'
         run: ./scripts/verify.sh
+      - name: Verify workspace (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: .\scripts\verify.ps1

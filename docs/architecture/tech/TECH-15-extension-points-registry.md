@@ -1,4 +1,4 @@
-> Migrated from `docs/15-extension-points-registry.md` on 2026-06-24.
+> Migrated from `docs/architecture/tech/TECH-15-extension-points-registry.md` on 2026-06-24.
 > Owner: SDKWork maintainers
 
 # 扩展点注册表（Extension Points Registry）

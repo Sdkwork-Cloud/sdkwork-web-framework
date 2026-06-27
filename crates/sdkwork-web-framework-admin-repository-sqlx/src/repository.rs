@@ -75,11 +75,14 @@ pub trait WebFrameworkAdminRepository: Send + Sync {
 
     async fn control_node_exists(&self, node_id: &str) -> Result<bool, RepositoryError>;
 
+    /// Atomically registers or refreshes a control node, returning the record
+    /// and a `created` flag (`true` on insert, `false` on conflict-update).
+    /// Eliminates the TOCTOU window between `control_node_exists` and insert.
     async fn register_control_node(
         &self,
         body: RegisterControlNodeRecord,
         now: i64,
-    ) -> Result<ControlNodeRecord, RepositoryError>;
+    ) -> Result<(ControlNodeRecord, bool), RepositoryError>;
 
     async fn get_control_node(
         &self,
@@ -447,17 +450,15 @@ impl WebFrameworkAdminRepository for SqlxWebFrameworkAdminRepository {
         &self,
         body: RegisterControlNodeRecord,
         now: i64,
-    ) -> Result<ControlNodeRecord, RepositoryError> {
-        sqlx::query(
+    ) -> Result<(ControlNodeRecord, bool), RepositoryError> {
+        // Atomic insert-or-nothing. RETURNING yields the row only on insert,
+        // so `created=true` with no follow-up. On conflict (no row returned),
+        // we fall through to an UPDATE that refreshes the existing record.
+        let inserted = sqlx::query_as::<_, (String, String, String, String, String, Option<i64>, i64, i64)>(
             "INSERT INTO web_control_node (node_id, region, base_url, environment, status, last_heartbeat_at, created_at, updated_at) \
              VALUES (?, ?, ?, ?, 'registered', ?, ?, ?) \
-             ON CONFLICT(node_id) DO UPDATE SET \
-               region = excluded.region, \
-               base_url = excluded.base_url, \
-               environment = excluded.environment, \
-               status = 'registered', \
-               last_heartbeat_at = excluded.last_heartbeat_at, \
-               updated_at = excluded.updated_at",
+             ON CONFLICT(node_id) DO NOTHING \
+             RETURNING node_id, region, base_url, environment, status, last_heartbeat_at, created_at, updated_at",
         )
         .bind(&body.node_id)
         .bind(&body.region)
@@ -466,13 +467,64 @@ impl WebFrameworkAdminRepository for SqlxWebFrameworkAdminRepository {
         .bind(now)
         .bind(now)
         .bind(now)
-        .execute(&self.pool)
+        .fetch_optional(&self.pool)
         .await
         .map_err(map_sqlx_error)?;
 
-        self.get_control_node(&body.node_id)
-            .await?
-            .ok_or_else(|| RepositoryError::Database("control node missing after register".into()))
+        if let Some(row) = inserted {
+            return Ok((
+                ControlNodeRecord {
+                    node_id: row.0,
+                    region: row.1,
+                    base_url: row.2,
+                    environment: row.3,
+                    status: row.4,
+                    last_heartbeat_at: row.5,
+                    created_at: row.6,
+                    updated_at: row.7,
+                },
+                true,
+            ));
+        }
+
+        // Conflict: refresh the existing record via atomic UPDATE ... RETURNING.
+        let row = sqlx::query_as::<_, (String, String, String, String, String, Option<i64>, i64, i64)>(
+            "UPDATE web_control_node SET \
+               region = ?, \
+               base_url = ?, \
+               environment = ?, \
+               status = 'registered', \
+               last_heartbeat_at = ?, \
+               updated_at = ? \
+             WHERE node_id = ? \
+             RETURNING node_id, region, base_url, environment, status, last_heartbeat_at, created_at, updated_at",
+        )
+        .bind(&body.region)
+        .bind(&body.base_url)
+        .bind(&body.environment)
+        .bind(now)
+        .bind(now)
+        .bind(&body.node_id)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(map_sqlx_error)?
+        .ok_or_else(|| {
+            RepositoryError::Database("control node missing after register update".into())
+        })?;
+
+        Ok((
+            ControlNodeRecord {
+                node_id: row.0,
+                region: row.1,
+                base_url: row.2,
+                environment: row.3,
+                status: row.4,
+                last_heartbeat_at: row.5,
+                created_at: row.6,
+                updated_at: row.7,
+            },
+            false,
+        ))
     }
 
     async fn get_control_node(
@@ -599,7 +651,7 @@ mod repository_tests {
     async fn control_node_register_and_heartbeat_round_trips() {
         let repo = test_repository().await;
         let now = 1_700_000_000_i64;
-        let registered = repo
+        let (registered, created) = repo
             .register_control_node(
                 RegisterControlNodeRecord {
                     node_id: "node-a".to_owned(),
@@ -612,6 +664,24 @@ mod repository_tests {
             .await
             .expect("register");
         assert_eq!("node-a", registered.node_id);
+        assert!(created);
+
+        // Re-registering the same node_id must report `created=false` (refresh).
+        let (refreshed, created_again) = repo
+            .register_control_node(
+                RegisterControlNodeRecord {
+                    node_id: "node-a".to_owned(),
+                    region: "us-west-2".to_owned(),
+                    base_url: "https://node-a-v2.internal".to_owned(),
+                    environment: "prod".to_owned(),
+                },
+                now + 30,
+            )
+            .await
+            .expect("re-register");
+        assert!(!created_again);
+        assert_eq!("us-west-2", refreshed.region);
+        assert_eq!("https://node-a-v2.internal", refreshed.base_url);
 
         let heartbeat = repo
             .heartbeat_control_node("node-a", now + 60)

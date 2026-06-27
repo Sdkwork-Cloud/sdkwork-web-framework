@@ -12,6 +12,12 @@
         "in": "header",
         "name": "Access-Token",
         "type": "apiKey"
+      },
+      "sdkworkAgentToken": {
+        "description": "Backend agent bootstrap token for /backend/v3/api/agent/* routes. Resolves via api-key auth-mode without dual-token JWT.",
+        "in": "header",
+        "name": "X-SDKWork-Agent-Token",
+        "type": "apiKey"
       }
     }
   },

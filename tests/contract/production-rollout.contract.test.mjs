@@ -11,7 +11,7 @@ function read(relative) {
   return readFileSync(path.join(repoRoot, relative), "utf8");
 }
 
-const rollout = read("docs/24-production-rollout-and-adoption.md");
+const rollout = read("docs/architecture/tech/TECH-24-production-rollout-and-adoption.md");
 for (const required of [
   "Pre-flight",
   "Canary",

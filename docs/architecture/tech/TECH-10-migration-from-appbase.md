@@ -1,9 +1,9 @@
-> Migrated from `docs/10-migration-from-appbase.md` on 2026-06-24.
+> Migrated from `docs/architecture/tech/TECH-10-migration-from-appbase.md` on 2026-06-24.
 > Owner: SDKWork maintainers
 
 # 从 sdkwork-appbase 迁移计划
 
-> 前置阅读：[00-framework-foundation.md](./00-framework-foundation.md)  
+> 前置阅读：[TECH-00-framework-foundation.md](./TECH-00-framework-foundation.md)  
 > **迁移是业务仓库侧工作**；框架仓库 **不依赖** appbase 即可完成开发与测试。
 
 ## 1. 目标
@@ -122,7 +122,7 @@ sdkwork-web-axum = { path = "../sdkwork-web-framework/crates/sdkwork-web-axum" }
 1. claw-router / api-gateway 嵌入 IAM 路由时使用 router crate 自带的 `WebFramework` 层，**禁止**在 gateway merge 时二次包裹
 2. claw all-in-one：gateway 同时嵌入 `sdkwork-iam-app-api` 与 `sdkwork-iam-backend-api`（`/backend/v3/api/iam/*` 优先于 claw backend 宽前缀）
 3. **sdkwork-knowledgebase**：app / backend / open-api 通过各自 `web_bootstrap` + domain injector 映射 `WebRequestContext`；生产入口用 `build_*_with_web_framework()`，本地 `main` 仍可用 `dev_auth`
-4. **commerce**：`commerce_router_with_*_pool_and_web_framework()` 在 composition 层包裹 WebFramework（`/health`、`/ready` 公共）
+4. **T1 commerce repos**：各 T1 `*-standalone-gateway` 在装配层包裹 WebFramework（`/health`、`/ready` 公共）
 5. aiot 等自定义 transport 栈可复用 `sdkwork-iam-web-adapter` resolver，按域注入自己的 request context（无需 axum 时可只依赖 `sdkwork-web-core` trait）
 
 ## 6. 兼容
@@ -136,7 +136,7 @@ sdkwork-web-axum = { path = "../sdkwork-web-framework/crates/sdkwork-web-axum" }
 - [x] web-framework：`cargo tree` 无 appbase/iam（`dependency_graph` 测试）
 - [x] 18 阶段链完整可测 + 共享 Java 向量（`java_parity` / `pipeline-stage-order.json`）
 - [x] Release p99 预算：`scripts/benchmark-pipeline.sh`（M4 §3.1）
-- [x] OWASP API Top 10 映射：`docs/18-owasp-api-top10-mapping.md`
+- [x] OWASP API Top 10 映射：`docs/architecture/tech/TECH-18-owasp-api-top10-mapping.md`
 
 ### 7.2 业务仓库（Phase B–E — appbase / 消费者）
 

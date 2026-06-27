@@ -1,4 +1,7 @@
 target/
+target-alt/
+**/target/
+**/target-alt/
 **/dist/
 **/node_modules/
 **/.pnpm-store/
@@ -37,3 +40,7 @@ target/
 **/.sdkwork/cache/
 **/.sdkwork/secrets/
 tools/.gateway-alignment-report.json
+
+# SDKWork local runtime state
+.runtime/
+**/.runtime/

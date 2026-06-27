@@ -19,7 +19,7 @@ use sdkwork_web_core::WebRequestContext;
 fn now_epoch() -> i64 {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
-        .expect("clock")
+        .unwrap_or(std::time::Duration::ZERO)
         .as_secs() as i64
 }
 

@@ -1,9 +1,9 @@
-> Migrated from `docs/05-api-surface-design.md` on 2026-06-24.
+> Migrated from `docs/architecture/tech/TECH-05-api-surface-design.md` on 2026-06-24.
 > Owner: SDKWork maintainers
 
 # API 接口面设计
 
-> 前置阅读：[00-framework-foundation.md](./00-framework-foundation.md)
+> 前置阅读：[TECH-00-framework-foundation.md](./TECH-00-framework-foundation.md)
 
 ## 1. 框架职责边界
 
@@ -38,7 +38,7 @@
 | --- | --- |
 | sdkwork-appbase | `sdkwork-routes-iam-app-api` |
 | sdkwork-clawrouter | `sdkwork-routes-clawrouter-app-api`（产品域） |
-| sdkwork-commerce | `sdkwork-routes-commerce-app-api` |
+| sdkwork-shop | `sdkwork-routes-shop-app-api` |
 
 ## 4. 框架基础设施路径（sdkwork-web-bootstrap）
 

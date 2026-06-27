@@ -117,6 +117,7 @@ fn verify_scripts_cover_component_spec_gates() {
             "cd apps/sdkwork-web-framework-pc && npm run test:e2e:integration" => {
                 ("test:e2e:integration", "test:e2e:integration")
             }
+            "cd apps/sdkwork-web-framework-pc && npm test" => ("npm test", "npm test"),
             "node scripts/generate-pc-admin-operations.mjs --check" => (
                 "generate-pc-admin-operations.mjs --check",
                 "generate-pc-admin-operations.mjs --check",
@@ -180,7 +181,7 @@ fn capability_matrix_lists_correlation_and_fallback_guards() {
         "K10", "K11", "K12", "K13", "K14", "K15", "K16", "K17", "K18", "K19",
     ] {
         assert!(
-            ids.iter().any(|id| *id == required),
+            ids.contains(&required),
             "capability matrix must track guard capability {required}"
         );
     }
@@ -188,8 +189,13 @@ fn capability_matrix_lists_correlation_and_fallback_guards() {
 
 #[test]
 fn operations_runbook_exists_for_production_handoff() {
-    let path = repo_root().join("docs").join("21-operations-runbook.md");
-    let raw = fs::read_to_string(&path).expect("docs/21-operations-runbook.md");
+    let path = repo_root()
+        .join("docs")
+        .join("architecture")
+        .join("tech")
+        .join("TECH-21-operations-runbook.md");
+    let raw =
+        fs::read_to_string(&path).expect("docs/architecture/tech/TECH-21-operations-runbook.md");
     for required in ["/healthz", "/readyz", "/metrics", "graceful", "OTEL"] {
         assert!(
             raw.contains(required),
@@ -238,8 +244,13 @@ fn specs_readme_exists_per_component_spec() {
 
 #[test]
 fn bootstrap_and_routing_doc_exists() {
-    let path = repo_root().join("docs").join("22-bootstrap-and-routing.md");
-    let raw = fs::read_to_string(&path).expect("docs/22-bootstrap-and-routing.md");
+    let path = repo_root()
+        .join("docs")
+        .join("architecture")
+        .join("tech")
+        .join("TECH-22-bootstrap-and-routing.md");
+    let raw =
+        fs::read_to_string(&path).expect("docs/architecture/tech/TECH-22-bootstrap-and-routing.md");
     for required in [
         "route_manifest",
         "mount_service_routes",
@@ -257,8 +268,11 @@ fn bootstrap_and_routing_doc_exists() {
 fn consumer_integration_template_exists() {
     let path = repo_root()
         .join("docs")
-        .join("23-consumer-integration-template.md");
-    let raw = fs::read_to_string(&path).expect("docs/23-consumer-integration-template.md");
+        .join("architecture")
+        .join("tech")
+        .join("TECH-23-consumer-integration-template.md");
+    let raw = fs::read_to_string(&path)
+        .expect("docs/architecture/tech/TECH-23-consumer-integration-template.md");
     assert!(raw.contains("production_defaults"));
     assert!(raw.contains("WebRequestContext"));
 }
@@ -285,6 +299,7 @@ fn pc_admin_playwright_e2e_exists() {
     for relative in [
         "playwright.config.ts",
         "e2e/console.smoke.spec.ts",
+        "e2e/console.error-paths.spec.ts",
         "package.json",
     ] {
         assert!(
@@ -325,9 +340,11 @@ fn production_rollout_and_adoption_evidence_exists() {
     let repo = repo_root();
     let rollout = fs::read_to_string(
         repo.join("docs")
-            .join("24-production-rollout-and-adoption.md"),
+            .join("architecture")
+            .join("tech")
+            .join("TECH-24-production-rollout-and-adoption.md"),
     )
-    .expect("docs/24-production-rollout-and-adoption.md");
+    .expect("docs/architecture/tech/TECH-24-production-rollout-and-adoption.md");
     for required in [
         "Pre-flight",
         "Canary",
@@ -359,8 +376,11 @@ fn production_rollout_and_adoption_evidence_exists() {
 fn owasp_api_mapping_doc_exists() {
     let path = repo_root()
         .join("docs")
-        .join("18-owasp-api-top10-mapping.md");
-    let raw = fs::read_to_string(&path).expect("docs/18-owasp-api-top10-mapping.md");
+        .join("architecture")
+        .join("tech")
+        .join("TECH-18-owasp-api-top10-mapping.md");
+    let raw = fs::read_to_string(&path)
+        .expect("docs/architecture/tech/TECH-18-owasp-api-top10-mapping.md");
     assert!(raw.contains("API1:2023"));
     assert!(raw.contains("validate_production_assembly"));
 }
@@ -401,7 +421,11 @@ fn framework_pathfinder_adoption_evidence_exists() {
 
 #[test]
 fn docs_catalog_lists_new_guard_capabilities() {
-    let path = repo_root().join("docs").join("13-capability-catalog.md");
+    let path = repo_root()
+        .join("docs")
+        .join("architecture")
+        .join("tech")
+        .join("TECH-13-capability-catalog.md");
     let raw = fs::read_to_string(&path).expect("read capability catalog");
     for required in [
         "K10", "K11", "K12", "K13", "K14", "K15", "K16", "K17", "K18", "K19", "K8",

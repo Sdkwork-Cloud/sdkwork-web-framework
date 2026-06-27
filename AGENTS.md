@@ -54,7 +54,7 @@ This repository is a platform framework workspace, not an SDKWork application ro
 | Any code change | `../sdkwork-specs/CODE_STYLE_SPEC.md`, `../sdkwork-specs/NAMING_SPEC.md`, `../sdkwork-specs/RUST_CODE_SPEC.md` |
 | HTTP framework/runtime | `../sdkwork-specs/WEB_FRAMEWORK_SPEC.md`, `specs/WEB_FRAMEWORK_STANDARD.md`, `../sdkwork-specs/API_SPEC.md` §10 |
 | Web backend handlers | `../sdkwork-specs/WEB_BACKEND_SPEC.md`, `../sdkwork-specs/SECURITY_SPEC.md` §5.1 |
-| SQL store / migrations | `../sdkwork-specs/DATABASE_SPEC.md`, `docs/06-database-design.md` |
+| SQL store / migrations | `../sdkwork-specs/DATABASE_SPEC.md`, `docs/architecture/tech/TECH-06-database-design.md` |
 | Release / CI | `../sdkwork-specs/GITHUB_WORKFLOW_SPEC.md`, `../sdkwork-specs/RELEASE_SPEC.md` |
 | Verification | `../sdkwork-specs/TEST_SPEC.md`, `../sdkwork-specs/QUALITY_GATE_SPEC.md` |
 

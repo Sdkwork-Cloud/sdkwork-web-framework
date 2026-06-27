@@ -287,12 +287,8 @@ impl WebFrameworkAdminService {
     ) -> Result<RegisterControlNodeOutcome, ApiProblem> {
         validate_control_node_register(&body)?;
         let region = body.region.unwrap_or_else(|| "default".to_owned());
-        let existed = self
-            .repository
-            .control_node_exists(&body.node_id)
-            .await
-            .map_err(map_repository_error)?;
-        let record = self
+        // Repository returns `(record, created)` atomically — no TOCTOU pre-check.
+        let (record, created) = self
             .repository
             .register_control_node(
                 RegisterControlNodeRecord {
@@ -316,7 +312,7 @@ impl WebFrameworkAdminService {
                 created_at: record.created_at,
                 updated_at: record.updated_at,
             },
-            created: !existed,
+            created,
         })
     }
 

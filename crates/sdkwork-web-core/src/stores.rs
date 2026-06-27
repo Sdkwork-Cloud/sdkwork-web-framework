@@ -389,9 +389,6 @@ mod tests {
             .expect_err("second exceeds limit");
         assert_eq!(crate::WebFrameworkErrorKind::RateLimitExceeded, error.kind);
         store.release("100001").await.expect("release");
-        store
-            .try_acquire("100001", 1)
-            .await
-            .expect("after release");
+        store.try_acquire("100001", 1).await.expect("after release");
     }
 }

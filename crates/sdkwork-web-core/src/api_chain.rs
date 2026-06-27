@@ -1,7 +1,9 @@
 use crate::context_injection::DomainContextInjector;
 use crate::cors_policy::{DynamicCorsPolicySource, NoOpDynamicCorsPolicySource};
 use crate::error::WebFrameworkError;
-use crate::extractors::{access_token, api_key, bearer_token, header_value, idempotency_key};
+use crate::extractors::{
+    access_token, agent_token, api_key, bearer_token, header_value, idempotency_key,
+};
 use crate::idempotency::IdempotencyResponseRecord;
 use crate::open_api_auth::{default_open_api_scheme_detector, DynOpenApiCredentialSchemeDetector};
 use crate::policies::{
@@ -84,6 +86,8 @@ pub struct WebCallCredentials {
     pub api_key: Option<String>,
     /// OAuth bearer for open-api when `Authorization: Bearer` is present without `Access-Token`.
     pub oauth_bearer: Option<String>,
+    /// Backend agent bootstrap token (`X-SDKWork-Agent-Token`) for `RouteAuth::AgentToken` routes (C8-C9).
+    pub agent_token: Option<String>,
 }
 
 #[derive(Clone, Debug)]
@@ -426,6 +430,7 @@ impl WebCallState {
                 access_token,
                 api_key: api_key(headers),
                 oauth_bearer,
+                agent_token: agent_token(headers),
             },
             idempotency_key: idempotency_key(headers),
             idempotency_fingerprint: None,
@@ -488,6 +493,7 @@ impl WebCallState {
                 access_token_present: self.credentials.access_token.is_some(),
                 api_key_present: self.credentials.api_key.is_some(),
                 oauth_bearer_present: self.credentials.oauth_bearer.is_some(),
+                agent_token_present: self.credentials.agent_token.is_some(),
             },
             locale: None,
             client_kind: self.client_kind.clone(),
@@ -529,6 +535,7 @@ impl WebCallState {
             || self.credentials.access_token.is_some()
             || self.credentials.api_key.is_some()
             || self.credentials.oauth_bearer.is_some()
+            || self.credentials.agent_token.is_some()
     }
 
     /// Namespaced idempotency store key — scopes by credentials/principal to prevent cross-tenant replay.
@@ -545,6 +552,8 @@ impl WebCallState {
             )
         } else if let Some(api_key) = &self.credentials.api_key {
             format!("api_key={}", hash_key_material(api_key))
+        } else if let Some(agent_token) = &self.credentials.agent_token {
+            format!("agent_token={}", hash_key_material(agent_token))
         } else if let Some(oauth) = &self.credentials.oauth_bearer {
             format!("oauth={}", hash_key_material(oauth))
         } else {
@@ -582,11 +591,12 @@ impl WebCallState {
 
     fn credentials_fingerprint(&self) -> String {
         format!(
-            "a={}:t={}:k={}:o={}",
+            "a={}:t={}:k={}:o={}:g={}",
             self.credentials.auth_token.is_some(),
             self.credentials.access_token.is_some(),
             self.credentials.api_key.is_some(),
-            self.credentials.oauth_bearer.is_some()
+            self.credentials.oauth_bearer.is_some(),
+            self.credentials.agent_token.is_some()
         )
     }
 }

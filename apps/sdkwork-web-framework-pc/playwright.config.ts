@@ -4,7 +4,7 @@ const previewPort = 4175;
 
 export default defineConfig({
   testDir: "./e2e",
-  testMatch: /console\.smoke\.spec\.ts/,
+  testMatch: /console\.(smoke|error-paths)\.spec\.ts/,
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,

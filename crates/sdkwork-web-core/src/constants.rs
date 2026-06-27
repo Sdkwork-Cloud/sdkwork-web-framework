@@ -8,6 +8,8 @@ pub const REQUEST_ID_HEADER: &str = "X-Request-Id";
 pub const AUTHORIZATION_HEADER: &str = "Authorization";
 pub const ACCESS_TOKEN_HEADER: &str = "Access-Token";
 pub const API_KEY_HEADER: &str = "X-Api-Key";
+/// Backend agent bootstrap token header (C8-C9). Maps to `RouteAuth::AgentToken`.
+pub const AGENT_TOKEN_HEADER: &str = "X-SDKWork-Agent-Token";
 
 pub const APP_API_PREFIX: &str = "/app/v3/api";
 pub const BACKEND_API_PREFIX: &str = "/backend/v3/api";
@@ -79,4 +81,5 @@ pub const IAM_CANONICAL_CONTEXT_RESOURCE_PREFIXES: &[&str] =
 
 /// Session and API-key headers rejected on credential-entry routes (`forbidCredentialHeaders`).
 /// Bootstrap `Access-Token` JWT remains required for tenant isolation on those routes.
-pub const FORBIDDEN_CREDENTIAL_ENTRY_HEADERS: &[&str] = &["authorization", "x-api-key"];
+pub const FORBIDDEN_CREDENTIAL_ENTRY_HEADERS: &[&str] =
+    &["authorization", "x-api-key", "x-sdkwork-agent-token"];

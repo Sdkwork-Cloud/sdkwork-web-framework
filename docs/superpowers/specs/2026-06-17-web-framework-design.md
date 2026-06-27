@@ -32,4 +32,4 @@ Phase I：M3 核心能力实现 + 架构测试（无业务依赖）
 
 ## 文档
 
-[00-design-index.md](../00-design-index.md)
+[TECH-00-design-index.md](../../architecture/tech/TECH-00-design-index.md)

@@ -1,4 +1,4 @@
-> Migrated from `docs/21-operations-runbook.md` on 2026-06-24.
+> Migrated from `docs/architecture/tech/TECH-21-operations-runbook.md` on 2026-06-24.
 > Owner: SDKWork maintainers
 
 # 生产运维手册（Operations Runbook）
@@ -103,7 +103,7 @@ readinessProbe:
 | 并发准入 | Memory | **Redis HA**（多副本） |
 | JWT 验证 | Env bootstrap lookup | **IAM adapter** `TenantSigningKeyLookup` + `JwtSessionRevocationChecker` |
 
-详见 [10-migration-from-appbase.md](./10-migration-from-appbase.md)。
+详见 [TECH-10-migration-from-appbase.md](./TECH-10-migration-from-appbase.md)。
 
 ## 8. 故障排查
 
@@ -122,11 +122,11 @@ readinessProbe:
 1. `scripts/verify.ps1` 或 `scripts/verify.sh` 全绿
 2. 记录 `CHANGELOG.md` 条目
 3. 附 verify 日志与 benchmark 输出（`QUALITY_GATE_SPEC` 证据）
-4. 完成 [24-production-rollout-and-adoption.md](./24-production-rollout-and-adoption.md) Pre-flight 清单；M4 需归档多产品采纳 JSON
+4. 完成 [TECH-24-production-rollout-and-adoption.md](./TECH-24-production-rollout-and-adoption.md) Pre-flight 清单；M4 需归档多产品采纳 JSON
 
 ## 10. 相关文档
 
 - [deployments/README.md](../deployments/README.md) — 装配清单
 - [configs/admin-server.env.example](../configs/admin-server.env.example) — 环境模板
-- [16-maturity-model.md](./16-maturity-model.md) — M3 GA 门槛
+- [TECH-16-maturity-model.md](./TECH-16-maturity-model.md) — M3 GA 门槛
 

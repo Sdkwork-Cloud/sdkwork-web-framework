@@ -635,6 +635,19 @@ where
             {
                 return finish_optional_public_access_context(state, runtime).await;
             }
+            // AgentToken routes resolve via api-key path using X-SDKWork-Agent-Token (C8-C9).
+            // The agent token provides both authentication and tenant isolation without
+            // requiring Access-Token or Authorization: Bearer JWTs.
+            if state.route_auth == Some(RouteAuth::AgentToken) {
+                let agent_token = state.credentials.agent_token.as_deref().ok_or_else(|| {
+                    WebFrameworkError::missing_credentials(
+                        "agent routes require X-SDKWork-Agent-Token header",
+                    )
+                })?;
+                state.principal = Some(runtime.resolver.resolve_api_key(agent_token).await?);
+                state.auth_mode = WebAuthMode::ApiKey;
+                return Ok(());
+            }
             let access_token = state.credentials.access_token.as_deref().ok_or_else(|| {
                 WebFrameworkError::missing_credentials(
                     "non-open-api requests require Access-Token JWT for tenant isolation",

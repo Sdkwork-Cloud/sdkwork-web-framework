@@ -87,7 +87,8 @@
       "node tests/contract/adoption-evidence.contract.test.mjs",
       "node scripts/collect-release-evidence.mjs",
       "cd apps/sdkwork-web-framework-pc && npm run test:e2e:integration",
-      "cd apps/sdkwork-web-framework-pc && npm run verify"
+      "cd apps/sdkwork-web-framework-pc && npm run verify",
+      "cd apps/sdkwork-web-framework-pc && npm test"
     ]
   },
   "metadata": {

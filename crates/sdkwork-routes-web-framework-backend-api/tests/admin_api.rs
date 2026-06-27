@@ -205,15 +205,13 @@ async fn admin_api_rejects_invalid_tenant_runtime_profile() {
     let pool = test_pool().await;
     let app = protected_app(pool);
     let response = app
-        .oneshot(
-            dual_token_request(
-                "PUT",
-                paths::tenant_runtime::PATH,
-                Some(
-                    r#"{"tenant_id":"100001","environment":"prod","max_content_length":999999999999}"#,
-                ),
+        .oneshot(dual_token_request(
+            "PUT",
+            paths::tenant_runtime::PATH,
+            Some(
+                r#"{"tenant_id":"100001","environment":"prod","max_content_length":999999999999}"#,
             ),
-        )
+        ))
         .await
         .unwrap();
     assert_eq!(StatusCode::BAD_REQUEST, response.status());
@@ -670,10 +668,7 @@ async fn admin_api_platform_read_can_upsert_other_tenant_cors_policy() {
         .unwrap();
     assert_eq!(StatusCode::OK, response.status());
     let payload = response_json(response).await;
-    assert_eq!(
-        "100002",
-        payload["data"]["tenant_id"].as_str().unwrap()
-    );
+    assert_eq!("100002", payload["data"]["tenant_id"].as_str().unwrap());
 }
 
 #[tokio::test]
@@ -766,10 +761,7 @@ async fn admin_api_control_plane_can_list_security_events() {
 async fn admin_api_rejects_cross_tenant_audit_query_for_tenant_admin() {
     let pool = test_pool().await;
     let app = protected_app(pool);
-    let uri = format!(
-        "{}?tenant_id=100002&limit=10",
-        paths::audit_events::PATH
-    );
+    let uri = format!("{}?tenant_id=100002&limit=10", paths::audit_events::PATH);
     let response = app
         .oneshot(dual_token_request("GET", &uri, None))
         .await

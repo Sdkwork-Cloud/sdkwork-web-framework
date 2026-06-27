@@ -69,7 +69,8 @@ impl HttpRouteManifest {
     ///
     /// Non-open-api routes (app-api, backend-api, gateway-api) that are not public or
     /// refresh-token entrypoints must declare `RouteAuth::DualToken` so materialized OpenAPI
-    /// and runtime credential rules stay aligned.
+    /// and runtime credential rules stay aligned. Backend-api additionally permits
+    /// `RouteAuth::AgentToken` for `/backend/v3/api/agent/*` routes (C8-C9).
     pub fn validate_route_auth_for_surfaces(
         &self,
         profile: &WebRequestContextProfile,
@@ -77,13 +78,29 @@ impl HttpRouteManifest {
         for route in self.routes {
             let surface = classify_api_surface(route.path, profile);
             match surface {
-                WebApiSurface::AppApi | WebApiSurface::BackendApi | WebApiSurface::GatewayApi => {
+                WebApiSurface::AppApi | WebApiSurface::GatewayApi => {
                     if route.auth.skips_credential_resolution() {
                         continue;
                     }
                     if !route.auth.requires_dual_token_headers() {
                         return Err(format!(
                             "non-open-api route {} {} must declare RouteAuth::DualToken (found {})",
+                            http_method_label(route.method),
+                            route.path,
+                            route_auth_label(route.auth),
+                        ));
+                    }
+                }
+                WebApiSurface::BackendApi => {
+                    if route.auth.skips_credential_resolution() {
+                        continue;
+                    }
+                    // Backend-api permits DualToken (standard) or AgentToken (C8-C9 agent routes).
+                    if !route.auth.requires_dual_token_headers()
+                        && !route.auth.is_agent_token_credential_mode()
+                    {
+                        return Err(format!(
+                            "backend-api route {} {} must declare RouteAuth::DualToken or RouteAuth::AgentToken (found {})",
                             http_method_label(route.method),
                             route.path,
                             route_auth_label(route.auth),
@@ -155,6 +172,7 @@ fn route_auth_label(auth: RouteAuth) -> &'static str {
         RouteAuth::ApiKey => "apiKey",
         RouteAuth::OAuth => "oauth",
         RouteAuth::OpenApiFlexible => "openApiFlexible",
+        RouteAuth::AgentToken => "agentToken",
     }
 }
 

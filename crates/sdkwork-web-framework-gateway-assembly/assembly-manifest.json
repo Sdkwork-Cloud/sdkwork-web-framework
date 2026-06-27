@@ -4,7 +4,7 @@
   "applicationCode": "web-framework",
   "packageName": "sdkwork-web-framework-gateway-assembly",
   "crateDir": "crates/sdkwork-web-framework-gateway-assembly",
-  "generatedAt": "2026-06-25T13:08:05.610Z",
+  "generatedAt": "2026-06-26T13:58:34.694Z",
   "routeCrates": [
     {
       "packageName": "sdkwork-routes-web-framework-backend-api",

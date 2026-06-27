@@ -1,10 +1,10 @@
-> Migrated from `docs/22-bootstrap-and-routing.md` on 2026-06-24.
+> Migrated from `docs/architecture/tech/TECH-22-bootstrap-and-routing.md` on 2026-06-24.
 > Owner: SDKWork maintainers
 
 # Bootstrap 与路由装配
 
 > 业务集成必读。标准正文：[specs/WEB_FRAMEWORK_STANDARD.md](../specs/WEB_FRAMEWORK_STANDARD.md)  
-> 运维：[21-operations-runbook.md](./21-operations-runbook.md) · 消费者迁移：[10-migration-from-appbase.md](./10-migration-from-appbase.md)
+> 运维：[TECH-21-operations-runbook.md](./TECH-21-operations-runbook.md) · 消费者迁移：[TECH-10-migration-from-appbase.md](./TECH-10-migration-from-appbase.md)
 
 ## 1. 三步集成（North Star）
 
@@ -130,7 +130,7 @@ cargo test -p sdkwork-web-architecture-tests --test bootstrap_contract_fallback
 
 ## 9. 相关文档
 
-- [02-architecture-design.md](./02-architecture-design.md) — crate 分层
-- [05-api-surface-design.md](./05-api-surface-design.md) — API 面分类
-- [15-extension-points-registry.md](./15-extension-points-registry.md) — EP-01…EP-20
+- [TECH-02-architecture-design.md](./TECH-02-architecture-design.md) — crate 分层
+- [TECH-05-api-surface-design.md](./TECH-05-api-surface-design.md) — API 面分类
+- [TECH-15-extension-points-registry.md](./TECH-15-extension-points-registry.md) — EP-01…EP-20
 

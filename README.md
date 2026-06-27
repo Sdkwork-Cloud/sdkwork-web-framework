@@ -65,7 +65,7 @@ let app = framework.mount_service_routes(
 
 Production SaaS services should also call `.production_defaults()`, wire Redis/SQL stores, and follow `deployments/README.md`.
 
-Release evidence: `node scripts/collect-release-evidence.mjs` (see `docs/24-production-rollout-and-adoption.md`).
+Release evidence: `node scripts/collect-release-evidence.mjs` (see `docs/architecture/tech/TECH-24-production-rollout-and-adoption.md`).
 
 ## Verification
 
@@ -89,7 +89,7 @@ Or run individual gates (workspace tests, architecture tests, contract tests, PC
 ## Standards
 
 - [specs/WEB_FRAMEWORK_STANDARD.md](specs/WEB_FRAMEWORK_STANDARD.md)
-- [docs/00-design-index.md](docs/00-design-index.md)
+- [docs/architecture/tech/TECH-00-design-index.md](docs/architecture/tech/TECH-00-design-index.md)
 - [AGENTS.md](AGENTS.md)
 
 ## Documentation Canon

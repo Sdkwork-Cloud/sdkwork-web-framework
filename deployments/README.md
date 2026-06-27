@@ -53,7 +53,7 @@ Complete before promoting a consumer service to production:
 - [ ] Pin framework crate version in consumer `Cargo.toml`.
 - [ ] Attach `CHANGELOG.md` entry for the consumed release train.
 - [ ] Document consumer-specific env keys (`SDKWORK_WEB_*`, database URLs, Redis URLs) in the consumer repo — not in this framework repo.
-- [ ] Complete rollout phases and adoption evidence per [docs/24-production-rollout-and-adoption.md](../docs/24-production-rollout-and-adoption.md).
+- [ ] Complete rollout phases and adoption evidence per [docs/architecture/tech/TECH-24-production-rollout-and-adoption.md](../docs/architecture/tech/TECH-24-production-rollout-and-adoption.md).
 
 ## Reference integration
 
@@ -94,12 +94,12 @@ let app = framework.mount_service_routes(
 );
 ```
 
-See [docs/22-bootstrap-and-routing.md](../docs/22-bootstrap-and-routing.md) and `specs/WEB_FRAMEWORK_STANDARD.md` for full assembly options.
+See [docs/architecture/tech/TECH-22-bootstrap-and-routing.md](../docs/architecture/tech/TECH-22-bootstrap-and-routing.md) and `specs/WEB_FRAMEWORK_STANDARD.md` for full assembly options.
 
 ## Operations
 
-- **Runbook:** [docs/21-operations-runbook.md](../docs/21-operations-runbook.md) — health/readiness, metrics, OTel, graceful shutdown, troubleshooting
-- **Production rollout:** [docs/24-production-rollout-and-adoption.md](../docs/24-production-rollout-and-adoption.md) — Pre-flight → Canary → Rollback + M4 adoption evidence
+- **Runbook:** [docs/architecture/tech/TECH-21-operations-runbook.md](../docs/architecture/tech/TECH-21-operations-runbook.md) — health/readiness, metrics, OTel, graceful shutdown, troubleshooting
+- **Production rollout:** [docs/architecture/tech/TECH-24-production-rollout-and-adoption.md](../docs/architecture/tech/TECH-24-production-rollout-and-adoption.md) — Pre-flight → Canary → Rollback + M4 adoption evidence
 - **Env template:** [configs/admin-server.env.example](../configs/admin-server.env.example)
 - **Endpoints:** `/healthz`, `/readyz`, `/metrics` (via `mount_service_routes` / `WebFramework::run`)
 

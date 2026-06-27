@@ -4,10 +4,10 @@
 
 ## 必读路径
 
-1. [00-framework-foundation.md](./00-framework-foundation.md) — 是什么 / 不是什么
-2. [14-standards-system.md](./14-standards-system.md) — **标准体系四层金字塔**
-3. [13-capability-catalog.md](./13-capability-catalog.md) — **80+ 功能点与技术点**
-4. [12-industry-framework-benchmark.md](./12-industry-framework-benchmark.md) — Spring / ASP.NET / Nest / Stripe 对标
+1. [TECH-00-framework-foundation.md](./architecture/tech/TECH-00-framework-foundation.md) — 是什么 / 不是什么
+2. [TECH-14-standards-system.md](./architecture/tech/TECH-14-standards-system.md) — **标准体系四层金字塔**
+3. [TECH-13-capability-catalog.md](./architecture/tech/TECH-13-capability-catalog.md) — **80+ 功能点与技术点**
+4. [TECH-12-industry-framework-benchmark.md](./architecture/tech/TECH-12-industry-framework-benchmark.md) — Spring / ASP.NET / Nest / Stripe 对标
 
 ## 标准产物
 
@@ -15,11 +15,11 @@
 | --- | --- |
 | 框架标准正文 | [specs/WEB_FRAMEWORK_STANDARD.md](../specs/WEB_FRAMEWORK_STANDARD.md) |
 | 能力矩阵 JSON | [specs/web-framework-capability.matrix.json](../specs/web-framework-capability.matrix.json) |
-| 扩展点注册表 | [15-extension-points-registry.md](./15-extension-points-registry.md) |
-| 成熟度 M0–M4 | [16-maturity-model.md](./16-maturity-model.md) |
-| OWASP API Top 10 映射 | [18-owasp-api-top10-mapping.md](./18-owasp-api-top10-mapping.md) |
-| 生产 Rollout / 采纳证据 | [24-production-rollout-and-adoption.md](./24-production-rollout-and-adoption.md) |
-| Java Filter 1:1 对齐 | [19-java-spring-filter-parity.md](./19-java-spring-filter-parity.md) |
+| 扩展点注册表 | [TECH-15-extension-points-registry.md](./architecture/tech/TECH-15-extension-points-registry.md) |
+| 成熟度 M0–M4 | [TECH-16-maturity-model.md](./architecture/tech/TECH-16-maturity-model.md) |
+| OWASP API Top 10 映射 | [TECH-18-owasp-api-top10-mapping.md](./architecture/tech/TECH-18-owasp-api-top10-mapping.md) |
+| 生产 Rollout / 采纳证据 | [TECH-24-production-rollout-and-adoption.md](./architecture/tech/TECH-24-production-rollout-and-adoption.md) |
+| Java Filter 1:1 对齐 | [TECH-19-java-spring-filter-parity.md](./architecture/tech/TECH-19-java-spring-filter-parity.md) |
 | Release pipeline benchmark | `scripts/benchmark-pipeline.ps1` / `.sh`（可选 `VERIFY_RELEASE_BENCH=1` 纳入 verify） |
 
 ## 依赖关系
@@ -30,13 +30,13 @@ sdkwork-specs (L0) → sdkwork-web-framework (L1/L2) → appbase / claw-router /
 
 ## 完整索引
 
-[00-design-index.md](./00-design-index.md)
+[TECH-00-design-index.md](./architecture/tech/TECH-00-design-index.md)
 
 ## 状态
 
 - 设计：**rev.3**（行业标准 + 极致标准体系）
-- 实现：**M3 核心能力**（能力矩阵 `currentMaturity: M3`）；M4 rollout / 多产品采纳见 [24-production-rollout-and-adoption.md](./24-production-rollout-and-adoption.md)
-- 安全映射：[18-owasp-api-top10-mapping.md](./18-owasp-api-top10-mapping.md)
+- 实现：**M3 核心能力**（能力矩阵 `currentMaturity: M3`）；M4 rollout / 多产品采纳见 [TECH-24-production-rollout-and-adoption.md](./architecture/tech/TECH-24-production-rollout-and-adoption.md)
+- 安全映射：[TECH-18-owasp-api-top10-mapping.md](./architecture/tech/TECH-18-owasp-api-top10-mapping.md)
 
 ## Canon Documents
 
@@ -44,36 +44,3 @@ sdkwork-specs (L0) → sdkwork-web-framework (L1/L2) → appbase / claw-router /
 | --- | --- |
 | Product PRD | [product/prd/PRD.md](product/prd/PRD.md) |
 | Technical architecture | [architecture/tech/TECH_ARCHITECTURE.md](architecture/tech/TECH_ARCHITECTURE.md) |
-
-- [docs/product/prd/PRD.md](product/prd/PRD.md)
-- [docs/architecture/tech/TECH_ARCHITECTURE.md](architecture/tech/TECH_ARCHITECTURE.md)
-
-## Canon Documents
-
-| Document | Path |
-| --- | --- |
-| Product PRD | [product/prd/PRD.md](product/prd/PRD.md) |
-| Technical architecture | [architecture/tech/TECH_ARCHITECTURE.md](architecture/tech/TECH_ARCHITECTURE.md) |
-
-- [docs/product/prd/PRD.md](product/prd/PRD.md)
-- [docs/architecture/tech/TECH_ARCHITECTURE.md](architecture/tech/TECH_ARCHITECTURE.md)
-
-## Canon Documents
-
-| Document | Path |
-| --- | --- |
-| Product PRD | [product/prd/PRD.md](product/prd/PRD.md) |
-| Technical architecture | [architecture/tech/TECH_ARCHITECTURE.md](architecture/tech/TECH_ARCHITECTURE.md) |
-
-- [docs/product/prd/PRD.md](product/prd/PRD.md)
-- [docs/architecture/tech/TECH_ARCHITECTURE.md](architecture/tech/TECH_ARCHITECTURE.md)
-
-## Canon Documents
-
-| Document | Path |
-| --- | --- |
-| Product PRD | [product/prd/PRD.md](product/prd/PRD.md) |
-| Technical architecture | [architecture/tech/TECH_ARCHITECTURE.md](architecture/tech/TECH_ARCHITECTURE.md) |
-
-- [docs/product/prd/PRD.md](product/prd/PRD.md)
-- [docs/architecture/tech/TECH_ARCHITECTURE.md](architecture/tech/TECH_ARCHITECTURE.md)

@@ -9,17 +9,14 @@ import type {
   TenantRuntimeProfileRecord,
 } from "../../api/types";
 import { webFrameworkAdminOperations } from "./operations";
-import { createBackendSdkTransport, query, readBackendAuthFromEnv, type BackendSdkTransport } from "./transport";
+import { createBackendSdkTransport, query, type BackendSdkTransport } from "./transport";
 
 export type WebFrameworkAdminBackendSdk = ReturnType<typeof createWebFrameworkAdminBackendSdk>;
 
 /** Backend SDK facade for framework control-plane `/backend/v3/api/web-framework` operations. */
 export function createWebFrameworkAdminBackendSdk(
   baseUrl: string,
-  transport: BackendSdkTransport = createBackendSdkTransport(
-    baseUrl,
-    readBackendAuthFromEnv(),
-  ),
+  transport: BackendSdkTransport = createBackendSdkTransport(baseUrl),
 ) {
   const ops = webFrameworkAdminOperations;
   return {

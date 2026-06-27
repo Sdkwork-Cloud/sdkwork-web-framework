@@ -24,6 +24,7 @@ fn ws_state_with_principal(principal: Option<WebRequestPrincipal>) -> WebSocketC
             access_token_present: true,
             api_key_present: false,
             oauth_bearer_present: false,
+            agent_token_present: false,
         },
         locale: None,
         client_kind: None,
@@ -95,11 +96,11 @@ async fn websocket_message_rate_limit_blocks_burst_traffic() {
         byte_len: 16,
     };
     chain
-        .message(&mut state, frame.clone(), &runtime)
+        .message(&mut state, frame, &runtime)
         .await
         .expect("first message");
     chain
-        .message(&mut state, frame.clone(), &runtime)
+        .message(&mut state, frame, &runtime)
         .await
         .expect("second message");
     let error = chain

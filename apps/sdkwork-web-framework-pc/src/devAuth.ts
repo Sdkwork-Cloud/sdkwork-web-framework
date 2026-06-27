@@ -3,7 +3,17 @@ export type DevAuthClaims = {
   permission_scope?: string;
 };
 
-/** Decode unsigned JWT payload for local dev console permission gating only. */
+/**
+ * Derive UI tab-visibility hints from the session token's claims.
+ *
+ * SECURITY: This is NOT a security boundary. The payload is decoded WITHOUT
+ * signature verification purely to choose which console tabs to render. The
+ * backend ALWAYS re-verifies JWT signatures, tenant binding, token_version,
+ * and authorization via the 18-stage pipeline (WEB_FRAMEWORK_SPEC §8 /
+ * SECURITY_SPEC §4: "UI permission checks do not replace backend authorization").
+ * A forged token may reveal tab chrome, but every control-plane call is
+ * independently rejected by the backend dual-token + tenant-isolation guards.
+ */
 export function readDevAuthClaims(authToken: string | null | undefined): DevAuthClaims | null {
   if (!authToken?.trim()) {
     return null;

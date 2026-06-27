@@ -1,9 +1,9 @@
-> Migrated from `docs/07-security-standards.md` on 2026-06-24.
+> Migrated from `docs/architecture/tech/TECH-07-security-standards.md` on 2026-06-24.
 > Owner: SDKWork maintainers
 
 # 安全标准体系
 
-> 前置阅读：[00-framework-foundation.md](./00-framework-foundation.md)  
+> 前置阅读：[TECH-00-framework-foundation.md](./TECH-00-framework-foundation.md)  
 > 权威：`sdkwork-specs/SECURITY_SPEC.md` §5.1；本文件描述 **框架如何封装 enforcement**。
 
 ## 1. 安全分层
@@ -30,7 +30,7 @@ Edge (TLS/WAF) — 部署层，非框架 crate
 | 请求 ID | RequestIdentity / ResponseIdentity | 服务端 UUID |
 | 凭证解析时机 | 在安全 guard **之后** | API_SPEC 要求 |
 
-OWASP API Top 10 框架层映射见 [18-owasp-api-top10-mapping.md](./18-owasp-api-top10-mapping.md)。
+OWASP API Top 10 框架层映射见 [TECH-18-owasp-api-top10-mapping.md](./TECH-18-owasp-api-top10-mapping.md)。
 
 ## 3. 业务负责的安全能力
 

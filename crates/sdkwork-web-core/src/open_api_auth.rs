@@ -93,7 +93,12 @@ impl OpenApiCredentialSchemeDetector for DefaultOpenApiCredentialSchemeDetector 
                 return Ok(Some(OpenApiAuthScheme::OAuthBearer));
             }
             Some(RouteAuth::OpenApiFlexible) | None => {}
-            Some(RouteAuth::Public | RouteAuth::RefreshToken | RouteAuth::DualToken) => {}
+            Some(
+                RouteAuth::Public
+                | RouteAuth::RefreshToken
+                | RouteAuth::DualToken
+                | RouteAuth::AgentToken,
+            ) => {}
         }
 
         let mut detected = Vec::new();
@@ -159,7 +164,7 @@ where
 /// Maps route manifest auth to allowed open-api schemes (when not using flexible mode).
 pub fn allowed_open_api_schemes(route_auth: RouteAuth) -> &'static [OpenApiAuthScheme] {
     match route_auth {
-        RouteAuth::ApiKey => &[OpenApiAuthScheme::ApiKey],
+        RouteAuth::ApiKey | RouteAuth::AgentToken => &[OpenApiAuthScheme::ApiKey],
         RouteAuth::OAuth => &[OpenApiAuthScheme::OAuthBearer],
         RouteAuth::OpenApiFlexible => &[OpenApiAuthScheme::ApiKey, OpenApiAuthScheme::OAuthBearer],
         RouteAuth::Public | RouteAuth::RefreshToken | RouteAuth::DualToken => &[],
@@ -188,6 +193,7 @@ mod tests {
             access_token: None,
             api_key: Some("key-abc".to_owned()),
             oauth_bearer: Some("oauth-token".to_owned()),
+            agent_token: None,
         };
         let headers = HeaderMap::new();
         let scheme = detector
@@ -205,6 +211,7 @@ mod tests {
             access_token: None,
             api_key: None,
             oauth_bearer: Some("oauth-only".to_owned()),
+            agent_token: None,
         };
         let headers = HeaderMap::new();
         let scheme = detector
@@ -221,6 +228,7 @@ mod tests {
             access_token: None,
             api_key: Some("key-abc".to_owned()),
             oauth_bearer: Some("oauth-token".to_owned()),
+            agent_token: None,
         };
         let headers = HeaderMap::new();
         let error = detector
@@ -238,10 +246,9 @@ mod tests {
         let credentials = WebCallCredentials {
             auth_token: None,
             access_token: None,
-            api_key: Some(
-                "api_key_id=key-1;tenant_id=100001;user_id=30;app_id=appbase".to_owned(),
-            ),
+            api_key: Some("api_key_id=key-1;tenant_id=100001;user_id=30;app_id=appbase".to_owned()),
             oauth_bearer: None,
+            agent_token: None,
         };
         let (auth_mode, principal) = resolve_open_api_request_context(
             &credentials,
@@ -264,9 +271,9 @@ mod tests {
             access_token: None,
             api_key: None,
             oauth_bearer: Some(
-                "token_id=tok-1;tenant_id=100001;user_id=user-oauth;app_id=appbase"
-                    .to_owned(),
+                "token_id=tok-1;tenant_id=100001;user_id=user-oauth;app_id=appbase".to_owned(),
             ),
+            agent_token: None,
         };
         let (auth_mode, principal) = resolve_open_api_request_context(
             &credentials,

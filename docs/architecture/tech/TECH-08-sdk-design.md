@@ -1,9 +1,9 @@
-> Migrated from `docs/08-sdk-design.md` on 2026-06-24.
+> Migrated from `docs/architecture/tech/TECH-08-sdk-design.md` on 2026-06-24.
 > Owner: SDKWork maintainers
 
 # SDK 设计
 
-> 前置阅读：[00-framework-foundation.md](./00-framework-foundation.md)
+> 前置阅读：[TECH-00-framework-foundation.md](./TECH-00-framework-foundation.md)
 
 ## 1. 框架 SDK 边界
 

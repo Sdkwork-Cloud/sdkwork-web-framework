@@ -1,9 +1,9 @@
-> Migrated from `docs/12-industry-framework-benchmark.md` on 2026-06-24.
+> Migrated from `docs/architecture/tech/TECH-12-industry-framework-benchmark.md` on 2026-06-24.
 > Owner: SDKWork maintainers
 
 # 行业标准对标与封装哲学
 
-> 前置：[00-framework-foundation.md](./00-framework-foundation.md)  
+> 前置：[TECH-00-framework-foundation.md](./TECH-00-framework-foundation.md)  
 > 本文说明 sdkwork-web-framework **应对齐哪些行业能力**、**如何封装**、**极致标准是什么**。
 
 ## 1. 封装哲学（五条）
@@ -112,8 +112,8 @@
 
 ## 7. 相关文档
 
-- 全量能力目录：[13-capability-catalog.md](./13-capability-catalog.md)
-- 标准体系：[14-standards-system.md](./14-standards-system.md)
-- 扩展点注册表：[15-extension-points-registry.md](./15-extension-points-registry.md)
-- 成熟度模型：[16-maturity-model.md](./16-maturity-model.md)
+- 全量能力目录：[TECH-13-capability-catalog.md](./TECH-13-capability-catalog.md)
+- 标准体系：[TECH-14-standards-system.md](./TECH-14-standards-system.md)
+- 扩展点注册表：[TECH-15-extension-points-registry.md](./TECH-15-extension-points-registry.md)
+- 成熟度模型：[TECH-16-maturity-model.md](./TECH-16-maturity-model.md)
 

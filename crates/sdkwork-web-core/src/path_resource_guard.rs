@@ -139,6 +139,7 @@ mod tests {
                 access_token_present: true,
                 api_key_present: false,
                 oauth_bearer_present: false,
+                agent_token_present: false,
             },
             principal: Some(
                 WebRequestPrincipal::builder()
@@ -181,12 +182,7 @@ mod tests {
 
     #[test]
     fn rejects_mismatched_tenant_path_resource_on_app_api() {
-        let ctx = principal_context(
-            "100001",
-            None,
-            &[],
-            "/app/v3/api/resources/100002/items",
-        );
+        let ctx = principal_context("100001", None, &[], "/app/v3/api/resources/100002/items");
         let error = verify_path_resource_ids_match_principal(
             &ctx,
             "/app/v3/api/resources/{tenantId}/items",

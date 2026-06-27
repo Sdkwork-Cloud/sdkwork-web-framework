@@ -1,9 +1,9 @@
-> Migrated from `docs/16-maturity-model.md` on 2026-06-24.
+> Migrated from `docs/architecture/tech/TECH-16-maturity-model.md` on 2026-06-24.
 > Owner: SDKWork maintainers
 
 # 成熟度模型（M0–M4）
 
-> 用于 [13-capability-catalog.md](./13-capability-catalog.md) 每项能力的交付评判。
+> 用于 [TECH-13-capability-catalog.md](./TECH-13-capability-catalog.md) 每项能力的交付评判。
 
 ## 1. 等级定义
 
@@ -83,7 +83,7 @@
 框架仓库（M3 核心能力）已满足：
 
 - [x] capability matrix JSON 有 entry（`specs/web-framework-capability.matrix.json`）
-- [x] docs 13 有 ID 行（`docs/13-capability-catalog.md`）
+- [x] docs 13 有 ID 行（`docs/architecture/tech/TECH-13-capability-catalog.md`）
 - [x] trait/阶段代码 + 测试（architecture + workspace tests）
 - [x] M3 安全/性能证据（`security_vectors`、`pipeline_benchmark`）
 - [x] CHANGELOG 条目（`CHANGELOG.md` — 发布时维护）
@@ -94,7 +94,7 @@
 
 | 期 | 范围 | 出口 |
 | --- | --- | --- |
-| **Phase I** | M3 核心 A/C/G/H + 内存 D + K1–K7 | **框架仓库已达成**；appbase 切换见 [10-migration-from-appbase.md](./10-migration-from-appbase.md) |
+| **Phase I** | M3 核心 A/C/G/H + 内存 D + K1–K7 | **框架仓库已达成**；appbase 切换见 [TECH-10-migration-from-appbase.md](./TECH-10-migration-from-appbase.md) |
 | **Phase II** | Redis/SQL store M3；E 全项；Java parity | claw-router 接入 |
 | **Phase III** | M4 多产品；OTel M2；合规 CI | 对外 GA |
 

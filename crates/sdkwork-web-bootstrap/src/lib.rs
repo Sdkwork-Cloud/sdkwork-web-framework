@@ -46,7 +46,9 @@ pub use redis_stores::{
     shared_concurrent_admission_store, shared_idempotency_store, shared_rate_limit_store,
     RedisConcurrentAdmissionStore, RedisIdempotencyStore, RedisRateLimitStore,
 };
-pub use router::{mount_infra_routes, service_router, ServiceRouterConfig};
+pub use router::{
+    assemble_multi_surface_router, mount_infra_routes, service_router, ServiceRouterConfig,
+};
 pub use serve::{serve, serve_with_lifecycle};
 #[cfg(feature = "sqlx")]
 pub use sqlx_readiness::{PgPoolReadinessCheck, SqliteReadinessCheck};

@@ -1,4 +1,4 @@
-> Migrated from `docs/24-production-rollout-and-adoption.md` on 2026-06-24.
+> Migrated from `docs/architecture/tech/TECH-24-production-rollout-and-adoption.md` on 2026-06-24.
 > Owner: SDKWork maintainers
 
 # 生产 Rollout 与多产品采纳证据
@@ -33,7 +33,7 @@ scripts/verify.ps1          # Windows
 - Readiness: `GET /readyz`（必须反映 SQL/Redis 真实状态）
 - Metrics: `GET /metrics`（`api_surface` / `backend_layer` 标签见 OBSERVABILITY_SPEC）
 
-详见 [21-operations-runbook.md](./21-operations-runbook.md)。
+详见 [TECH-21-operations-runbook.md](./TECH-21-operations-runbook.md)。
 
 ## 2. 发布证据包（Release Gate）
 
@@ -47,7 +47,7 @@ scripts/verify.ps1          # Windows
 | Pipeline benchmark | `scripts/benchmark-pipeline.*` | Release p99 预算（K9） |
 | CHANGELOG | `CHANGELOG.md` | 与 `component.spec.json` version 对齐 |
 | Commit SHA | git rev-parse HEAD | 写入消费者 adoption 记录 |
-| OWASP 映射 | [18-owasp-api-top10-mapping.md](./18-owasp-api-top10-mapping.md) | API8 生产装配交叉引用 |
+| OWASP 映射 | [TECH-18-owasp-api-top10-mapping.md](./TECH-18-owasp-api-top10-mapping.md) | API8 生产装配交叉引用 |
 | 装配清单 | [deployments/README.md](../deployments/README.md) | production_defaults + Redis HA |
 
 模板 JSON：`specs/production-adoption.evidence.template.json`（消费者复制并填写）。
@@ -77,16 +77,16 @@ scripts/verify.ps1          # Windows
 - [ ] backend-api 使用 **ORGANIZATION** `login_scope`（非 TENANT 个人会话）
 - [ ] Redis HA store（SaaS）或 control-plane SQLx profile（standalone admin）
 - [ ] Problem+json 含 `requestId` / `traceId`
-- [ ] 消费者 runbook 链接到框架 [21-operations-runbook.md](./21-operations-runbook.md)
+- [ ] 消费者 runbook 链接到框架 [TECH-21-operations-runbook.md](./TECH-21-operations-runbook.md)
 
 ## 4. 安全与合规交叉引用
 
 | 主题 | 文档 |
 | --- | --- |
-| OWASP API Top 10 | [18-owasp-api-top10-mapping.md](./18-owasp-api-top10-mapping.md) |
+| OWASP API Top 10 | [TECH-18-owasp-api-top10-mapping.md](./TECH-18-owasp-api-top10-mapping.md) |
 | 18 阶段拦截链 | [specs/WEB_FRAMEWORK_STANDARD.md](../specs/WEB_FRAMEWORK_STANDARD.md) |
-| 消费者装配 | [23-consumer-integration-template.md](./23-consumer-integration-template.md) |
-| Bootstrap / 路由 | [22-bootstrap-and-routing.md](./22-bootstrap-and-routing.md) |
+| 消费者装配 | [TECH-23-consumer-integration-template.md](./TECH-23-consumer-integration-template.md) |
+| Bootstrap / 路由 | [TECH-22-bootstrap-and-routing.md](./TECH-22-bootstrap-and-routing.md) |
 
 ## 5. 故障与回滚 Runbook 摘要
 
@@ -97,7 +97,7 @@ scripts/verify.ps1          # Windows
 | 429 激增 | 检查 Redis 限流 store 与 tier 配置 |
 | 501 contract fallback | 预期未实现路由；补 handler 或调整 manifest |
 
-完整表：[21-operations-runbook.md](./21-operations-runbook.md) §8。
+完整表：[TECH-21-operations-runbook.md](./TECH-21-operations-runbook.md) §8。
 
 ## 6. 成熟度说明
 

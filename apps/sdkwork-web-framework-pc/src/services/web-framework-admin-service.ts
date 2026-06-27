@@ -16,3 +16,8 @@ export function getWebFrameworkAdminService(): WebFrameworkAdminBackendSdk {
 export function resetWebFrameworkAdminServiceForTests(): void {
   cachedSdk = null;
 }
+
+/** Inject a fake SDK for unit tests. Call resetWebFrameworkAdminServiceForTests() in afterEach. */
+export function setWebFrameworkAdminServiceForTests(sdk: WebFrameworkAdminBackendSdk): void {
+  cachedSdk = sdk;
+}

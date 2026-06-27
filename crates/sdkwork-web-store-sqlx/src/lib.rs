@@ -139,7 +139,7 @@ pub fn shared_dynamic_policy_bundle(pool: SqlitePool) -> SqlxDynamicPolicyBundle
 pub(crate) fn ttl_epoch_secs(ttl: Duration) -> i64 {
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
-        .expect("system clock before unix epoch")
+        .unwrap_or(std::time::Duration::ZERO)
         .as_secs() as i64;
     now + ttl.as_secs().max(1) as i64
 }
@@ -147,7 +147,7 @@ pub(crate) fn ttl_epoch_secs(ttl: Duration) -> i64 {
 pub(crate) fn now_epoch_secs() -> i64 {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
-        .expect("system clock before unix epoch")
+        .unwrap_or(std::time::Duration::ZERO)
         .as_secs() as i64
 }
 

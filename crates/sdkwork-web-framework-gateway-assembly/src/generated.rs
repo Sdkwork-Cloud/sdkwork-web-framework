@@ -2,6 +2,5 @@
 
 pub const ROUTE_CRATE_COUNT: usize = 1;
 
-pub const ROUTE_CRATE_PACKAGES: &[&str] = &[
-    "sdkwork-routes-web-framework-backend-api",
-];
+#[allow(dead_code)]
+pub const ROUTE_CRATE_PACKAGES: &[&str] = &["sdkwork-routes-web-framework-backend-api"];

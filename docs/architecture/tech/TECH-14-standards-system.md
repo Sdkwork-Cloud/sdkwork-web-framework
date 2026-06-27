@@ -1,4 +1,4 @@
-> Migrated from `docs/14-standards-system.md` on 2026-06-24.
+> Migrated from `docs/architecture/tech/TECH-14-standards-system.md` on 2026-06-24.
 > Owner: SDKWork maintainers
 
 # 标准体系（Standard System）
@@ -50,13 +50,13 @@
 
 | 文档/产物 | 内容 |
 | --- | --- |
-| [00-framework-foundation.md](./00-framework-foundation.md) | 依赖铁律、边界 |
-| [03-web-request-context.md](./03-web-request-context.md) | 上下文标准 |
-| [04-pipeline-interceptor-design.md](./04-pipeline-interceptor-design.md) | 管道标准 |
-| [07-security-standards.md](./07-security-standards.md) | 安全封装标准 |
-| [13-capability-catalog.md](./13-capability-catalog.md) | 能力目录 |
-| [15-extension-points-registry.md](./15-extension-points-registry.md) | 扩展点注册 |
-| [16-maturity-model.md](./16-maturity-model.md) | 成熟度与 DoD |
+| [TECH-00-framework-foundation.md](./TECH-00-framework-foundation.md) | 依赖铁律、边界 |
+| [TECH-03-web-request-context.md](./TECH-03-web-request-context.md) | 上下文标准 |
+| [TECH-04-pipeline-interceptor-design.md](./TECH-04-pipeline-interceptor-design.md) | 管道标准 |
+| [TECH-07-security-standards.md](./TECH-07-security-standards.md) | 安全封装标准 |
+| [TECH-13-capability-catalog.md](./TECH-13-capability-catalog.md) | 能力目录 |
+| [TECH-15-extension-points-registry.md](./TECH-15-extension-points-registry.md) | 扩展点注册 |
+| [TECH-16-maturity-model.md](./TECH-16-maturity-model.md) | 成熟度与 DoD |
 | `specs/WEB_FRAMEWORK_STANDARD.md` | 可提交评审的框架标准摘要 |
 | `specs/web-framework-capability.matrix.json` | 机器可读能力矩阵 |
 
@@ -137,12 +137,12 @@ sdkwork-web-compliance check  # 未来：扫描 handler 是否解析 Authorizati
 - [x] capability catalog 核心项 ≥ M3（matrix `currentMaturity: M3`）
 - [x] 架构测试禁止业务依赖
 - [x] TestRuntime 覆盖 18 阶段集成测试
-- [ ] appbase adapter 参考实现文档化（Phase B，跨仓库；框架侧见 [23-consumer-integration-template.md](./23-consumer-integration-template.md)）
-- [x] Java parity checklist 完成（`java_parity` + `docs/19-java-spring-filter-parity.md`）
-- [x] 零 Handler 样板：业务 router 模板 < 20 行装配代码（[23-consumer-integration-template.md](./23-consumer-integration-template.md)）
+- [ ] appbase adapter 参考实现文档化（Phase B，跨仓库；框架侧见 [TECH-23-consumer-integration-template.md](./TECH-23-consumer-integration-template.md)）
+- [x] Java parity checklist 完成（`java_parity` + `docs/architecture/tech/TECH-19-java-spring-filter-parity.md`）
+- [x] 零 Handler 样板：业务 router 模板 < 20 行装配代码（[TECH-23-consumer-integration-template.md](./TECH-23-consumer-integration-template.md)）
 
 ## 10. 相关文档
 
-- [12-industry-framework-benchmark.md](./12-industry-framework-benchmark.md)
-- [16-maturity-model.md](./16-maturity-model.md)
+- [TECH-12-industry-framework-benchmark.md](./TECH-12-industry-framework-benchmark.md)
+- [TECH-16-maturity-model.md](./TECH-16-maturity-model.md)
 

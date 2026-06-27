@@ -1,4 +1,6 @@
-# SDKWork web-framework verification entrypoint
+# SDKWork web-framework verification entrypoint.
+# Runs every command listed in specs/component.spec.json -> verification.commands.
+# Mandatory steps fail hard; only the live Redis integration is opt-in (SDKWORK_REDIS_TEST_URL).
 $ErrorActionPreference = "Stop"
 $PSNativeCommandUseErrorActionPreference = $true
 
@@ -34,67 +36,65 @@ Write-Host "Running admin-server control-plane assembly tests..."
 cargo test -p sdkwork-web-admin-server
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-if (Get-Command node -ErrorAction SilentlyContinue) {
-    Write-Host "Checking PC admin operations.ts generation drift..."
-    node scripts/generate-pc-admin-operations.mjs --check
-    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+Write-Host "Checking PC admin operations.ts generation drift..."
+node scripts/generate-pc-admin-operations.mjs --check
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-    Write-Host "Running database framework contract test..."
-    node tests/contract/database-framework.contract.test.mjs
-    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+Write-Host "Running database framework contract test..."
+node tests/contract/database-framework.contract.test.mjs
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-    Write-Host "Running PC admin operations contract test..."
-    node tests/contract/pc-admin-operations.contract.test.mjs
-    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+Write-Host "Running PC admin operations contract test..."
+node tests/contract/pc-admin-operations.contract.test.mjs
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-    Write-Host "Running production rollout contract test..."
-    node tests/contract/production-rollout.contract.test.mjs
-    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+Write-Host "Running production rollout contract test..."
+node tests/contract/production-rollout.contract.test.mjs
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-    Write-Host "Running release evidence contract tests..."
-    node tests/contract/release-evidence.contract.test.mjs
-    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-    node tests/contract/adoption-evidence.contract.test.mjs
-    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-    node scripts/collect-release-evidence.mjs
-    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-}
+Write-Host "Running release evidence contract tests..."
+node tests/contract/release-evidence.contract.test.mjs
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+node tests/contract/adoption-evidence.contract.test.mjs
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+node scripts/collect-release-evidence.mjs
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 $pcApp = Join-Path (Get-Location) "apps/sdkwork-web-framework-pc"
-if (Test-Path (Join-Path $pcApp "package.json")) {
-    Write-Host "Running PC admin console verify..."
-    Push-Location $pcApp
-    if (-not (Test-Path "node_modules")) {
-        npm ci
-        if ($LASTEXITCODE -ne 0) { Pop-Location; exit $LASTEXITCODE }
-    } elseif (-not (Test-Path "node_modules/@playwright/test")) {
-        npm install
-        if ($LASTEXITCODE -ne 0) { Pop-Location; exit $LASTEXITCODE }
-    }
-    npm run verify
+Write-Host "Running PC admin console verify..."
+Push-Location $pcApp
+if (-not (Test-Path "node_modules")) {
+    npm ci
     if ($LASTEXITCODE -ne 0) { Pop-Location; exit $LASTEXITCODE }
-    Pop-Location
-
-    Write-Host "Running PC admin build smoke test..."
-    node tests/contract/pc-admin-build.smoke.test.mjs
-    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-    Write-Host "Running PC admin Playwright E2E smoke..."
-    Push-Location $pcApp
-    npm run test:e2e
+} elseif (-not (Test-Path "node_modules/@playwright/test")) {
+    npm install
     if ($LASTEXITCODE -ne 0) { Pop-Location; exit $LASTEXITCODE }
-    Pop-Location
-
-    Write-Host "Building PC admin console for integration E2E..."
-    node tests/contract/pc-admin-e2e-build.contract.test.mjs
-    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-    Write-Host "Running PC admin Playwright integration E2E..."
-    Push-Location $pcApp
-    npm run test:e2e:integration
-    if ($LASTEXITCODE -ne 0) { Pop-Location; exit $LASTEXITCODE }
-    Pop-Location
 }
+npm run verify
+if ($LASTEXITCODE -ne 0) { Pop-Location; exit $LASTEXITCODE }
+npm test
+if ($LASTEXITCODE -ne 0) { Pop-Location; exit $LASTEXITCODE }
+Pop-Location
+
+Write-Host "Running PC admin build smoke test..."
+node tests/contract/pc-admin-build.smoke.test.mjs
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+Write-Host "Running PC admin Playwright E2E smoke..."
+Push-Location $pcApp
+npm run test:e2e
+if ($LASTEXITCODE -ne 0) { Pop-Location; exit $LASTEXITCODE }
+Pop-Location
+
+Write-Host "Building PC admin console for integration E2E..."
+node tests/contract/pc-admin-e2e-build.contract.test.mjs
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+Write-Host "Running PC admin Playwright integration E2E..."
+Push-Location $pcApp
+npm run test:e2e:integration
+if ($LASTEXITCODE -ne 0) { Pop-Location; exit $LASTEXITCODE }
+Pop-Location
 
 if ($env:SDKWORK_REDIS_TEST_URL) {
     Write-Host "Running live Redis integration tests..."

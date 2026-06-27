@@ -1,4 +1,4 @@
-> Migrated from `docs/00-design-index.md` on 2026-06-24.
+> Migrated from `docs/architecture/tech/TECH-00-design-index.md` on 2026-06-24.
 > Owner: SDKWork maintainers
 
 # 设计文档索引
@@ -7,32 +7,32 @@
 
 ### 所有人必读
 
-1. **[00-framework-foundation.md](./00-framework-foundation.md)** — 定位、依赖铁律、边界
-2. **[14-standards-system.md](./14-standards-system.md)** — 四层标准金字塔
-3. **[12-industry-framework-benchmark.md](./12-industry-framework-benchmark.md)** — 行业对标与封装哲学
+1. **[TECH-00-framework-foundation.md](./TECH-00-framework-foundation.md)** — 定位、依赖铁律、边界
+2. **[TECH-14-standards-system.md](./TECH-14-standards-system.md)** — 四层标准金字塔
+3. **[TECH-12-industry-framework-benchmark.md](./TECH-12-industry-framework-benchmark.md)** — 行业对标与封装哲学
 
 ### 极致标准（功能点 / 技术点 / 扩展点）
 
-4. **[13-capability-catalog.md](./13-capability-catalog.md)** — A–L 域能力目录（80+ 项）
-5. **[15-extension-points-registry.md](./15-extension-points-registry.md)** — EP-01…EP-20
-6. **[16-maturity-model.md](./16-maturity-model.md)** — M0–M4 与 GA 门槛
-7. **[18-owasp-api-top10-mapping.md](./18-owasp-api-top10-mapping.md)** — OWASP API Top 10 框架映射
+4. **[TECH-13-capability-catalog.md](./TECH-13-capability-catalog.md)** — A–L 域能力目录（80+ 项）
+5. **[TECH-15-extension-points-registry.md](./TECH-15-extension-points-registry.md)** — EP-01…EP-20
+6. **[TECH-16-maturity-model.md](./TECH-16-maturity-model.md)** — M0–M4 与 GA 门槛
+7. **[TECH-18-owasp-api-top10-mapping.md](./TECH-18-owasp-api-top10-mapping.md)** — OWASP API Top 10 框架映射
 8. **[specs/WEB_FRAMEWORK_STANDARD.md](../specs/WEB_FRAMEWORK_STANDARD.md)** — 框架标准正文
 9. **[specs/web-framework-capability.matrix.json](../specs/web-framework-capability.matrix.json)** — 机器可读矩阵
 
 ### 跨运行时
 
-10. **[19-java-spring-filter-parity.md](./19-java-spring-filter-parity.md)** — Java Filter 链 1:1 对齐指南
+10. **[TECH-19-java-spring-filter-parity.md](./TECH-19-java-spring-filter-parity.md)** — Java Filter 链 1:1 对齐指南
 
 ### 架构与实现
 
 11. [01-executive-summary.md](./01-executive-summary.md)
-10. [02-architecture-design.md](./02-architecture-design.md)
-11. [11-tech-stack-selection.md](./11-tech-stack-selection.md)
-12. **[03-web-request-context.md](./03-web-request-context.md)** — 结构定义 + 全自动注入 + 租户/应用持有
-13. [04-pipeline-interceptor-design.md](./04-pipeline-interceptor-design.md)
-14. **[17-websocket-standard.md](./17-websocket-standard.md)** — WebSocket 与 HTTP 统一 Pipeline / Context
-15. [06-database-design.md](./06-database-design.md) · [07-security-standards.md](./07-security-standards.md)
+10. [TECH-02-architecture-design.md](./TECH-02-architecture-design.md)
+11. [TECH-11-tech-stack-selection.md](./TECH-11-tech-stack-selection.md)
+12. **[TECH-03-web-request-context.md](./TECH-03-web-request-context.md)** — 结构定义 + 全自动注入 + 租户/应用持有
+13. [TECH-04-pipeline-interceptor-design.md](./TECH-04-pipeline-interceptor-design.md)
+14. **[TECH-17-websocket-standard.md](./TECH-17-websocket-standard.md)** — WebSocket 与 HTTP 统一 Pipeline / Context
+15. [TECH-06-database-design.md](./TECH-06-database-design.md) · [TECH-07-security-standards.md](./TECH-07-security-standards.md)
 
 ### Crate 布局（实现）
 
@@ -52,16 +52,16 @@
 
 ### 业务集成与运维
 
-11. [10-migration-from-appbase.md](./10-migration-from-appbase.md) — appbase → web-framework 迁移
-12. **[21-operations-runbook.md](./21-operations-runbook.md)** — 生产运维手册
-13. **[22-bootstrap-and-routing.md](./22-bootstrap-and-routing.md)** — Builder / manifest / service_router
-14. **[23-consumer-integration-template.md](./23-consumer-integration-template.md)** — 消费者 Rust 集成模板
-15. **[24-production-rollout-and-adoption.md](./24-production-rollout-and-adoption.md)** — 生产 Rollout / M4 采纳证据
-16. [05-api-surface-design.md](./05-api-surface-design.md) · [08-sdk-design.md](./08-sdk-design.md)
+11. [TECH-10-migration-from-appbase.md](./TECH-10-migration-from-appbase.md) — appbase → web-framework 迁移
+12. **[TECH-21-operations-runbook.md](./TECH-21-operations-runbook.md)** — 生产运维手册
+13. **[TECH-22-bootstrap-and-routing.md](./TECH-22-bootstrap-and-routing.md)** — Builder / manifest / service_router
+14. **[TECH-23-consumer-integration-template.md](./TECH-23-consumer-integration-template.md)** — 消费者 Rust 集成模板
+15. **[TECH-24-production-rollout-and-adoption.md](./TECH-24-production-rollout-and-adoption.md)** — 生产 Rollout / M4 采纳证据
+16. [TECH-05-api-surface-design.md](./TECH-05-api-surface-design.md) · [TECH-08-sdk-design.md](./TECH-08-sdk-design.md)
 
 ### UI（产品仓库实现）
 
-17. [09-ui-ux-functional-plan.md](./09-ui-ux-functional-plan.md)
+17. [TECH-09-ui-ux-functional-plan.md](./TECH-09-ui-ux-functional-plan.md)
 
 ## 能力域速查（13）
 

@@ -1,4 +1,4 @@
-> Migrated from `docs/18-owasp-api-top10-mapping.md` on 2026-06-24.
+> Migrated from `docs/architecture/tech/TECH-18-owasp-api-top10-mapping.md` on 2026-06-24.
 > Owner: SDKWork maintainers
 
 # OWASP API Security Top 10 映射

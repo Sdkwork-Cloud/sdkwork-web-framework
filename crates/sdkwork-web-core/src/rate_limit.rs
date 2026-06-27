@@ -69,6 +69,7 @@ mod tests {
                 access_token: None,
                 api_key: None,
                 oauth_bearer: None,
+                agent_token: None,
             },
             idempotency_key: None,
             idempotency_fingerprint: None,

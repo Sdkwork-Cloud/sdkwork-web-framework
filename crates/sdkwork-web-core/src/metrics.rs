@@ -13,6 +13,9 @@ pub struct HttpMetricsDimensions {
     pub environment: String,
     pub deployment_profile: String,
     pub runtime_target: String,
+    /// Backend runtime profile for the service (e.g. `postgresql`, `sqlite`, `memory`).
+    /// Defaults to an empty string for services without a backend store profile.
+    pub runtime_profile: String,
 }
 
 impl Default for HttpMetricsDimensions {
@@ -25,6 +28,7 @@ impl Default for HttpMetricsDimensions {
             environment: environment_metric_label(&WebEnvironment::Dev).to_owned(),
             deployment_profile: "standalone".to_owned(),
             runtime_target: "server".to_owned(),
+            runtime_profile: String::new(),
         }
     }
 }
@@ -49,6 +53,11 @@ impl HttpMetricsDimensions {
 
     pub fn with_runtime_target(mut self, runtime_target: impl Into<String>) -> Self {
         self.runtime_target = runtime_target.into();
+        self
+    }
+
+    pub fn with_runtime_profile(mut self, runtime_profile: impl Into<String>) -> Self {
+        self.runtime_profile = runtime_profile.into();
         self
     }
 }
@@ -79,12 +88,18 @@ impl HttpRequestLabels {
             .as_deref()
             .filter(|value| !value.is_empty())
             .unwrap_or("-");
+        let runtime_profile = if self.dimensions.runtime_profile.is_empty() {
+            "-"
+        } else {
+            &self.dimensions.runtime_profile
+        };
         format!(
-            "service=\"{}\",environment=\"{}\",deployment_profile=\"{}\",runtime_target=\"{}\",api_surface=\"{}\",route=\"{}\",method=\"{}\",status=\"{}\",operationId=\"{operation_id}\",backend_layer=\"{}\"",
+            "service=\"{}\",environment=\"{}\",deployment_profile=\"{}\",runtime_target=\"{}\",runtime_profile=\"{}\",api_surface=\"{}\",route=\"{}\",method=\"{}\",status=\"{}\",operationId=\"{operation_id}\",backend_layer=\"{}\"",
             escape_prometheus_label(&self.dimensions.service),
             escape_prometheus_label(&self.dimensions.environment),
             escape_prometheus_label(&self.dimensions.deployment_profile),
             escape_prometheus_label(&self.dimensions.runtime_target),
+            escape_prometheus_label(runtime_profile),
             escape_prometheus_label(&self.api_surface),
             escape_prometheus_label(&self.route),
             escape_prometheus_label(&self.method),
@@ -206,11 +221,16 @@ impl HttpMetricsRegistry {
              # TYPE sdkwork_health_status gauge\n",
         );
         output.push_str(&format!(
-            "sdkwork_health_status{{service=\"{}\",environment=\"{}\",deployment_profile=\"{}\",runtime_target=\"{}\"}} 1\n",
+            "sdkwork_health_status{{service=\"{}\",environment=\"{}\",deployment_profile=\"{}\",runtime_target=\"{}\",runtime_profile=\"{}\"}} 1\n",
             escape_prometheus_label(&dimensions.service),
             escape_prometheus_label(&dimensions.environment),
             escape_prometheus_label(&dimensions.deployment_profile),
             escape_prometheus_label(&dimensions.runtime_target),
+            escape_prometheus_label(if dimensions.runtime_profile.is_empty() {
+                "-"
+            } else {
+                &dimensions.runtime_profile
+            }),
         ));
         let labeled = self
             .labeled_requests
@@ -280,6 +300,7 @@ mod tests {
             environment: "production".to_owned(),
             deployment_profile: "cloud".to_owned(),
             runtime_target: "server".to_owned(),
+            runtime_profile: "postgresql".to_owned(),
         });
         registry.record_request(&HttpRequestLabels {
             dimensions: registry.dimensions(),
@@ -297,6 +318,7 @@ mod tests {
         assert!(rendered.contains("route=\"/app/v3/api/users/{userId}\""));
         assert!(rendered.contains("operationId=\"users.list\""));
         assert!(rendered.contains("backend_layer=\"handler\""));
+        assert!(rendered.contains("runtime_profile=\"postgresql\""));
         assert!(rendered.contains("sdkwork_health_status"));
     }
 

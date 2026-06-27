@@ -27,7 +27,7 @@
         "tracked": true
       },
       {
-        "name": "SDKWORK_ACCESS_TOKEN",
+        "name": "VITE_SDKWORK_ACCESS_TOKEN",
         "required": false,
         "tracked": true
       }

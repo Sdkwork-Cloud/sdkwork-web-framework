@@ -4,5 +4,9 @@ repository: sdkwork-web-framework-pc
 canon:
   prd: docs/product/prd/PRD.md
   techArchitecture: docs/architecture/tech/TECH_ARCHITECTURE.md
-entries: []
+entries:
+  - path: docs/runbooks/RUNBOOK-control-plane-operations.md
+    kind: runbook
+    title: Control-Plane Operations
+    owner: SDKWork platform maintainers
 domains: []

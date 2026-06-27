@@ -41,7 +41,7 @@ Run `scripts/verify.ps1` or `scripts/verify.sh` — commands mirror `specs/compo
 - **PC admin Playwright E2E (K16):** `apps/sdkwork-web-framework-pc/e2e/console.smoke.spec.ts` loads preview shell with mocked backend and permission-gated tabs.
 - **PC admin real-backend Playwright E2E (K17):** `scripts/e2e-web-stack.mjs` boots `assemble_control_plane` admin-server; integration spec exercises dual-token SDK against live HTTP.
 - **E2E JWT alignment:** integration credentials use `login_scope: ORGANIZATION` (backend-api rejects TENANT sessions per `EnforcePrincipalTenantIsolationPolicy`); integration preview uses port `4176` and never reuses smoke preview.
-- **Production rollout / adoption (K18):** `docs/24-production-rollout-and-adoption.md`, `specs/production-adoption.evidence.template.json`, and `production-rollout.contract.test.mjs` for M4 commercial handoff.
+- **Production rollout / adoption (K18):** `docs/architecture/tech/TECH-24-production-rollout-and-adoption.md`, `specs/production-adoption.evidence.template.json`, and `production-rollout.contract.test.mjs` for M4 commercial handoff.
 - **Release evidence bundle (K19):** `scripts/collect-release-evidence.mjs`, `scripts/validate-adoption-evidence.mjs`, and `specs/framework-adoption.evidence.json` (admin-server + PC console pathfinder adoptions).
 - **Test env isolation:** `sdkwork-web-test-utils::IsolatedDeploymentEnv` stabilizes dev-builder tests when `SDKWORK_WEB_FRAMEWORK_ENV=prod` is set.
 - **Optional live Redis tests:** `crates/sdkwork-web-store-redis/tests/redis_live.rs` runs when `SDKWORK_REDIS_TEST_URL` is set.
@@ -54,5 +54,5 @@ Run `scripts/verify.ps1` or `scripts/verify.sh` — commands mirror `specs/compo
 ### Added (Round 9)
 
 - **COMPONENT_SPEC alignment:** `specs/README.md`, expanded `canonicalSpecs`, `runtimeEntrypoints`
-- **Integration docs:** `docs/22-bootstrap-and-routing.md`, `docs/23-consumer-integration-template.md`（修复 deployments 断链）
+- **Integration docs:** `docs/architecture/tech/TECH-22-bootstrap-and-routing.md`, `docs/architecture/tech/TECH-23-consumer-integration-template.md`（修复 deployments 断链）
 - **Admin-api E2E:** `enable_admin_api` contract fallback 501 集成测试

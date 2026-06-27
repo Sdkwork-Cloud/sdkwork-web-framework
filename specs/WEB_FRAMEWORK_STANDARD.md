@@ -4,7 +4,7 @@
 - Scope: `sdkwork-web-framework` repository — HTTP/SaaS integration framework for all SDKWork API-capable repositories
 - Status: implementing
 - Authority: narrows `../sdkwork-specs/WEB_FRAMEWORK_SPEC.md`, `API_SPEC.md` §10, `WEB_BACKEND_SPEC.md`, `SECURITY_SPEC.md` §5.1; does not contradict root specs
-- Related: [docs/00-framework-foundation.md](../docs/00-framework-foundation.md), [docs/14-standards-system.md](../docs/14-standards-system.md)
+- Related: [docs/architecture/tech/TECH-00-framework-foundation.md](../docs/architecture/tech/TECH-00-framework-foundation.md), [docs/architecture/tech/TECH-14-standards-system.md](../docs/architecture/tech/TECH-14-standards-system.md)
 
 ## 1. Purpose
 
@@ -17,7 +17,7 @@ This standard defines how SDKWork embeds Axum/Tower for multi-tenant SaaS APIs. 
 
 ## 3. WebRequestContext (mandatory)
 
-Full specification: [docs/03-web-request-context.md](../docs/03-web-request-context.md).  
+Full specification: [docs/architecture/tech/TECH-03-web-request-context.md](../docs/architecture/tech/TECH-03-web-request-context.md).  
 JSON Schema: [web-request-context.schema.json](./web-request-context.schema.json).
 
 ### 3.1 Structure
@@ -202,4 +202,4 @@ Business repository after integration:
 
 Machine-readable catalog: [web-framework-capability.matrix.json](./web-framework-capability.matrix.json).
 
-Human catalog: [docs/13-capability-catalog.md](../docs/13-capability-catalog.md).
+Human catalog: [docs/architecture/tech/TECH-13-capability-catalog.md](../docs/architecture/tech/TECH-13-capability-catalog.md).

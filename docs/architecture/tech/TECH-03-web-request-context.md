@@ -1,4 +1,4 @@
-> Migrated from `docs/03-web-request-context.md` on 2026-06-24.
+> Migrated from `docs/architecture/tech/TECH-03-web-request-context.md` on 2026-06-24.
 > Owner: SDKWork maintainers
 
 # WebRequestContext 规范（极致版）
@@ -574,7 +574,7 @@ JSON 对外命名 **camelCase**（`tenantId`, `appId`）；Rust 内部 **snake_c
 
 ## 13. 相关文档
 
-- [04-pipeline-interceptor-design.md](./04-pipeline-interceptor-design.md) — ContextInjection 阶段
-- [15-extension-points-registry.md](./15-extension-points-registry.md) — EP-01, EP-08
+- [TECH-04-pipeline-interceptor-design.md](./TECH-04-pipeline-interceptor-design.md) — ContextInjection 阶段
+- [TECH-15-extension-points-registry.md](./TECH-15-extension-points-registry.md) — EP-01, EP-08
 - [specs/web-request-context.schema.json](../specs/web-request-context.schema.json)
 

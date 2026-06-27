@@ -1,9 +1,9 @@
-> Migrated from `docs/04-pipeline-interceptor-design.md` on 2026-06-24.
+> Migrated from `docs/architecture/tech/TECH-04-pipeline-interceptor-design.md` on 2026-06-24.
 > Owner: SDKWork maintainers
 
 # Pipeline 与 Interceptor 设计
 
-> 前置阅读：[00-framework-foundation.md](./00-framework-foundation.md)  
+> 前置阅读：[TECH-00-framework-foundation.md](./TECH-00-framework-foundation.md)  
 > 实现于 `sdkwork-web-core` + `sdkwork-web-axum`。
 
 ## 1. 原则

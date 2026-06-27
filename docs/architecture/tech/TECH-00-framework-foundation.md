@@ -1,4 +1,4 @@
-> Migrated from `docs/00-framework-foundation.md` on 2026-06-24.
+> Migrated from `docs/architecture/tech/TECH-00-framework-foundation.md` on 2026-06-24.
 > Owner: SDKWork maintainers
 
 # 基础框架定位与依赖法则
@@ -19,7 +19,7 @@
                           │
         ┌─────────────────┼─────────────────┬─────────────────┐
         ▼                 ▼                 ▼                 ▼
- sdkwork-appbase   sdkwork-clawrouter  sdkwork-commerce   sdkwork-aiot
+ sdkwork-appbase   sdkwork-clawrouter  sdkwork-shop   sdkwork-aiot
  （IAM 等业务）      （AI 网关等业务）     （电商等业务）      （物联网等业务）
         │                 │                 │                 │
         └─────────────────┴─────────────────┴─────────────────┘
@@ -32,8 +32,8 @@
 
 | 方向 | 是否允许 | 说明 |
 | --- | --- | --- |
-| 业务仓库 → `sdkwork-web-framework` | ✅ **必须** | appbase、claw-router、commerce 等集成框架 |
-| `sdkwork-web-framework` → 业务仓库 | ❌ **禁止** | 不得依赖 appbase、iam、claw-router、commerce 等 |
+| 业务仓库 → `sdkwork-web-framework` | ✅ **必须** | appbase、claw-router、shop 等 T1 仓库集成框架 |
+| `sdkwork-web-framework` → 业务仓库 | ❌ **禁止** | 不得依赖 appbase、iam、claw-router、commerce 等业务 crate |
 | `sdkwork-web-framework` → `sdkwork-specs` | ✅ 文档引用 | 规范通过相对路径引用，不 cargo 依赖 |
 | `sdkwork-web-framework` → 通用基础设施 | ✅ 受限 | 见 §4 白名单 |
 
@@ -61,7 +61,7 @@
 | 缓存/存储适配 | `redis`, `sqlx`, `sdkwork-database-config`, `sdkwork-database-sqlx` | **仅** `sdkwork-web-store-*` 可选 crate；连接池经 `sdkwork-database-sqlx` 创建，store 实现只访问 `web_*` 表 |
 | 错误 | `thiserror` | 库边界 |
 
-**禁止依赖（示例）**：`sdkwork_iam_context_service`、`sdkwork-claw-*`、`sdkwork-commerce-*`、任何 `sdkwork-routes-*`。
+**禁止依赖（示例）**：`sdkwork_iam_context_service`、`sdkwork-claw-*`、`sdkwork-commerce-*-service`、任何 `sdkwork-routes-*`。
 
 ## 5. 框架提供的「封装抽象」
 
@@ -125,7 +125,7 @@ pub trait DomainContextInjector: Send + Sync {
 ```
 
 - appbase 注册 `IamDomainContextInjector`（内部 `WebRequestPrincipal` → `IamAppContext`）
-- commerce 可注册自己的 injector
+- T1 commerce 仓库（shop、order、payment 等）可注册自己的 injector
 - 框架 `ContextInjection` 阶段只调用已注册的 `Vec<Arc<dyn DomainContextInjector>>`
 
 ## 8. 仓库内容边界
@@ -173,11 +173,11 @@ sdkwork-appbase 新增/调整:
 
 | 文档 | 内容 |
 | --- | --- |
-| [12-industry-framework-benchmark.md](./12-industry-framework-benchmark.md) | Spring / ASP.NET / Nest / Stripe 对标 |
-| [13-capability-catalog.md](./13-capability-catalog.md) | **80+ 功能点与技术点**（A–L 域） |
-| [14-standards-system.md](./14-standards-system.md) | L0–L3 四层标准金字塔 |
-| [15-extension-points-registry.md](./15-extension-points-registry.md) | 20 个扩展点 EP-01…EP-20 |
-| [16-maturity-model.md](./16-maturity-model.md) | M0–M4 成熟度与 GA 门槛 |
+| [TECH-12-industry-framework-benchmark.md](./TECH-12-industry-framework-benchmark.md) | Spring / ASP.NET / Nest / Stripe 对标 |
+| [TECH-13-capability-catalog.md](./TECH-13-capability-catalog.md) | **80+ 功能点与技术点**（A–L 域） |
+| [TECH-14-standards-system.md](./TECH-14-standards-system.md) | L0–L3 四层标准金字塔 |
+| [TECH-15-extension-points-registry.md](./TECH-15-extension-points-registry.md) | 20 个扩展点 EP-01…EP-20 |
+| [TECH-16-maturity-model.md](./TECH-16-maturity-model.md) | M0–M4 成熟度与 GA 门槛 |
 | [specs/WEB_FRAMEWORK_STANDARD.md](../specs/WEB_FRAMEWORK_STANDARD.md) | 可评审框架标准正文 |
 | [specs/web-framework-capability.matrix.json](../specs/web-framework-capability.matrix.json) | 机器可读能力矩阵 |
 
@@ -186,9 +186,9 @@ sdkwork-appbase 新增/调整:
 ## 12. 文档阅读顺序
 
 1. 本文档（基础定位）
-2. [12-industry-framework-benchmark.md](./12-industry-framework-benchmark.md) + [14-standards-system.md](./14-standards-system.md)
-3. [13-capability-catalog.md](./13-capability-catalog.md) + [15-extension-points-registry.md](./15-extension-points-registry.md)
-4. [02-architecture-design.md](./02-architecture-design.md)
-5. [03-web-request-context.md](./03-web-request-context.md) · [04-pipeline-interceptor-design.md](./04-pipeline-interceptor-design.md)
-6. [10-migration-from-appbase.md](./10-migration-from-appbase.md)（业务侧迁移）
+2. [TECH-12-industry-framework-benchmark.md](./TECH-12-industry-framework-benchmark.md) + [TECH-14-standards-system.md](./TECH-14-standards-system.md)
+3. [TECH-13-capability-catalog.md](./TECH-13-capability-catalog.md) + [TECH-15-extension-points-registry.md](./TECH-15-extension-points-registry.md)
+4. [TECH-02-architecture-design.md](./TECH-02-architecture-design.md)
+5. [TECH-03-web-request-context.md](./TECH-03-web-request-context.md) · [TECH-04-pipeline-interceptor-design.md](./TECH-04-pipeline-interceptor-design.md)
+6. [TECH-10-migration-from-appbase.md](./TECH-10-migration-from-appbase.md)（业务侧迁移）
 

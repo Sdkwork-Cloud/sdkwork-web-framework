@@ -30,7 +30,7 @@ fn component_spec_lists_core_extension_traits() {
         "WebFrameworkLifecycle",
     ] {
         assert!(
-            traits.iter().any(|name| *name == required),
+            traits.contains(&required),
             "component.spec.json must list extension trait {required}"
         );
     }
@@ -83,7 +83,7 @@ fn component_spec_lists_required_verification_commands() {
         "cd apps/sdkwork-web-framework-pc && npm run verify",
     ] {
         assert!(
-            commands.iter().any(|command| *command == required),
+            commands.contains(&required),
             "component.spec.json verification.commands must include {required}"
         );
     }
@@ -132,7 +132,7 @@ fn component_spec_lists_required_canonical_specs() {
         "DEPLOYMENT_SPEC.md",
     ] {
         assert!(
-            files.iter().any(|file| *file == required),
+            files.contains(&required),
             "component.spec.json canonicalSpecs must include {required}"
         );
     }

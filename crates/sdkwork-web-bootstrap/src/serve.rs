@@ -45,7 +45,7 @@ pub async fn serve_with_lifecycle(
 }
 
 /// Waits for OS shutdown, starts lifecycle cleanup during connection drain, then completes
-/// so Axum can stop accepting and drain inflight requests (`docs/21-operations-runbook.md` §6).
+/// so Axum can stop accepting and drain inflight requests (`docs/architecture/tech/TECH-21-operations-runbook.md` §6).
 async fn graceful_shutdown_trigger(lifecycle: Arc<dyn WebFrameworkLifecycle>) {
     wait_for_os_shutdown_signal().await;
     tracing::info!("shutdown signal received; beginning graceful connection drain");

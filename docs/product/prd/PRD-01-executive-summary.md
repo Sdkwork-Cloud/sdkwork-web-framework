@@ -59,7 +59,7 @@ SDKWork 各带 API 的产品共享 HTTP 契约（`/app/v3/api`、`/backend/v3/ap
 - [x] 框架 workspace `cargo tree` 无业务依赖
 - [x] 18 阶段链在框架内完整可测（store 可内存实现；K1–K7 + release benchmark）
 
-### 业务消费者（Phase B–E，见 [10-migration-from-appbase.md](./10-migration-from-appbase.md)）
+### 业务消费者（Phase B–E，见 [TECH-10-migration-from-appbase.md](../../architecture/tech/TECH-10-migration-from-appbase.md)）
 
 - [ ] appbase 通过 adapter crate 实现 Resolver/Injector，并依赖框架
 - [ ] appbase 删除 `sdkwork-platform-http-context-service`
@@ -69,16 +69,16 @@ SDKWork 各带 API 的产品共享 HTTP 契约（`/app/v3/api`、`/backend/v3/ap
 
 | 维度 | 文档 |
 | --- | --- |
-| 行业对标 | [12-industry-framework-benchmark.md](./12-industry-framework-benchmark.md) |
-| 80+ 能力项 | [13-capability-catalog.md](./13-capability-catalog.md)（A–L 域） |
-| 标准金字塔 | [14-standards-system.md](./14-standards-system.md) |
-| 20 扩展点 | [15-extension-points-registry.md](./15-extension-points-registry.md) |
-| M0–M4 成熟度 | [16-maturity-model.md](./16-maturity-model.md) |
+| 行业对标 | [TECH-12-industry-framework-benchmark.md](../../architecture/tech/TECH-12-industry-framework-benchmark.md) |
+| 80+ 能力项 | [TECH-13-capability-catalog.md](../../architecture/tech/TECH-13-capability-catalog.md)（A–L 域） |
+| 标准金字塔 | [TECH-14-standards-system.md](../../architecture/tech/TECH-14-standards-system.md) |
+| 20 扩展点 | [TECH-15-extension-points-registry.md](../../architecture/tech/TECH-15-extension-points-registry.md) |
+| M0–M4 成熟度 | [TECH-16-maturity-model.md](../../architecture/tech/TECH-16-maturity-model.md) |
 | 可评审标准 | [specs/WEB_FRAMEWORK_STANDARD.md](../specs/WEB_FRAMEWORK_STANDARD.md) |
 
 **North Star**：`WebFramework::builder()` 三步集成；18 阶段管道不可绕过；Handler 零 Header 鉴权样板。
 
 ## 9. 文档索引
 
-[00-design-index.md](./00-design-index.md)
+[TECH-00-design-index.md](../../architecture/tech/TECH-00-design-index.md)
 

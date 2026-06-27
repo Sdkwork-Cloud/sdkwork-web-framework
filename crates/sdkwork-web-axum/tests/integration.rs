@@ -22,7 +22,7 @@ async fn handler_receives_injected_web_request_context() {
     let layer = WebFrameworkLayer::new(DefaultWebRequestContextResolver::default());
     let app = with_web_request_context(
         Router::new().route(
-            "/health",
+            "/healthz",
             get(|ctx: WebRequestContext| async move { ctx.request_id.0.clone() }),
         ),
         layer,
@@ -31,7 +31,7 @@ async fn handler_receives_injected_web_request_context() {
     let response = app
         .oneshot(
             Request::builder()
-                .uri("/health")
+                .uri("/healthz")
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -56,7 +56,7 @@ async fn handler_supports_web_request_context_with_other_extractors() {
     let layer = WebFrameworkLayer::new(DefaultWebRequestContextResolver::default());
     let app = with_web_request_context(
         Router::new().route(
-            "/health",
+            "/healthz",
             get(
                 |Query(query): Query<PingQuery>, ctx: WebRequestContext| async move {
                     format!("{}:{}", ctx.request_id.0, query.echo.unwrap_or_default())
@@ -69,7 +69,7 @@ async fn handler_supports_web_request_context_with_other_extractors() {
     let response = app
         .oneshot(
             Request::builder()
-                .uri("/health?echo=ok")
+                .uri("/healthz?echo=ok")
                 .body(Body::empty())
                 .unwrap(),
         )

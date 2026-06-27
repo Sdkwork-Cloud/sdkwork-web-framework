@@ -128,6 +128,8 @@ pub fn build_openapi_operation(route: &HttpRoute) -> Value {
         operation.insert("security".to_owned(), json!([{ "sdkworkAccessToken": [] }]));
     } else if route.auth.requires_dual_token_headers() {
         operation.insert("security".to_owned(), json!([{ "sdkworkDualToken": [] }]));
+    } else if route.auth.is_agent_token_credential_mode() {
+        operation.insert("security".to_owned(), json!([{ "sdkworkAgentToken": [] }]));
     }
     for (key, value) in openapi_extensions_for_route(route) {
         operation.insert(key, value);
@@ -178,6 +180,12 @@ pub fn build_openapi_document(title: &str, routes: &[HttpRoute]) -> Value {
                     "in": "header",
                     "name": "Access-Token",
                     "description": "Protected routes require Authorization: Bearer <auth_token JWT> and Access-Token: <access_token JWT>."
+                },
+                "sdkworkAgentToken": {
+                    "type": "apiKey",
+                    "in": "header",
+                    "name": "X-SDKWork-Agent-Token",
+                    "description": "Backend agent bootstrap token for /backend/v3/api/agent/* routes. Resolves via api-key auth-mode without dual-token JWT."
                 }
             }
         },
@@ -476,6 +484,7 @@ fn route_auth_label(auth: RouteAuth) -> &'static str {
         RouteAuth::ApiKey => "api-key",
         RouteAuth::OAuth => "oauth",
         RouteAuth::OpenApiFlexible => "open-api-flexible",
+        RouteAuth::AgentToken => "agent-token",
     }
 }
 
@@ -487,6 +496,8 @@ fn auth_mode_label(auth: RouteAuth) -> &'static str {
         RouteAuth::ApiKey => "api-key",
         RouteAuth::OAuth => "oauth",
         RouteAuth::OpenApiFlexible => "open-api-flexible",
+        // AgentToken maps to canonical api-key auth-mode (API_SPEC §19).
+        RouteAuth::AgentToken => "api-key",
     }
 }
 

@@ -213,6 +213,7 @@ fn anonymous_context_from_request(request: &Request, request_id: &str) -> WebReq
             access_token_present: false,
             api_key_present: false,
             oauth_bearer_present: false,
+            agent_token_present: false,
         },
         locale: None,
         client_kind: Some(sdkwork_web_core::client_kind::infer_client_kind(

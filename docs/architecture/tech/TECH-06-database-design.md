@@ -1,9 +1,9 @@
-> Migrated from `docs/06-database-design.md` on 2026-06-24.
+> Migrated from `docs/architecture/tech/TECH-06-database-design.md` on 2026-06-24.
 > Owner: SDKWork maintainers
 
 # 数据库设计
 
-> 前置阅读：[00-framework-foundation.md](./00-framework-foundation.md)
+> 前置阅读：[TECH-00-framework-foundation.md](./TECH-00-framework-foundation.md)
 
 ## 1. 范围
 
@@ -65,7 +65,7 @@ pub trait AuditEmitter: Send + Sync { ... }  // 可落 web_audit_event 或 noop
 
 ## 5. Redis（可选 sdkwork-web-store-redis）
 
-流控热路径；键规则见 [07-security-standards.md](./07-security-standards.md)。
+流控热路径；键规则见 [TECH-07-security-standards.md](./TECH-07-security-standards.md)。
 
 ## 6. 业务数据访问规则
 

@@ -16,6 +16,8 @@ import {
   PERM_TENANT_ADMIN,
   readDevAuthClaims,
 } from "../devAuth";
+import { messages, tabLabels } from "../i18n/messages";
+import { readDevAuthToken } from "../sdk/auth/token-provider";
 import { getWebFrameworkAdminService } from "../services/web-framework-admin-service";
 
 export type WebFrameworkAdminTab =
@@ -27,24 +29,7 @@ export type WebFrameworkAdminTab =
   | "security"
   | "audit";
 
-const DEV_AUTH_TOKEN_STORAGE_KEY = "sdkwork.authToken";
-
-const TAB_LABELS: Record<WebFrameworkAdminTab, string> = {
-  defaults: "默认配置",
-  cors: "CORS",
-  rateLimit: "流控策略",
-  tenant: "租户运行时",
-  nodes: "控制节点",
-  security: "安全事件",
-  audit: "审计",
-};
-
-function readDevAuthToken(): string | null {
-  if (typeof sessionStorage === "undefined") {
-    return null;
-  }
-  return sessionStorage.getItem(DEV_AUTH_TOKEN_STORAGE_KEY)?.trim() ?? null;
-}
+const TAB_LABELS: Record<WebFrameworkAdminTab, string> = tabLabels;
 
 function resolveVisibleTabs(): WebFrameworkAdminTab[] {
   const claims = readDevAuthClaims(readDevAuthToken());
@@ -120,7 +105,7 @@ export function useWebFrameworkAdmin() {
           );
           return;
         default:
-          throw new Error("当前页签不支持保存");
+          throw new Error(messages.saveUnsupportedTab);
       }
     },
     [service],

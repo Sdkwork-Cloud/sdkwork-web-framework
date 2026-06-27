@@ -1,9 +1,9 @@
-> Migrated from `docs/02-architecture-design.md` on 2026-06-24.
+> Migrated from `docs/architecture/tech/TECH-02-architecture-design.md` on 2026-06-24.
 > Owner: SDKWork maintainers
 
 # 架构设计
 
-> 前置阅读：[00-framework-foundation.md](./00-framework-foundation.md)
+> 前置阅读：[TECH-00-framework-foundation.md](./TECH-00-framework-foundation.md)
 
 ## 1. 架构目标
 
@@ -20,7 +20,7 @@
 ┌──────────────────────────────────────────────────────────────────┐
 │ L3  Application Roots（apps/、Tauri host、gateway 装配）            │
 ├──────────────────────────────────────────────────────────────────┤
-│ L2  Business Capability Repos（appbase, claw-router, commerce…） │
+│ L2  Business Capability Repos（appbase, claw-router, shop, order, payment…） │
 │     • sdkwork-routes-<capability>-<surface>  （路由+Handler）     │
 │     • *-service / *-repository               （业务逻辑）          │
 │     • *-web-adapter                          （实现框架 trait）    │

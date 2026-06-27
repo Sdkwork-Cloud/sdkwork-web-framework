@@ -40,8 +40,10 @@ Vite 开发服务器将 `/backend` 代理到 `127.0.0.1:3920`。
 
 本地双令牌开发约定：
 
-- `SDKWORK_ACCESS_TOKEN`：在 `.env.development.local` 中配置 bootstrap `Access-Token` JWT（租户隔离）
+- `VITE_SDKWORK_ACCESS_TOKEN`：在 `.env.development.local` 中配置 bootstrap `Access-Token` JWT（租户隔离）。Vite 会把 `VITE_*` 变量内联进客户端 bundle，因此**仅限 dev/E2E**，生产环境绝不可设置。
 - `auth_token`：写入浏览器 `sessionStorage['sdkwork.authToken']`（不得使用 `VITE_*_TOKEN` 或 `SDKWORK_AUTH_TOKEN` 环境变量）
+
+生产部署：访问令牌不得烘焙进 bundle，由宿主页面（如 IAM current-session SDK）在运行时通过 `window.__SDKWORK_ADMIN_CREDENTIALS__` 注入，详见 `src/sdk/auth/token-provider.ts`。后端始终通过 18 阶段管道重新校验签名、租户绑定与授权，客户端令牌存储仅是 UX 层，不是安全边界。
 
 ## 分布式部署
 

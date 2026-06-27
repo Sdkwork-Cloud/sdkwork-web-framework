@@ -1,4 +1,6 @@
-use crate::constants::{ACCESS_TOKEN_HEADER, API_KEY_HEADER, AUTHORIZATION_HEADER};
+use crate::constants::{
+    ACCESS_TOKEN_HEADER, AGENT_TOKEN_HEADER, API_KEY_HEADER, AUTHORIZATION_HEADER,
+};
 use axum::http::HeaderMap;
 
 pub fn idempotency_key(headers: &HeaderMap) -> Option<String> {
@@ -17,6 +19,11 @@ pub fn bearer_token(headers: &HeaderMap) -> Option<String> {
 
 pub fn api_key(headers: &HeaderMap) -> Option<String> {
     header_value(headers, API_KEY_HEADER)
+}
+
+/// Extracts the backend agent bootstrap token (`X-SDKWork-Agent-Token`) for `RouteAuth::AgentToken` routes (C8-C9).
+pub fn agent_token(headers: &HeaderMap) -> Option<String> {
+    header_value(headers, AGENT_TOKEN_HEADER)
 }
 
 pub fn access_token(headers: &HeaderMap) -> Option<String> {

@@ -23,7 +23,11 @@ const build = spawnSync("npm", ["exec", "--", "vite", "build"], {
   cwd: pcApp,
   env: {
     ...process.env,
-    SDKWORK_ACCESS_TOKEN: e2eAccessToken(),
+    // Vite exposes VITE_-prefixed env to the client via import.meta.env; the
+    // E2E access token is intentionally baked into the integration dist bundle
+    // (asserted by pc-admin-e2e-build.contract.test.mjs). Production builds
+    // MUST NOT set this — see token-provider.ts RuntimeCredentialsTokenProvider.
+    VITE_SDKWORK_ACCESS_TOKEN: e2eAccessToken(),
   },
   stdio: "inherit",
   shell: process.platform === "win32",

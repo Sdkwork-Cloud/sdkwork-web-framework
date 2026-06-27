@@ -1,4 +1,4 @@
-> Migrated from `docs/19-java-spring-filter-parity.md` on 2026-06-24.
+> Migrated from `docs/architecture/tech/TECH-19-java-spring-filter-parity.md` on 2026-06-24.
 > Owner: SDKWork maintainers
 
 # Java / Spring Filter 链对齐指南

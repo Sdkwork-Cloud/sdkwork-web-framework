@@ -48,10 +48,10 @@ Commands mirror `component.spec.json` → `verification.commands`.
 
 ## Integration Docs
 
-- [docs/22-bootstrap-and-routing.md](../docs/22-bootstrap-and-routing.md) — builder, manifest, service router
-- [docs/21-operations-runbook.md](../docs/21-operations-runbook.md) — production operations
-- [docs/24-production-rollout-and-adoption.md](../docs/24-production-rollout-and-adoption.md) — rollout SOP + adoption evidence
-- [docs/10-migration-from-appbase.md](../docs/10-migration-from-appbase.md) — consumer migration
+- [docs/architecture/tech/TECH-22-bootstrap-and-routing.md](../docs/architecture/tech/TECH-22-bootstrap-and-routing.md) — builder, manifest, service router
+- [docs/architecture/tech/TECH-21-operations-runbook.md](../docs/architecture/tech/TECH-21-operations-runbook.md) — production operations
+- [docs/architecture/tech/TECH-24-production-rollout-and-adoption.md](../docs/architecture/tech/TECH-24-production-rollout-and-adoption.md) — rollout SOP + adoption evidence
+- [docs/architecture/tech/TECH-10-migration-from-appbase.md](../docs/architecture/tech/TECH-10-migration-from-appbase.md) — consumer migration
 
 ## Release Evidence
 

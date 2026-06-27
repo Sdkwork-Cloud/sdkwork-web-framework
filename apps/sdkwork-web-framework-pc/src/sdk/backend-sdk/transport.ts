@@ -1,9 +1,8 @@
 import type { ApiEnvelope } from "../../api/types";
-
-export type BackendAuthCredentials = {
-  authToken: string;
-  accessToken: string;
-};
+import {
+  type BackendTokenProvider,
+  resolveBackendTokenProvider,
+} from "../auth/token-provider";
 
 export type BackendSdkTransport = {
   get<T>(path: string): Promise<T>;
@@ -34,55 +33,50 @@ export class BackendSdkError extends Error {
   }
 }
 
-const DEV_AUTH_TOKEN_STORAGE_KEY = "sdkwork.authToken";
-
-declare const process: {
-  env: {
-    SDKWORK_ACCESS_TOKEN?: string;
-  };
-};
-
-function readDevAuthTokenFromSession(): string {
-  if (typeof sessionStorage === "undefined") {
-    return "";
+/** Resolve per-request auth headers from the active token provider (no credential caching). */
+function dualTokenHeaders(provider: BackendTokenProvider): Record<string, string> {
+  const headers: Record<string, string> = { "content-type": "application/json" };
+  const credentials = provider.getCredentials();
+  if (credentials?.authToken) {
+    headers["Authorization"] = `Bearer ${credentials.authToken}`;
   }
-  return sessionStorage.getItem(DEV_AUTH_TOKEN_STORAGE_KEY)?.trim() ?? "";
-}
-
-/** Reads dual-token credentials for local dev: access from env, auth from session storage. */
-export function readBackendAuthFromEnv(): BackendAuthCredentials | null {
-  const accessToken = process.env.SDKWORK_ACCESS_TOKEN?.trim();
-  const authToken = readDevAuthTokenFromSession();
-  if (!authToken || !accessToken) {
-    return null;
+  if (credentials?.accessToken) {
+    headers["Access-Token"] = credentials.accessToken;
   }
-  return { authToken, accessToken };
-}
-
-function dualTokenHeaders(credentials: BackendAuthCredentials): HeadersInit {
-  return {
-    Authorization: `Bearer ${credentials.authToken}`,
-    "Access-Token": credentials.accessToken,
-  };
+  return headers;
 }
 
 /** Internal transport for backend SDK facades. UI code must consume SDK methods, not this layer. */
 export function createBackendSdkTransport(
   baseUrl: string,
-  credentials?: BackendAuthCredentials | null,
+  provider: BackendTokenProvider = resolveBackendTokenProvider(),
 ): BackendSdkTransport {
   const base = baseUrl.replace(/\/$/, "");
-  const authHeaders = credentials ? dualTokenHeaders(credentials) : {};
 
   async function request<T>(path: string, init?: RequestInit): Promise<T> {
-    const response = await fetch(`${base}${path}`, {
-      headers: {
-        "content-type": "application/json",
-        ...authHeaders,
-        ...(init?.headers ?? {}),
-      },
-      ...init,
-    });
+    let response: Response;
+    try {
+      response = await fetch(`${base}${path}`, {
+        ...init,
+        method: init?.method,
+        body: init?.body,
+        headers: {
+          ...dualTokenHeaders(provider),
+          ...(init?.headers ?? {}),
+        },
+      });
+    } catch (cause) {
+      throw new BackendSdkError(
+        cause instanceof Error ? cause.message : "backend SDK request failed: network error",
+        0,
+      );
+    }
+
+    if (response.status === 401) {
+      // Token rejected/expired/revoked: clear local session and let the host re-establish it.
+      provider.onUnauthorized();
+    }
+
     const contentType = response.headers.get("content-type") ?? "";
     if (!response.ok) {
       if (contentType.includes("application/problem+json")) {

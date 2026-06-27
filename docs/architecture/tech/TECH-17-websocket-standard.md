@@ -1,9 +1,9 @@
-> Migrated from `docs/17-websocket-standard.md` on 2026-06-24.
+> Migrated from `docs/architecture/tech/TECH-17-websocket-standard.md` on 2026-06-24.
 > Owner: SDKWork maintainers
 
 # WebSocket 统一标准
 
-> 前置阅读：[04-pipeline-interceptor-design.md](./04-pipeline-interceptor-design.md)、[03-web-request-context.md](./03-web-request-context.md)  
+> 前置阅读：[TECH-04-pipeline-interceptor-design.md](./TECH-04-pipeline-interceptor-design.md)、[TECH-03-web-request-context.md](./TECH-03-web-request-context.md)  
 > 实现：`sdkwork-web-core::websocket` + `sdkwork-web-axum::websocket`
 
 ## 1. 设计目标

@@ -74,6 +74,8 @@ pub struct WebTransportFacts {
     pub access_token_present: bool,
     pub api_key_present: bool,
     pub oauth_bearer_present: bool,
+    /// Backend agent bootstrap token presence (C8-C9).
+    pub agent_token_present: bool,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]

@@ -41,6 +41,12 @@ pub enum RouteAuth {
     OpenApiFlexible,
     /// Refresh-token proof in request body; skips dual-token and open-api header auth.
     RefreshToken,
+    /// Agent bootstrap token (`X-SDKWork-Agent-Token`) on backend-api agent routes.
+    ///
+    /// Maps to canonical OpenAPI `x-sdkwork-auth-mode: api-key` (API_SPEC §19) but resolves
+    /// via [`WebRequestContextResolver::resolve_api_key`] using the agent token credential,
+    /// without requiring `Access-Token` or `Authorization: Bearer` JWTs.
+    AgentToken,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -181,6 +187,16 @@ impl HttpRoute {
     ) -> Self {
         Self::new(method, path, tag, operation_id, RouteAuth::RefreshToken)
     }
+
+    /// Backend-api agent route authenticated via `X-SDKWork-Agent-Token` (C8-C9).
+    pub const fn agent_token(
+        method: HttpMethod,
+        path: &'static str,
+        tag: &'static str,
+        operation_id: &'static str,
+    ) -> Self {
+        Self::new(method, path, tag, operation_id, RouteAuth::AgentToken)
+    }
 }
 
 impl RouteAuth {
@@ -197,6 +213,12 @@ impl RouteAuth {
     /// Open-api protected routes authenticate via API key and/or OAuth bearer headers.
     pub const fn is_open_api_credential_mode(self) -> bool {
         matches!(self, Self::ApiKey | Self::OAuth | Self::OpenApiFlexible)
+    }
+
+    /// Backend-api agent routes authenticate via `X-SDKWork-Agent-Token` (C8-C9).
+    /// Resolves through `resolve_api_key` without dual-token or `Access-Token` JWT.
+    pub const fn is_agent_token_credential_mode(self) -> bool {
+        matches!(self, Self::AgentToken)
     }
 }
 

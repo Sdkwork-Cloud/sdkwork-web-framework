@@ -1,10 +1,10 @@
-> Migrated from `docs/23-consumer-integration-template.md` on 2026-06-24.
+> Migrated from `docs/architecture/tech/TECH-23-consumer-integration-template.md` on 2026-06-24.
 > Owner: SDKWork maintainers
 
 # 消费者集成模板（Rust API 服务）
 
 > 框架仓库提供的 **参考装配**；IAM 实现在 `sdkwork-appbase` adapter（跨仓库）。  
-> 完整迁移：[10-migration-from-appbase.md](./10-migration-from-appbase.md)
+> 完整迁移：[TECH-10-migration-from-appbase.md](./TECH-10-migration-from-appbase.md)
 
 ## Cargo.toml
 
@@ -82,6 +82,6 @@ async fn list_items(ctx: WebRequestContext) -> impl axum::response::IntoResponse
 - [ ] Redis HA store + readiness probe
 - [ ] backend-api 控制面调用使用 **ORGANIZATION** `login_scope`（`EnforcePrincipalTenantIsolationPolicy` 拒绝 TENANT 个人会话）
 - [ ] `scripts/verify` 等价门禁在消费者 CI 中运行
-- [ ] 运维 env 文档化（见 [21-operations-runbook.md](./21-operations-runbook.md)）
-- [ ] Rollout / 采纳证据（见 [24-production-rollout-and-adoption.md](./24-production-rollout-and-adoption.md)）
+- [ ] 运维 env 文档化（见 [TECH-21-operations-runbook.md](./TECH-21-operations-runbook.md)）
+- [ ] Rollout / 采纳证据（见 [TECH-24-production-rollout-and-adoption.md](./TECH-24-production-rollout-and-adoption.md)）
 

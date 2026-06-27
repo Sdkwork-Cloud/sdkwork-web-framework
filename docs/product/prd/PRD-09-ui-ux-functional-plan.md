@@ -1,9 +1,9 @@
-> Migrated from `docs/09-ui-ux-functional-plan.md` on 2026-06-24.
+> Migrated from `docs/architecture/tech/TECH-09-ui-ux-functional-plan.md` on 2026-06-24.
 > Owner: SDKWork maintainers
 
 # UI/UX 与功能规划
 
-> 前置阅读：[00-framework-foundation.md](./00-framework-foundation.md)
+> 前置阅读：[TECH-00-framework-foundation.md](../../architecture/tech/TECH-00-framework-foundation.md)
 
 ## 1. 范围说明
 
@@ -22,7 +22,7 @@
 | Web 流控/CORS/安全事件 | platform-admin 或 appbase 扩展模块 | **消费** `web_*` 与框架 emitter |
 | 框架文档/集成指南 | web-framework `docs/` + 静态门户 | 无业务 API |
 
-**不在 web-framework 仓库内建 admin API 路由**（见 [05-api-surface-design.md](./05-api-surface-design.md) §8）。
+**不在 web-framework 仓库内建 admin API 路由**（见 [TECH-05-api-surface-design.md](../../architecture/tech/TECH-05-api-surface-design.md) §8）。
 
 ## 3. 可规划界面（实现方自选）
 
