@@ -79,7 +79,7 @@ async fn manifest_idempotent_requires_key_without_global_policy() {
         require_for_retryable_commands: false,
         retention_secs: 60,
         max_cached_response_bytes: 1024,
-        require_body_hash_for_payload: false,
+        require_body_hash_for_payload: true,
     });
     let runtime = WebCallRuntime::new(DefaultWebRequestContextResolver::default())
         .with_route_manifest(HttpRouteManifest::new(ROUTES))
@@ -133,7 +133,7 @@ async fn idempotency_replays_cached_response_without_duplicate_handler() {
 
     let store = memory_idempotency_store();
     let ttl = std::time::Duration::from_secs(60);
-    let fingerprint = idempotency_fingerprint("POST", "/app/v3/api/orders", Some(0), None);
+    let fingerprint = idempotency_fingerprint("POST", "/app/v3/api/orders", None);
     let seed_state = WebCallState::from_request(
         &Request::builder()
             .method("POST")
@@ -171,7 +171,7 @@ async fn idempotency_replays_cached_response_without_duplicate_handler() {
         require_for_retryable_commands: true,
         retention_secs: 60,
         max_cached_response_bytes: 1024,
-        require_body_hash_for_payload: false,
+        require_body_hash_for_payload: true,
     });
     let runtime = WebCallRuntime::new(DefaultWebRequestContextResolver::default())
         .with_idempotency_store(store)

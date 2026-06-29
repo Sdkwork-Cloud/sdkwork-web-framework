@@ -16,7 +16,7 @@
                           │
         ┌─────────────────┼─────────────────┬─────────────────┐
         ▼                 ▼                 ▼                 ▼
- sdkwork-appbase   sdkwork-clawrouter  sdkwork-commerce   sdkwork-aiot
+ sdkwork-appbase   sdkwork-clawrouter  sdkwork-commerce (deleted)   sdkwork-aiot
  （IAM 等业务）      （AI 网关等业务）     （电商等业务）      （物联网等业务）
         │                 │                 │                 │
         └─────────────────┴─────────────────┴─────────────────┘
@@ -58,7 +58,7 @@
 | 缓存/存储适配 | `redis`, `sqlx`, `sdkwork-database-config`, `sdkwork-database-sqlx` | **仅** `sdkwork-web-store-*` 可选 crate；连接池经 `sdkwork-database-sqlx` 创建，store 实现只访问 `web_*` 表 |
 | 错误 | `thiserror` | 库边界 |
 
-**禁止依赖（示例）**：`sdkwork_iam_context_service`、`sdkwork-claw-*`、`sdkwork-commerce-*`、任何 `sdkwork-routes-*`。
+**禁止依赖（示例）**：`sdkwork_iam_context_service`、`sdkwork-claw-*`、`sdkwork-commerce (deleted)-*`、任何 `sdkwork-routes-*`。
 
 ## 5. 框架提供的「封装抽象」
 

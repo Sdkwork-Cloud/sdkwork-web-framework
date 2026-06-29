@@ -393,7 +393,7 @@ async fn sessions_create(
     ctx: WebRequestContext,           // ★ 自动注入，无需 Extension 包装
     State(state): State<AppState>,
     Json(body): Json<CreateSessionRequest>,
-) -> Result<Json<PlusApiResult<SessionDto>>, WebFrameworkError> {
+) -> Result<Json<SdkWorkApiResponse<SessionDto>>, WebFrameworkError> {
     let tenant_id = ctx.require_tenant_id()?;
     let app_id = ctx.require_app_id()?;
     state.auth_service.create_session(&ctx, body).await
@@ -437,7 +437,7 @@ HttpRoute {
 WebRequestContext ctx;
 
 // 或方法参数解析器 HandlerMethodArgumentResolver
-public PlusApiResult<SessionDto> create(
+public SdkWorkApiResponse<SessionDto> create(
     @InjectWebRequestContext WebRequestContext ctx,
     @RequestBody CreateSessionRequest body
 ) { ... }
@@ -570,7 +570,7 @@ JSON 对外命名 **camelCase**（`tenantId`, `appId`）；Rust 内部 **snake_c
 - [x] OpenAPI schema + `x-sdkwork-request-context` 全覆盖（`openapi_authority` / `openapi_context_selectors`）
 - [x] 静态扫描：route crate 无 raw Authorization 解析（`handler_static_rules`）
 - [x] 集成测试：protected 路由无 token → 401，有 token → ctx 含 tenant+app（`security_vectors` / axum integration）
-- [x] Problem+json 错误响应含 `requestId` / `traceId`（`problem_correlation_rules` / admin_api / pipeline integration）
+- [x] Problem+json 错误响应含 numeric `code` 与 `traceId`（`problem_correlation_rules` / admin_api / pipeline integration）
 
 ## 13. 相关文档
 

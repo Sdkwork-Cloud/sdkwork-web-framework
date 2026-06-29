@@ -4,36 +4,36 @@ export const WEB_FRAMEWORK_ADMIN_API_PREFIX = "/backend/v3/api/web-framework";
 
 export const webFrameworkAdminOperations = {
   corsPolicies: {
-    list: `${WEB_FRAMEWORK_ADMIN_API_PREFIX}/cors-policies`,
-    upsert: `${WEB_FRAMEWORK_ADMIN_API_PREFIX}/cors-policies`,
+    list: `${WEB_FRAMEWORK_ADMIN_API_PREFIX}/cors_policies`,
+    upsert: `${WEB_FRAMEWORK_ADMIN_API_PREFIX}/cors_policies`,
   },
   rateLimitPolicies: {
-    list: `${WEB_FRAMEWORK_ADMIN_API_PREFIX}/rate-limit-policies`,
-    upsert: `${WEB_FRAMEWORK_ADMIN_API_PREFIX}/rate-limit-policies`,
+    list: `${WEB_FRAMEWORK_ADMIN_API_PREFIX}/rate_limit_policies`,
+    upsert: `${WEB_FRAMEWORK_ADMIN_API_PREFIX}/rate_limit_policies`,
   },
   tenantRuntimeProfiles: {
-    list: `${WEB_FRAMEWORK_ADMIN_API_PREFIX}/tenant-runtime-profiles`,
-    upsert: `${WEB_FRAMEWORK_ADMIN_API_PREFIX}/tenant-runtime-profiles`,
+    list: `${WEB_FRAMEWORK_ADMIN_API_PREFIX}/tenant_runtime_profiles`,
+    upsert: `${WEB_FRAMEWORK_ADMIN_API_PREFIX}/tenant_runtime_profiles`,
   },
   securityEvents: {
-    list: `${WEB_FRAMEWORK_ADMIN_API_PREFIX}/security-events`,
+    list: `${WEB_FRAMEWORK_ADMIN_API_PREFIX}/security_events`,
   },
   auditEvents: {
-    list: `${WEB_FRAMEWORK_ADMIN_API_PREFIX}/audit-events`,
+    list: `${WEB_FRAMEWORK_ADMIN_API_PREFIX}/audit_events`,
   },
   controlNodes: {
-    list: `${WEB_FRAMEWORK_ADMIN_API_PREFIX}/control-nodes`,
-    register: `${WEB_FRAMEWORK_ADMIN_API_PREFIX}/control-nodes`,
+    list: `${WEB_FRAMEWORK_ADMIN_API_PREFIX}/control_nodes`,
+    register: `${WEB_FRAMEWORK_ADMIN_API_PREFIX}/control_nodes`,
     heartbeat: (nodeId: string) =>
-      `${WEB_FRAMEWORK_ADMIN_API_PREFIX}/control-nodes/${encodeURIComponent(nodeId)}/heartbeat`,
+      `${WEB_FRAMEWORK_ADMIN_API_PREFIX}/control_nodes/${encodeURIComponent(nodeId)}/heartbeat`,
     delete: (nodeId: string) =>
-      `${WEB_FRAMEWORK_ADMIN_API_PREFIX}/control-nodes/${encodeURIComponent(nodeId)}`,
+      `${WEB_FRAMEWORK_ADMIN_API_PREFIX}/control_nodes/${encodeURIComponent(nodeId)}`,
   },
   runtimeDefaults: {
-    snapshot: `${WEB_FRAMEWORK_ADMIN_API_PREFIX}/runtime-defaults`,
+    snapshot: `${WEB_FRAMEWORK_ADMIN_API_PREFIX}/runtime_defaults`,
   },
   optionalFeatures: {
-    snapshot: `${WEB_FRAMEWORK_ADMIN_API_PREFIX}/optional-features`,
+    snapshot: `${WEB_FRAMEWORK_ADMIN_API_PREFIX}/optional_features`,
   },
 } as const;
 

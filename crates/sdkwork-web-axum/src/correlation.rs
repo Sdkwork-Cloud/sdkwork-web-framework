@@ -74,10 +74,10 @@ mod tests {
             .block_on(async { axum::body::to_bytes(response.into_body(), usize::MAX).await })
             .expect("body");
         let payload: serde_json::Value = serde_json::from_slice(&bytes).expect("json");
-        assert_eq!("req-timeout-1", payload["requestId"].as_str().unwrap());
         assert_eq!(
             "4bf92f3577b34da6a3ce929d0e0e4736",
             payload["traceId"].as_str().unwrap()
         );
+        assert!(payload.get("requestId").is_none());
     }
 }

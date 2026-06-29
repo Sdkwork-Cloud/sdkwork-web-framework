@@ -33,20 +33,42 @@ end
 return count
 "#;
 
+/// Sliding window rate limiter (sorted set based).
+///
+/// Uses Redis sorted set with per-request timestamps as scores.
+/// Counts entries within the current window (now - window_secs, now].
+/// Purges expired entries atomically via `ZREMRANGEBYSCORE`.
+///
+/// Advantages over the fixed-window counter (`INCR`/`EXPIRE`):
+/// - No burst at window boundaries (e.g. 59s + 61s can't do 2x quota)
+/// - More uniform rate enforcement
+///
+/// KEYS[1] = rate limit key
+/// ARGV[1] = max_requests (integer)
+/// ARGV[2] = window_secs (integer) — TTL for the key
+/// ARGV[3] = now_millis (integer) — current epoch in milliseconds
+/// Returns: >= 0 = current count (allowed); -1 = rate limited
 const RATE_LIMIT_SCRIPT: &str = r#"
-local current = redis.call('GET', KEYS[1])
-if current and tonumber(current) >= tonumber(ARGV[1]) then
-  return -1
-end
-local count = redis.call('INCR', KEYS[1])
-if count == 1 then
-  redis.call('EXPIRE', KEYS[1], tonumber(ARGV[2]))
-end
-if count > tonumber(ARGV[1]) then
-  return -1
-end
-return count
-"#;
+	local key = KEYS[1]
+	local max_requests = tonumber(ARGV[1])
+	local window_secs = tonumber(ARGV[2])
+	local now_ms = tonumber(ARGV[3])
+	local window_start = now_ms - (window_secs * 1000)
+
+	-- Remove entries outside the window
+	redis.call('ZREMRANGEBYSCORE', key, '-inf', window_start)
+
+	-- Count entries in the current window
+	local current_count = redis.call('ZCARD', key)
+	if current_count >= max_requests then
+		return -1
+	end
+
+	-- Add current request timestamp
+	redis.call('ZADD', key, now_ms, now_ms)
+	redis.call('EXPIRE', key, window_secs)
+	return current_count + 1
+	"#;
 
 const IDEMPOTENCY_BEGIN_SCRIPT: &str = r#"
 local inserted = redis.call('SET', KEYS[1], ARGV[1], 'NX', 'EX', tonumber(ARGV[2]))
@@ -148,6 +170,7 @@ impl RateLimitStore for RedisRateLimitStore {
             .key(redis_key)
             .arg(max_requests)
             .arg(window.as_secs().max(1) as i64)
+            .arg(now_epoch_ms())
             .invoke_async(&mut conn)
             .await
             .map_err(redis_error)?;
@@ -416,6 +439,13 @@ fn encode_error(error: serde_json::Error) -> WebFrameworkError {
 
 fn decode_error(error: serde_json::Error) -> WebFrameworkError {
     WebFrameworkError::dependency_unavailable(format!("redis idempotency decode error: {error}"))
+}
+
+fn now_epoch_ms() -> i64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or(std::time::Duration::ZERO)
+        .as_millis() as i64
 }
 
 #[cfg(test)]

@@ -96,11 +96,9 @@ npm run test:e2e:integration
 if ($LASTEXITCODE -ne 0) { Pop-Location; exit $LASTEXITCODE }
 Pop-Location
 
-if ($env:SDKWORK_REDIS_TEST_URL) {
-    Write-Host "Running live Redis integration tests..."
-    cargo test -p sdkwork-web-store-redis --test redis_live -- --ignored
-    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-}
+# Live Redis integration tests run as part of `cargo test --workspace` above:
+# when SDKWORK_REDIS_TEST_URL is set the tests exercise a live Redis,
+# otherwise they self-skip (see crates/sdkwork-web-store-redis/tests/redis_live.rs).
 
 Write-Host "Running release pipeline benchmark..."
 & (Join-Path $PSScriptRoot "benchmark-pipeline.ps1")

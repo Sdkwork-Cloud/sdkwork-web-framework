@@ -189,7 +189,7 @@ mod tests {
     #[test]
     fn allows_tenant_id_query_on_backend_api_surface() {
         reject_client_context_selectors(
-            "/backend/v3/api/web-framework/cors-policies",
+            "/backend/v3/api/web-framework/cors_policies",
             Some("tenant_id=100001"),
             WebApiSurface::BackendApi,
         )
@@ -228,7 +228,7 @@ mod tests {
     async fn skips_body_inspection_on_backend_api_surface() {
         let mut request = Request::builder()
             .method("POST")
-            .uri("/backend/v3/api/web-framework/cors-policies")
+            .uri("/backend/v3/api/web-framework/cors_policies")
             .header("content-type", "application/json")
             .header("content-length", "25")
             .body(Body::from(r#"{"tenantId":"100001"}"#))

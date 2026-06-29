@@ -421,6 +421,13 @@ impl WebRequestContext {
             self.trace_id.as_deref(),
         )
     }
+
+    /// Server-owned correlation id for success envelopes and Problem+json.
+    pub fn resolved_trace_id(&self) -> String {
+        self.problem_correlation()
+            .resolved_trace_id()
+            .unwrap_or_else(|| self.request_id.0.clone())
+    }
 }
 
 /// Returns true when any granted code authorizes `required` (wildcard-aware).

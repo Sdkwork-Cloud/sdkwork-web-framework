@@ -1,6 +1,7 @@
 use crate::problem::{problem_response, ProblemCorrelation};
 use axum::response::{IntoResponse, Response};
 use http::StatusCode;
+use std::fmt;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum WebFrameworkErrorKind {
@@ -124,7 +125,64 @@ impl WebFrameworkError {
             WebFrameworkErrorKind::PayloadTooLarge => StatusCode::PAYLOAD_TOO_LARGE,
             WebFrameworkErrorKind::RateLimitExceeded => StatusCode::TOO_MANY_REQUESTS,
             WebFrameworkErrorKind::DependencyUnavailable => StatusCode::SERVICE_UNAVAILABLE,
-            WebFrameworkErrorKind::RequestTimeout => StatusCode::GATEWAY_TIMEOUT,
+            WebFrameworkErrorKind::RequestTimeout => StatusCode::REQUEST_TIMEOUT,
+        }
+    }
+
+    pub fn result_code(&self) -> i32 {
+        use sdkwork_utils_rust::SdkWorkResultCode;
+        match self.kind {
+            WebFrameworkErrorKind::MissingCredentials => {
+                SdkWorkResultCode::AuthenticationRequired.as_i32()
+            }
+            WebFrameworkErrorKind::InvalidCredentials => SdkWorkResultCode::InvalidToken.as_i32(),
+            WebFrameworkErrorKind::Forbidden => SdkWorkResultCode::PermissionRequired.as_i32(),
+            WebFrameworkErrorKind::BadRequest => SdkWorkResultCode::ValidationError.as_i32(),
+            WebFrameworkErrorKind::Conflict => SdkWorkResultCode::Conflict.as_i32(),
+            WebFrameworkErrorKind::PayloadTooLarge => SdkWorkResultCode::PayloadTooLarge.as_i32(),
+            WebFrameworkErrorKind::RateLimitExceeded => {
+                SdkWorkResultCode::RateLimitExceeded.as_i32()
+            }
+            WebFrameworkErrorKind::DependencyUnavailable => {
+                SdkWorkResultCode::ServiceUnavailable.as_i32()
+            }
+            WebFrameworkErrorKind::RequestTimeout => SdkWorkResultCode::RequestTimeout.as_i32(),
+            WebFrameworkErrorKind::MethodNotAllowed => SdkWorkResultCode::MethodNotAllowed.as_i32(),
+            WebFrameworkErrorKind::NotFound => SdkWorkResultCode::NotFound.as_i32(),
+            WebFrameworkErrorKind::NotImplemented
+            | WebFrameworkErrorKind::InternalServerError
+            | WebFrameworkErrorKind::ContextNotInjected => {
+                SdkWorkResultCode::InternalError.as_i32()
+            }
+            WebFrameworkErrorKind::WebSocketRejected => SdkWorkResultCode::ValidationError.as_i32(),
+        }
+    }
+}
+
+impl fmt::Display for WebFrameworkError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}: {}", self.kind, self.message)
+    }
+}
+
+impl fmt::Display for WebFrameworkErrorKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            WebFrameworkErrorKind::MissingCredentials => write!(f, "missing_credentials"),
+            WebFrameworkErrorKind::InvalidCredentials => write!(f, "invalid_credentials"),
+            WebFrameworkErrorKind::Forbidden => write!(f, "forbidden"),
+            WebFrameworkErrorKind::BadRequest => write!(f, "bad_request"),
+            WebFrameworkErrorKind::Conflict => write!(f, "conflict"),
+            WebFrameworkErrorKind::PayloadTooLarge => write!(f, "payload_too_large"),
+            WebFrameworkErrorKind::RateLimitExceeded => write!(f, "rate_limit_exceeded"),
+            WebFrameworkErrorKind::DependencyUnavailable => write!(f, "dependency_unavailable"),
+            WebFrameworkErrorKind::RequestTimeout => write!(f, "request_timeout"),
+            WebFrameworkErrorKind::MethodNotAllowed => write!(f, "method_not_allowed"),
+            WebFrameworkErrorKind::NotFound => write!(f, "not_found"),
+            WebFrameworkErrorKind::NotImplemented => write!(f, "not_implemented"),
+            WebFrameworkErrorKind::InternalServerError => write!(f, "internal_server_error"),
+            WebFrameworkErrorKind::ContextNotInjected => write!(f, "context_not_injected"),
+            WebFrameworkErrorKind::WebSocketRejected => write!(f, "websocket_rejected"),
         }
     }
 }

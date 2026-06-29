@@ -4,15 +4,17 @@ use crate::dto::{
     ListQuery, RegisterControlNodeRequest, UpsertCorsPolicyRequest, UpsertRateLimitPolicyRequest,
     UpsertTenantRuntimeProfileRequest,
 };
-use crate::response::{created_json, finish_api_json, finish_api_response, no_content, ok_json};
+use crate::response::{
+    created_json, finish_api_json, finish_api_response, no_content, ok_json, success_json,
+};
 use crate::services::WebFrameworkAdminService;
 use crate::state::WebFrameworkAdminState;
 use crate::tenant_scope::{
     require_control_plane, require_tenant_admin, require_upsert_tenant_id,
-    resolve_audit_event_list_scope, resolve_list_tenant_id,
+    resolve_audit_event_list_scope, resolve_list_tenant_id, resolve_security_event_list_scope,
 };
 use axum::extract::{Path, Query, State};
-use axum::response::{IntoResponse, Response};
+use axum::response::Response;
 use axum::Json;
 use sdkwork_web_core::WebRequestContext;
 
@@ -145,9 +147,9 @@ pub async fn list_security_events(
     finish_api_json(
         &ctx,
         async {
-            require_control_plane(&ctx)?;
+            let scope = resolve_security_event_list_scope(&ctx, query.tenant_id.as_deref())?;
             let limit = crate::services::validation::validate_list_limit(query.limit)?;
-            ok_json(state.service.list_security_events(limit).await?)
+            ok_json(state.service.list_security_events(scope, limit).await?)
         }
         .await,
     )
@@ -204,9 +206,9 @@ pub async fn register_control_node(
                 .register_control_node(body, now_epoch())
                 .await?;
             if outcome.created {
-                created_json(outcome.record)
+                created_json(&ctx, outcome.record)
             } else {
-                ok_json(outcome.record).map(|json| json.into_response())
+                success_json(&ctx, outcome.record)
             }
         }
         .await,
@@ -245,7 +247,7 @@ pub async fn delete_control_node(
             require_control_plane(&ctx)?;
             crate::services::validation::validate_control_node_id(&node_id)?;
             state.service.delete_control_node(&node_id).await?;
-            no_content()
+            no_content(&ctx)
         }
         .await,
     )

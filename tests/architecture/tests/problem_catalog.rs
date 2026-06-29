@@ -60,7 +60,7 @@ fn problem_type_uris_cover_all_framework_error_kinds() {
         ),
         (
             WebFrameworkError::request_timeout("timeout"),
-            504,
+            408,
             "https://sdkwork.dev/problems/request-timeout",
         ),
         (

@@ -3,7 +3,8 @@
 use sdkwork_web_core::{problem_response, ProblemCorrelation, WebFrameworkError};
 
 fn render_problem(error: WebFrameworkError, request_id: Option<&str>) -> serde_json::Value {
-    let response = problem_response(&error, request_id.into());
+    let correlation = ProblemCorrelation::new(request_id, None);
+    let response = problem_response(&error, correlation);
     let rt = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
@@ -23,7 +24,8 @@ fn problem_json_snapshot_missing_credentials() {
         payload["type"].as_str().unwrap()
     );
     assert_eq!(401, payload["status"].as_u64().unwrap());
-    assert_eq!("req-snapshot-1", payload["requestId"].as_str().unwrap());
+    assert!(payload.get("requestId").is_none());
+    assert!(payload["traceId"].as_str().is_some());
     let rendered = payload.to_string();
     assert!(!rendered.contains("backtrace"));
     assert!(!rendered.contains("stack trace"));
@@ -49,7 +51,8 @@ fn problem_json_snapshot_not_found() {
         payload["type"].as_str().unwrap()
     );
     assert_eq!(404, payload["status"].as_u64().unwrap());
-    assert_eq!("req-snapshot-404", payload["requestId"].as_str().unwrap());
+    assert!(payload.get("requestId").is_none());
+    assert!(payload["traceId"].as_str().is_some());
 }
 
 #[test]
@@ -61,7 +64,8 @@ fn problem_json_snapshot_not_implemented() {
         payload["type"].as_str().unwrap()
     );
     assert_eq!(501, payload["status"].as_u64().unwrap());
-    assert_eq!("req-snapshot-501", payload["requestId"].as_str().unwrap());
+    assert!(payload.get("requestId").is_none());
+    assert!(payload["traceId"].as_str().is_some());
 }
 
 #[test]
@@ -106,7 +110,8 @@ fn problem_json_snapshot_payload_too_large() {
         payload["type"].as_str().unwrap()
     );
     assert_eq!(413, payload["status"].as_u64().unwrap());
-    assert_eq!("req-snapshot-413", payload["requestId"].as_str().unwrap());
+    assert!(payload.get("requestId").is_none());
+    assert!(payload["traceId"].as_str().is_some());
 }
 
 #[test]
@@ -145,12 +150,13 @@ fn problem_json_snapshot_method_not_allowed() {
 #[test]
 fn problem_json_snapshot_request_timeout() {
     let error = WebFrameworkError::request_timeout("request exceeded deadline");
-    let payload = render_problem(error, Some("req-snapshot-504"));
+    let payload = render_problem(error, Some("req-snapshot-timeout"));
     assert_eq!(
         "https://sdkwork.dev/problems/request-timeout",
         payload["type"].as_str().unwrap()
     );
-    assert_eq!(504, payload["status"].as_u64().unwrap());
+    assert_eq!(408, payload["status"].as_u64().unwrap());
+    assert_eq!(40801, payload["code"].as_i64().unwrap());
 }
 
 #[test]
@@ -187,7 +193,8 @@ fn problem_json_snapshot_includes_trace_id_when_correlated() {
         "4bf92f3577b34da6a3ce929d0e0e4736",
         correlated["traceId"].as_str().unwrap()
     );
-    assert!(payload.get("traceId").is_none());
+    assert!(payload.get("requestId").is_none());
+    assert!(payload["traceId"].as_str().is_some());
 }
 
 #[test]
@@ -204,7 +211,10 @@ fn problem_json_snapshot_websocket_rejected() {
 #[test]
 fn problem_json_snapshot_rate_limit_includes_retry_after() {
     let error = WebFrameworkError::rate_limit_exceeded("too many requests", 60);
-    let response = problem_response(&error, Some("req-snapshot-429").into());
+    let response = problem_response(
+        &error,
+        ProblemCorrelation::new(Some("req-snapshot-429"), None),
+    );
     assert_eq!(
         Some("60"),
         response

@@ -31,7 +31,7 @@ const bundleSource = jsBundles
 for (const needle of [
   'SDKWork Web Framework Console',
   'web-framework-console',
-  'cors-policies',
+  'cors_policies',
   'traceId',
   'application/problem+json',
 ]) {

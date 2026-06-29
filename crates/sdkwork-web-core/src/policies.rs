@@ -91,6 +91,10 @@ pub enum SecurityEventKind {
 pub struct SecurityEvent {
     pub kind: SecurityEventKind,
     pub request_id: Option<String>,
+    /// Resolved tenant id when principal is authenticated; `None` for unauthenticated
+    /// requests (DB column falls back to platform-shared "0" via migration 010).
+    /// SECURITY_SPEC §5.1 / DATABASE_SPEC §6.3：多租户表必须携带 tenant_id。
+    pub tenant_id: Option<String>,
     pub path: String,
     pub method: String,
     pub api_surface: crate::request_context::WebApiSurface,

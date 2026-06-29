@@ -71,7 +71,7 @@ Seven tabs, each backed by a backend SDK method:
 3. **Operator registers new control node**: nodes tab → paste node JSON → save →
    heartbeat periodically to keep node alive.
 4. **Operator investigates security incident**: security tab → browse security events
-   (CORS denials, CSRF rejections, rate-limit exceedances) with requestId / traceId
+   (CORS denials, CSRF rejections, rate-limit exceedances) with `traceId`
    correlation.
 
 ## 6. Success Metrics
@@ -80,7 +80,7 @@ Seven tabs, each backed by a backend SDK method:
 - Playwright smoke e2e (2 tests) and integration e2e (2 tests) pass.
 - No credentials baked into production bundle (verified by build smoke test).
 - Backend SDK transport correctly maps Problem+json errors to `BackendSdkError` with
-  `requestId` / `traceId` correlation.
+  `traceId` correlation.
 
 ## 7. Phases
 

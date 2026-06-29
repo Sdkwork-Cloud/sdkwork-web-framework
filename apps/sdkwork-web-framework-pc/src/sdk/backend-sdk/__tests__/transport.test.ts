@@ -15,15 +15,19 @@ function makeFakeProvider(
   };
 }
 
-const okEnvelope = <T>(data: T) => ({ success: true, data, message: undefined });
+const okEnvelope = <T>(data: T) => ({ code: 0, data, traceId: "trace-ok" });
 
 describe("BackendSdkError", () => {
-  it("captures status, problemType, requestId, traceId", () => {
-    const error = new BackendSdkError("not found", 404, "https://sdkwork.dev/problems/not-found", "req-1", "trace-1");
+  it("captures status, code, problemType, traceId", () => {
+    const error = new BackendSdkError("not found", 404, {
+      code: 40401,
+      problemType: "https://sdkwork.dev/problems/not-found",
+      traceId: "trace-1",
+    });
     expect(error.message).toBe("not found");
     expect(error.status).toBe(404);
+    expect(error.code).toBe(40401);
     expect(error.problemType).toBe("https://sdkwork.dev/problems/not-found");
-    expect(error.requestId).toBe("req-1");
     expect(error.traceId).toBe("trace-1");
     expect(error.name).toBe("BackendSdkError");
   });
@@ -53,7 +57,7 @@ describe("createBackendSdkTransport", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const transport: BackendSdkTransport = createBackendSdkTransport("http://localhost:3920", provider);
-    const result = await transport.get("/backend/v3/api/web-framework/cors-policies");
+    const result = await transport.get("/backend/v3/api/web-framework/cors_policies");
 
     expect(result).toEqual([{ tenant_id: "100001" }]);
     const [, init] = fetchMock.mock.calls[0];
@@ -71,7 +75,7 @@ describe("createBackendSdkTransport", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const transport = createBackendSdkTransport("http://localhost:3920", provider);
-    const result = await transport.delete("/backend/v3/api/web-framework/control-nodes/node-1");
+    const result = await transport.delete("/backend/v3/api/web-framework/control_nodes/node-1");
 
     expect(result).toBeUndefined();
   });
@@ -82,7 +86,7 @@ describe("createBackendSdkTransport", () => {
       title: "Forbidden",
       detail: "cross-tenant upsert rejected",
       status: 403,
-      requestId: "req-abc",
+      code: 40301,
       traceId: "trace-xyz",
     };
     const fetchMock = vi.fn().mockResolvedValue(
@@ -94,12 +98,11 @@ describe("createBackendSdkTransport", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const transport = createBackendSdkTransport("http://localhost:3920", provider);
-    await expect(transport.put("/cors-policies", {})).rejects.toMatchObject({
+    await expect(transport.put("/cors_policies", {})).rejects.toMatchObject({
       name: "BackendSdkError",
       status: 403,
       message: "cross-tenant upsert rejected",
       problemType: "https://sdkwork.dev/problems/forbidden",
-      requestId: "req-abc",
       traceId: "trace-xyz",
     });
   });
@@ -115,7 +118,7 @@ describe("createBackendSdkTransport", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const transport = createBackendSdkTransport("http://localhost:3920", localProvider);
-    await expect(transport.get("/cors-policies")).rejects.toMatchObject({ status: 401 });
+    await expect(transport.get("/cors_policies")).rejects.toMatchObject({ status: 401 });
     expect(localProvider.onUnauthorized).toHaveBeenCalledTimes(1);
   });
 
@@ -124,16 +127,15 @@ describe("createBackendSdkTransport", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const transport = createBackendSdkTransport("http://localhost:3920", provider);
-    await expect(transport.get("/cors-policies")).rejects.toMatchObject({
+    await expect(transport.get("/cors_policies")).rejects.toMatchObject({
       name: "BackendSdkError",
       status: 0,
     });
   });
 
-  it("falls back to ApiEnvelope message for non-Problem+json errors", async () => {
-    const envelope = { success: false, data: null, message: "rate limit exceeded" };
+  it("throws BackendSdkError for non-problem+json HTTP errors", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify(envelope), {
+      new Response(JSON.stringify({ code: 42901, data: null, traceId: "trace-429" }), {
         status: 429,
         headers: { "content-type": "application/json" },
       }),
@@ -141,10 +143,9 @@ describe("createBackendSdkTransport", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const transport = createBackendSdkTransport("http://localhost:3920", provider);
-    await expect(transport.get("/cors-policies")).rejects.toMatchObject({
+    await expect(transport.get("/cors_policies")).rejects.toMatchObject({
       name: "BackendSdkError",
       status: 429,
-      message: "rate limit exceeded",
     });
   });
 
@@ -158,7 +159,7 @@ describe("createBackendSdkTransport", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const transport = createBackendSdkTransport("http://localhost:3920", provider);
-    await transport.put("/cors-policies", { tenant_id: "100001", environment: "prod" });
+    await transport.put("/cors_policies", { tenant_id: "100001", environment: "prod" });
 
     const [, init] = fetchMock.mock.calls[0];
     expect(init?.method).toBe("PUT");
@@ -176,7 +177,7 @@ describe("createBackendSdkTransport", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const transport = createBackendSdkTransport("http://localhost:3920", nullProvider);
-    const result = await transport.get("/runtime-defaults");
+    const result = await transport.get("/runtime_defaults");
     expect(result).toEqual(okDefaults());
 
     const [, init] = fetchMock.mock.calls[0];

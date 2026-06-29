@@ -47,7 +47,7 @@
 | 幂等键 | `Idempotency-Key` | — | — | — | **标准 Header + store** |
 | 限流 | 429 + 头 | rate limits | throttle | rate-limiting | **429 + `Retry-After` + Problem+json** |
 | 多租户 | Stripe-Account | Organizations | — | — | **`WebRequestPrincipal.tenant_id`** |
-| 错误体 | `{error:{type,message}}` | — | — | — | **Problem+json + PlusApiResult（业务层）** |
+| 错误体 | `{error:{type,message}}` | — | — | — | **Problem+json + SdkWorkApiResponse（业务层）** |
 | 关联 ID | `request-id` | — | `x-amzn-requestid` | — | **`X-Request-Id` 服务端权威** |
 
 ### 2.3 多租户 SaaS 后端

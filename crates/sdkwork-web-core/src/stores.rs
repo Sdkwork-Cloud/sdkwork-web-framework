@@ -251,6 +251,53 @@ pub fn memory_idempotency_store() -> Arc<dyn IdempotencyStore> {
     Arc::new(MemoryIdempotencyStore::default())
 }
 
+/// Guard that automatically releases an idempotency key on drop.
+/// Ensures keys are released even if the handler panics, times out, or returns an error.
+/// SECURITY_SPEC §5.1 / WEB_FRAMEWORK_STANDARD §8.
+pub struct IdempotencyGuard {
+    store: Arc<dyn IdempotencyStore>,
+    key: String,
+    fingerprint: String,
+    released: bool,
+}
+
+impl IdempotencyGuard {
+    pub fn new(store: Arc<dyn IdempotencyStore>, key: String, fingerprint: String) -> Self {
+        Self {
+            store,
+            key,
+            fingerprint,
+            released: false,
+        }
+    }
+
+    /// Mark the guard as completed (prevents release on drop).
+    pub fn mark_completed(&mut self) {
+        self.released = true;
+    }
+}
+
+impl Drop for IdempotencyGuard {
+    fn drop(&mut self) {
+        if !self.released {
+            let store = self.store.clone();
+            let key = self.key.clone();
+            let fingerprint = self.fingerprint.clone();
+            // Spawn async task to release the key.
+            // This is fire-and-forget: if release fails, the key will expire via TTL.
+            tokio::spawn(async move {
+                if let Err(e) = store.release(&key, &fingerprint).await {
+                    tracing::warn!(
+                        idempotency_key = %key,
+                        error = ?e,
+                        "failed to release idempotency key on drop"
+                    );
+                }
+            });
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

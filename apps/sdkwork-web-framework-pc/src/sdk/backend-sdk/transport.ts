@@ -1,8 +1,9 @@
-import type { ApiEnvelope } from "../../api/types";
+import type { SdkWorkApiResponse, SdkWorkProblemDetail } from "../../api/types";
 import {
   type BackendTokenProvider,
   resolveBackendTokenProvider,
 } from "../auth/token-provider";
+import { SDKWORK_SUCCESS_CODE } from "../../api/httpApiConstants";
 
 export type BackendSdkTransport = {
   get<T>(path: string): Promise<T>;
@@ -13,23 +14,21 @@ export type BackendSdkTransport = {
 
 export class BackendSdkError extends Error {
   readonly status: number;
+  readonly code?: number;
   readonly problemType?: string;
-  readonly requestId?: string;
   readonly traceId?: string;
 
   constructor(
     message: string,
     status: number,
-    problemType?: string,
-    requestId?: string,
-    traceId?: string,
+    options?: { code?: number; problemType?: string; traceId?: string },
   ) {
     super(message);
     this.name = "BackendSdkError";
     this.status = status;
-    this.problemType = problemType;
-    this.requestId = requestId;
-    this.traceId = traceId;
+    this.code = options?.code;
+    this.problemType = options?.problemType;
+    this.traceId = options?.traceId;
   }
 }
 
@@ -73,42 +72,37 @@ export function createBackendSdkTransport(
     }
 
     if (response.status === 401) {
-      // Token rejected/expired/revoked: clear local session and let the host re-establish it.
       provider.onUnauthorized();
     }
 
     const contentType = response.headers.get("content-type") ?? "";
     if (!response.ok) {
       if (contentType.includes("application/problem+json")) {
-        const problem = (await response.json()) as {
-          detail?: string;
-          title?: string;
-          type?: string;
-          requestId?: string;
-          traceId?: string;
-        };
+        const problem = (await response.json()) as SdkWorkProblemDetail;
         throw new BackendSdkError(
           problem.detail ?? problem.title ?? `backend SDK request failed: ${response.status}`,
           response.status,
-          problem.type,
-          problem.requestId,
-          problem.traceId,
+          {
+            code: problem.code,
+            problemType: problem.type,
+            traceId: problem.traceId,
+          },
         );
       }
-      const fallback = (await response.json().catch(() => null)) as ApiEnvelope<T> | null;
       throw new BackendSdkError(
-        fallback?.message ?? `backend SDK request failed: ${response.status}`,
+        `backend SDK request failed: ${response.status}`,
         response.status,
       );
     }
     if (response.status === 204) {
       return undefined as T;
     }
-    const body = (await response.json()) as ApiEnvelope<T>;
-    if (!body.success) {
+    const body = (await response.json()) as SdkWorkApiResponse<T>;
+    if (body.code !== SDKWORK_SUCCESS_CODE) {
       throw new BackendSdkError(
-        body.message ?? `backend SDK request failed: ${response.status}`,
+        `backend SDK request returned non-success code: ${body.code}`,
         response.status,
+        { traceId: body.traceId },
       );
     }
     return body.data;

@@ -69,5 +69,6 @@ async fn enable_admin_api_auto_manifest_contract_fallback_returns_501() {
         "https://sdkwork.dev/problems/not-implemented",
         payload["type"].as_str().expect("type")
     );
-    assert!(payload.get("requestId").is_some());
+    assert!(payload.get("requestId").is_none());
+    assert!(payload.get("traceId").is_some());
 }

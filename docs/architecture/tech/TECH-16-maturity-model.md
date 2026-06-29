@@ -70,7 +70,7 @@
 | B 多租户 | 8 | M3 已达成 | tenant resolver + isolation policies |
 | C 安全 | 10 | M3 已达成 | security_vectors + header_fuzz |
 | D 韧性 | 7 | M3 已达成（内存 M3；Redis/SQL M2 并行） | store adapters + stress |
-| E 可观测 | 7 | M3 已达成 | traceId/requestId correlation + OTel feature |
+| E 可观测 | 7 | M3 已达成 | `traceId` / numeric `code` on Problem+json + OTel feature |
 | F 契约 | 6 | M3 已达成 | contract fallback + openapi authority |
 | G 错误 | 4 | M3 已达成 | problem_correlation_rules + problem_snapshot |
 | H 引导 | 4 | M3 已达成 | bootstrap integration + admin readiness |

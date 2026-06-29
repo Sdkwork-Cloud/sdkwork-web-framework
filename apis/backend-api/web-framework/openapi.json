@@ -1,14 +1,262 @@
 {
   "components": {
+    "schemas": {
+      "FieldError": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "format": "int32",
+            "maximum": 40099,
+            "minimum": 40011,
+            "type": "integer"
+          },
+          "field": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "field",
+          "message"
+        ],
+        "type": "object"
+      },
+      "PageInfo": {
+        "additionalProperties": false,
+        "properties": {
+          "hasMore": {
+            "type": "boolean"
+          },
+          "mode": {
+            "enum": [
+              "offset",
+              "cursor"
+            ],
+            "type": "string"
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "page": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "pageSize": {
+            "maximum": 200,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "totalItems": {
+            "pattern": "^[0-9]+$",
+            "type": "string"
+          },
+          "totalPages": {
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "mode"
+        ],
+        "type": "object"
+      },
+      "ProblemDetail": {
+        "additionalProperties": true,
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/SdkWorkPlatformErrorCode"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "errors": {
+            "items": {
+              "$ref": "#/components/schemas/FieldError"
+            },
+            "type": "array"
+          },
+          "instance": {
+            "type": "string"
+          },
+          "status": {
+            "maximum": 599,
+            "minimum": 100,
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "traceId": {
+            "description": "Server-owned request correlation id.",
+            "format": "uuid",
+            "type": "string"
+          },
+          "type": {
+            "format": "uri-reference",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "title",
+          "status",
+          "code",
+          "traceId"
+        ],
+        "type": "object"
+      },
+      "SdkWorkApiResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "default": 0,
+            "enum": [
+              0
+            ],
+            "format": "int32",
+            "maximum": 0,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "data": {
+            "description": "Operation-specific payload typed per response schema."
+          },
+          "traceId": {
+            "description": "Server-owned request correlation id.",
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "data",
+          "traceId"
+        ],
+        "type": "object"
+      },
+      "SdkWorkCommandData": {
+        "additionalProperties": false,
+        "properties": {
+          "accepted": {
+            "const": true,
+            "type": "boolean"
+          },
+          "resourceId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "accepted"
+        ],
+        "type": "object"
+      },
+      "SdkWorkCommandResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/SdkWorkApiResponse"
+          },
+          {
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/SdkWorkCommandData"
+              }
+            },
+            "required": [
+              "data"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "SdkWorkListResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/SdkWorkApiResponse"
+          },
+          {
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/SdkWorkPageData"
+              }
+            },
+            "required": [
+              "data"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "SdkWorkPageData": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/PageInfo"
+          }
+        },
+        "required": [
+          "items",
+          "pageInfo"
+        ],
+        "type": "object"
+      },
+      "SdkWorkPlatformErrorCode": {
+        "description": "Platform or domain error code per API_SPEC.md §15.3.",
+        "format": "int32",
+        "maximum": 79999,
+        "minimum": 40001,
+        "type": "integer"
+      },
+      "SdkWorkResourceData": {
+        "additionalProperties": false,
+        "properties": {
+          "item": {
+            "additionalProperties": true,
+            "description": "Typed domain resource for the operation.",
+            "type": "object"
+          }
+        },
+        "required": [
+          "item"
+        ],
+        "type": "object"
+      },
+      "SdkWorkResourceResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/SdkWorkApiResponse"
+          },
+          {
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/SdkWorkResourceData"
+              }
+            },
+            "required": [
+              "data"
+            ],
+            "type": "object"
+          }
+        ]
+      }
+    },
     "securitySchemes": {
       "sdkworkAccessToken": {
         "description": "Signed JWT access_token (`header.payload.signature`). Required on all non-open-api routes, including public and refresh-token entrypoints, for tenant isolation.",
-        "in": "header",
-        "name": "Access-Token",
-        "type": "apiKey"
-      },
-      "sdkworkDualToken": {
-        "description": "Protected routes require Authorization: Bearer <auth_token JWT> and Access-Token: <access_token JWT>.",
         "in": "header",
         "name": "Access-Token",
         "type": "apiKey"
@@ -17,6 +265,12 @@
         "description": "Backend agent bootstrap token for /backend/v3/api/agent/* routes. Resolves via api-key auth-mode without dual-token JWT.",
         "in": "header",
         "name": "X-SDKWork-Agent-Token",
+        "type": "apiKey"
+      },
+      "sdkworkDualToken": {
+        "description": "Protected routes require Authorization: Bearer <auth_token JWT> and Access-Token: <access_token JWT>.",
+        "in": "header",
+        "name": "Access-Token",
         "type": "apiKey"
       }
     }
@@ -27,7 +281,7 @@
   },
   "openapi": "3.1.0",
   "paths": {
-    "/backend/v3/api/web-framework/audit-events": {
+    "/backend/v3/api/web-framework/audit_events": {
       "get": {
         "operationId": "webFramework.auditEvents.list",
         "parameters": [
@@ -60,24 +314,73 @@
         ],
         "responses": {
           "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SdkWorkListResponse"
+                }
+              }
+            },
             "description": "Success"
           },
           "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Bad Request"
           },
           "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Unauthorized"
           },
           "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Forbidden"
           },
           "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Too Many Requests"
           },
           "500": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Internal Server Error"
           },
           "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Service Unavailable"
           }
         },
@@ -101,7 +404,7 @@
         "x-sdkwork-route-auth": "dual-token"
       }
     },
-    "/backend/v3/api/web-framework/control-nodes": {
+    "/backend/v3/api/web-framework/control_nodes": {
       "get": {
         "operationId": "webFramework.controlNodes.list",
         "parameters": [
@@ -126,24 +429,73 @@
         ],
         "responses": {
           "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SdkWorkListResponse"
+                }
+              }
+            },
             "description": "Success"
           },
           "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Bad Request"
           },
           "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Unauthorized"
           },
           "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Forbidden"
           },
           "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Too Many Requests"
           },
           "500": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Internal Server Error"
           },
           "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Service Unavailable"
           }
         },
@@ -167,30 +519,93 @@
         "operationId": "webFramework.controlNodes.register",
         "responses": {
           "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SdkWorkResourceResponse"
+                }
+              }
+            },
             "description": "Success"
           },
           "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SdkWorkResourceResponse"
+                }
+              }
+            },
             "description": "Created"
           },
           "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Bad Request"
           },
           "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Unauthorized"
           },
           "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Forbidden"
           },
           "413": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Payload Too Large"
           },
           "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Too Many Requests"
           },
           "500": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Internal Server Error"
           },
           "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Service Unavailable"
           }
         },
@@ -211,7 +626,7 @@
         "x-sdkwork-route-auth": "dual-token"
       }
     },
-    "/backend/v3/api/web-framework/control-nodes/{node_id}": {
+    "/backend/v3/api/web-framework/control_nodes/{nodeId}": {
       "delete": {
         "operationId": "webFramework.controlNodes.delete",
         "responses": {
@@ -219,21 +634,63 @@
             "description": "No Content"
           },
           "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Unauthorized"
           },
           "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Forbidden"
           },
           "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Not Found"
           },
           "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Too Many Requests"
           },
           "500": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Internal Server Error"
           },
           "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Service Unavailable"
           }
         },
@@ -254,35 +711,98 @@
         "x-sdkwork-route-auth": "dual-token"
       }
     },
-    "/backend/v3/api/web-framework/control-nodes/{node_id}/heartbeat": {
+    "/backend/v3/api/web-framework/control_nodes/{nodeId}/heartbeat": {
       "post": {
         "operationId": "webFramework.controlNodes.heartbeat",
         "responses": {
           "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SdkWorkCommandResponse"
+                }
+              }
+            },
             "description": "Success"
           },
           "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Bad Request"
           },
           "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Unauthorized"
           },
           "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Forbidden"
           },
           "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Not Found"
           },
           "413": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Payload Too Large"
           },
           "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Too Many Requests"
           },
           "500": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Internal Server Error"
           },
           "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Service Unavailable"
           }
         },
@@ -303,7 +823,7 @@
         "x-sdkwork-route-auth": "dual-token"
       }
     },
-    "/backend/v3/api/web-framework/cors-policies": {
+    "/backend/v3/api/web-framework/cors_policies": {
       "get": {
         "operationId": "webFramework.corsPolicies.list",
         "parameters": [
@@ -336,24 +856,73 @@
         ],
         "responses": {
           "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SdkWorkListResponse"
+                }
+              }
+            },
             "description": "Success"
           },
           "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Bad Request"
           },
           "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Unauthorized"
           },
           "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Forbidden"
           },
           "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Too Many Requests"
           },
           "500": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Internal Server Error"
           },
           "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Service Unavailable"
           }
         },
@@ -380,27 +949,83 @@
         "operationId": "webFramework.corsPolicies.upsert",
         "responses": {
           "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SdkWorkResourceResponse"
+                }
+              }
+            },
             "description": "Success"
           },
           "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Bad Request"
           },
           "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Unauthorized"
           },
           "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Forbidden"
           },
           "413": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Payload Too Large"
           },
           "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Too Many Requests"
           },
           "500": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Internal Server Error"
           },
           "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Service Unavailable"
           }
         },
@@ -421,26 +1046,68 @@
         "x-sdkwork-route-auth": "dual-token"
       }
     },
-    "/backend/v3/api/web-framework/optional-features": {
+    "/backend/v3/api/web-framework/optional_features": {
       "get": {
         "operationId": "webFramework.optionalFeatures.snapshot",
         "responses": {
           "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SdkWorkResourceResponse"
+                }
+              }
+            },
             "description": "Success"
           },
           "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Unauthorized"
           },
           "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Forbidden"
           },
           "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Too Many Requests"
           },
           "500": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Internal Server Error"
           },
           "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Service Unavailable"
           }
         },
@@ -461,7 +1128,7 @@
         "x-sdkwork-route-auth": "dual-token"
       }
     },
-    "/backend/v3/api/web-framework/rate-limit-policies": {
+    "/backend/v3/api/web-framework/rate_limit_policies": {
       "get": {
         "operationId": "webFramework.rateLimitPolicies.list",
         "parameters": [
@@ -494,24 +1161,73 @@
         ],
         "responses": {
           "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SdkWorkListResponse"
+                }
+              }
+            },
             "description": "Success"
           },
           "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Bad Request"
           },
           "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Unauthorized"
           },
           "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Forbidden"
           },
           "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Too Many Requests"
           },
           "500": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Internal Server Error"
           },
           "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Service Unavailable"
           }
         },
@@ -538,27 +1254,83 @@
         "operationId": "webFramework.rateLimitPolicies.upsert",
         "responses": {
           "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SdkWorkResourceResponse"
+                }
+              }
+            },
             "description": "Success"
           },
           "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Bad Request"
           },
           "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Unauthorized"
           },
           "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Forbidden"
           },
           "413": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Payload Too Large"
           },
           "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Too Many Requests"
           },
           "500": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Internal Server Error"
           },
           "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Service Unavailable"
           }
         },
@@ -579,26 +1351,68 @@
         "x-sdkwork-route-auth": "dual-token"
       }
     },
-    "/backend/v3/api/web-framework/runtime-defaults": {
+    "/backend/v3/api/web-framework/runtime_defaults": {
       "get": {
         "operationId": "webFramework.runtimeDefaults.snapshot",
         "responses": {
           "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SdkWorkResourceResponse"
+                }
+              }
+            },
             "description": "Success"
           },
           "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Unauthorized"
           },
           "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Forbidden"
           },
           "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Too Many Requests"
           },
           "500": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Internal Server Error"
           },
           "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Service Unavailable"
           }
         },
@@ -619,7 +1433,7 @@
         "x-sdkwork-route-auth": "dual-token"
       }
     },
-    "/backend/v3/api/web-framework/security-events": {
+    "/backend/v3/api/web-framework/security_events": {
       "get": {
         "operationId": "webFramework.securityEvents.list",
         "parameters": [
@@ -636,24 +1450,73 @@
         ],
         "responses": {
           "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SdkWorkListResponse"
+                }
+              }
+            },
             "description": "Success"
           },
           "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Bad Request"
           },
           "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Unauthorized"
           },
           "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Forbidden"
           },
           "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Too Many Requests"
           },
           "500": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Internal Server Error"
           },
           "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Service Unavailable"
           }
         },
@@ -674,7 +1537,7 @@
         "x-sdkwork-route-auth": "dual-token"
       }
     },
-    "/backend/v3/api/web-framework/tenant-runtime-profiles": {
+    "/backend/v3/api/web-framework/tenant_runtime_profiles": {
       "get": {
         "operationId": "webFramework.tenantRuntimeProfiles.list",
         "parameters": [
@@ -707,24 +1570,73 @@
         ],
         "responses": {
           "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SdkWorkListResponse"
+                }
+              }
+            },
             "description": "Success"
           },
           "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Bad Request"
           },
           "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Unauthorized"
           },
           "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Forbidden"
           },
           "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Too Many Requests"
           },
           "500": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Internal Server Error"
           },
           "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Service Unavailable"
           }
         },
@@ -751,27 +1663,83 @@
         "operationId": "webFramework.tenantRuntimeProfiles.upsert",
         "responses": {
           "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SdkWorkResourceResponse"
+                }
+              }
+            },
             "description": "Success"
           },
           "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Bad Request"
           },
           "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Unauthorized"
           },
           "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Forbidden"
           },
           "413": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Payload Too Large"
           },
           "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Too Many Requests"
           },
           "500": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Internal Server Error"
           },
           "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
             "description": "Service Unavailable"
           }
         },

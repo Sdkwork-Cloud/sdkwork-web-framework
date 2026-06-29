@@ -9,7 +9,7 @@ import {
 } from "./e2e-constants.mjs";
 import { waitForUrl } from "./e2e-wait-for-url.mjs";
 
-const path = "/backend/v3/api/web-framework/runtime-defaults";
+const path = "/backend/v3/api/web-framework/runtime_defaults";
 
 async function probe(url, label) {
   const response = await fetch(`${url}${path}`, {

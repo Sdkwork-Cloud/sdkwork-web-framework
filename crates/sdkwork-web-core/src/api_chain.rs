@@ -127,6 +127,9 @@ pub struct WebCallState {
     pub accepted_at: Option<std::time::Instant>,
     /// Manifest flag: reject inbound credential/context headers before handler logic.
     pub forbid_credential_headers: bool,
+    /// 记录 before 阶段失败时的错误，供 Audit.after 为失败请求留痕使用。
+    /// SECURITY_SPEC §5.1：审计完整性要求失败请求也留痕。
+    pub before_failure: Option<WebFrameworkError>,
 }
 
 /// Assembly surface for resolver, policies, stores, and injectors (spec §4 `WebFrameworkRuntime`).
@@ -446,6 +449,7 @@ impl WebCallState {
             concurrent_admission_key: None,
             accepted_at: None,
             forbid_credential_headers: false,
+            before_failure: None,
         }
     }
 
@@ -705,7 +709,15 @@ where
     ) -> Result<(), WebFrameworkError> {
         for interceptor in &self.interceptors {
             let started = std::time::Instant::now();
-            interceptor.before(state, request, runtime).await?;
+            if let Err(error) = interceptor.before(state, request, runtime).await {
+                // 记录失败阶段的 error，供 Audit.after 使用。
+                state.before_failure = Some(error.clone());
+                // 返回错误前，仍记录该阶段耗时。
+                if let Some(metrics) = runtime.metrics() {
+                    metrics.record_pipeline_stage_duration(interceptor.name(), started.elapsed());
+                }
+                return Err(error);
+            }
             if let Some(metrics) = runtime.metrics() {
                 metrics.record_pipeline_stage_duration(interceptor.name(), started.elapsed());
             }
@@ -719,6 +731,9 @@ where
         response: &mut Response,
         runtime: &WebCallRuntime<R>,
     ) -> Result<(), WebFrameworkError> {
+        // 反向遍历执行 after。即使 before 失败也调用 after，
+        // 确保 Audit/ResponseIdentity/HeaderSecurity 等阶段为失败请求留痕。
+        // 各阶段的 after 须容忍 state.before_failure = Some 的场景。
         for interceptor in self.interceptors.iter().rev() {
             interceptor.after(state, response, runtime).await?;
         }

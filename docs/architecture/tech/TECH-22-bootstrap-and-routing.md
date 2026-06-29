@@ -83,7 +83,7 @@ WebFramework::builder(iam_resolver) // 业务 adapter，见 10-migration-from-ap
 | manifest 中存在、handler 未实现 | 501 | `not-implemented` |
 | manifest 中不存在 | 404 | `not-found` |
 
-响应含服务端 `requestId` 与 `traceId`（W3C `traceparent` 传播）。
+响应含服务端 `traceId`（`X-SdkWork-Trace-Id` 响应头与 JSON 字段；W3C `traceparent` 传播）。
 
 `enable_admin_api` 时，builder 自动从 `sdkwork-routes-web-framework-backend-api::ROUTES` 推导 manifest。
 

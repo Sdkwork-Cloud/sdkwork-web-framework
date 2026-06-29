@@ -26,8 +26,20 @@ pub enum ApiSurface {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum RateLimitTier {
+    /// Highest priority — authentication and authorization endpoints.
     AuthCritical,
+    /// Default tier for OpenAPI schema routes.
     OpenApiDefault,
+    /// File upload / media ingestion — typically higher quotas than API calls.
+    Upload,
+    /// Search and query operations — can be expensive on database side.
+    Search,
+    /// Bulk operations — batch processing with moderate throughput needs.
+    Bulk,
+    /// Background jobs and async workers — long-running processes.
+    Worker,
+    /// Internal/platform service-to-service communication.
+    Internal,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]

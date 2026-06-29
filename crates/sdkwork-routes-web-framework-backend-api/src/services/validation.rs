@@ -9,7 +9,9 @@ use sdkwork_web_core::CorsPolicy;
 
 const MAX_RATE_LIMIT_WINDOW_SECS: u64 = 86_400;
 const MAX_RATE_LIMIT_REQUESTS: u32 = 1_000_000;
-const MAX_CONTENT_LENGTH_BYTES: u64 = 256 * 1024 * 1024;
+/// 请求体最大字节数上限（256 MiB）。`i64` 与 DTO/repo 一致，
+/// 便于 `max_content_length` 字段在 JSON 边界以 string 透传（API_SPEC §13 byte counters）。
+const MAX_CONTENT_LENGTH_BYTES: i64 = 256 * 1024 * 1024;
 const MAX_CONCURRENT_REQUESTS: u32 = 10_000;
 const MAX_CORS_ALLOWED_ORIGINS: usize = 256;
 const MAX_CORS_ORIGIN_LENGTH: usize = 2048;
@@ -197,6 +199,19 @@ mod tests {
             max_concurrent_requests: None,
         };
         assert!(validate_tenant_runtime_profile_upsert(&body).is_err());
+    }
+
+    #[test]
+    fn accepts_string_max_content_length_round_trip() {
+        // API_SPEC §13：byte counter 在 JSON 边界为 string。反序列化后转为 i64。
+        let body = UpsertTenantRuntimeProfileRequest {
+            tenant_id: "100001".to_owned(),
+            environment: "prod".to_owned(),
+            rate_limit_enabled: None,
+            max_content_length: Some(1_048_576), // 1 MiB
+            max_concurrent_requests: None,
+        };
+        assert!(validate_tenant_runtime_profile_upsert(&body).is_ok());
     }
 
     #[test]

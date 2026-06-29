@@ -20,10 +20,10 @@
 
 | 接口面 | 前缀 | 认证 | 响应信封（SDKWork CRUD 面） |
 | --- | --- | --- | --- |
-| app-api | `/app/v3/api` | Dual Token | `PlusApiResult<T>` |
-| backend-api | `/backend/v3/api` | Dual Token | `PlusApiResult<T>` |
-| open-api | `/{domain}/v3/api` 等 | API Key / OAuth Bearer / `OpenApiFlexible` | `PlusApiResult<T>` 或领域约定 |
-| gateway-api | `/v1/**` 等 | 产品定义 | 协议原生（非 Plus 包装） |
+| app-api | `/app/v3/api` | Dual Token | `SdkWorkApiResponse<T>`（`API_SPEC.md` §15） |
+| backend-api | `/backend/v3/api` | Dual Token | `SdkWorkApiResponse<T>` |
+| open-api | `/{domain}/v3/api` 等 | API Key / OAuth Bearer / `OpenApiFlexible` | `SdkWorkApiResponse<T>` |
+| gateway-api | `/v1/**` 等 | 产品定义 | 协议原生（非 SDKWork 包装） |
 
 ## 3. 业务路由所有权（WEB_BACKEND_SPEC）
 
@@ -95,8 +95,8 @@ x-sdkwork-api-surface: app-api
 
 ## 9. 错误契约
 
-- 拦截器 / extractor / fallback / handler 错误：`application/problem+json`（含 `requestId` / `traceId`）
-- 业务 Handler 成功体：`PlusApiResult<T>`（API_SPEC）
+- 拦截器 / extractor / fallback / handler 错误：`application/problem+json`（含 numeric `code` 与 `traceId`）
+- 业务 Handler 成功体：`SdkWorkApiResponse<T>`（`sdkwork-specs/API_SPEC.md` §15）
 
 ## 10. 验收
 

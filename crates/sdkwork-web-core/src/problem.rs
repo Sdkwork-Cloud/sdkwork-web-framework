@@ -1,4 +1,5 @@
 use crate::error::{WebFrameworkError, WebFrameworkErrorKind};
+use crate::trace::resolve_problem_trace_id;
 use axum::http::{header, HeaderName, HeaderValue};
 use axum::response::{IntoResponse, Response};
 use serde_json::json;
@@ -53,13 +54,21 @@ impl<'a> ProblemCorrelation<'a> {
             trace_id,
         }
     }
+
+    pub fn resolved_trace_id(&self) -> Option<String> {
+        if let Some(trace_id) = self.trace_id.filter(|value| !value.is_empty()) {
+            return Some(trace_id.to_owned());
+        }
+        self.request_id
+            .map(|request_id| resolve_problem_trace_id(request_id, None))
+    }
 }
 
 impl<'a> From<Option<&'a str>> for ProblemCorrelation<'a> {
-    fn from(request_id: Option<&'a str>) -> Self {
+    fn from(trace_id: Option<&'a str>) -> Self {
         Self {
-            request_id,
-            trace_id: None,
+            request_id: None,
+            trace_id,
         }
     }
 }
@@ -75,42 +84,33 @@ pub fn client_safe_problem_detail(error: &WebFrameworkError) -> &str {
     }
 }
 
-/// Build RFC 7807 Problem+JSON with optional `requestId` and `traceId`.
+/// Build RFC 9457 Problem+json with required numeric `code` and `traceId`.
 pub fn problem_response(
     error: &WebFrameworkError,
     correlation: ProblemCorrelation<'_>,
 ) -> Response {
     let status = error.status();
-    let mut payload = json!({
+    let trace_id = correlation
+        .resolved_trace_id()
+        .unwrap_or_else(|| "unknown".to_owned());
+    let payload = json!({
         "type": problem_type_uri(&error.kind),
         "title": status.canonical_reason().unwrap_or("Request context error"),
         "status": status.as_u16(),
+        "code": error.result_code(),
+        "traceId": trace_id,
         "detail": client_safe_problem_detail(error),
     });
-    if let Some(request_id) = correlation.request_id {
-        payload["requestId"] = json!(request_id);
-    }
-    if let Some(trace_id) = correlation.trace_id {
-        payload["traceId"] = json!(trace_id);
-    }
     let mut response = (status, axum::Json(payload)).into_response();
     response.headers_mut().insert(
         header::CONTENT_TYPE,
         HeaderValue::from_static("application/problem+json"),
     );
-    if let Some(request_id) = correlation.request_id {
-        if let Ok(value) = HeaderValue::from_str(request_id) {
-            response
-                .headers_mut()
-                .insert(HeaderName::from_static("x-request-id"), value);
-        }
-    }
-    if let Some(trace_id) = correlation.trace_id {
-        if let Ok(value) = HeaderValue::from_str(trace_id) {
-            response
-                .headers_mut()
-                .insert(HeaderName::from_static("x-trace-id"), value);
-        }
+    if let Ok(value) = HeaderValue::from_str(&trace_id) {
+        response.headers_mut().insert(
+            HeaderName::from_static(crate::constants::SDKWORK_TRACE_ID_HEADER_LOWER),
+            value,
+        );
     }
     if let Some(retry_after) = error.retry_after_seconds {
         if let Ok(value) = HeaderValue::from_str(&retry_after.to_string()) {
@@ -176,7 +176,7 @@ mod tests {
     #[test]
     fn problem_response_sets_problem_json_content_type() {
         let error = WebFrameworkError::missing_credentials("test");
-        let response = problem_response(&error, Some("req-1").into());
+        let response = problem_response(&error, Some("req-trace-1").into());
         assert_eq!(
             "application/problem+json",
             response
@@ -203,7 +203,8 @@ mod tests {
             .block_on(async { axum::body::to_bytes(response.into_body(), usize::MAX).await })
             .expect("body");
         let payload: serde_json::Value = serde_json::from_slice(&bytes).expect("json");
-        assert_eq!("req-trace", payload["requestId"].as_str().unwrap());
+        assert!(payload.get("requestId").is_none());
+        assert_eq!(40301, payload["code"].as_i64().unwrap());
         assert_eq!(
             "4bf92f3577b34da6a3ce929d0e0e4736",
             payload["traceId"].as_str().unwrap()

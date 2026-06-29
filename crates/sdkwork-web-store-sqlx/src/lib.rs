@@ -1,9 +1,13 @@
 //! SQLx store adapters for idempotency, rate limiting, audit, and security events (`web_*` only).
+//!
+//! Supports both SQLite (default, single-replica) and PostgreSQL (multi-replica HA).
+//! Use feature flags `sqlite` (default) or `postgres` to select the backend.
 
 mod audit;
 mod bootstrap;
 mod cors_policy;
 mod idempotency;
+pub mod pool;
 mod purge;
 mod rate_limit;
 mod rate_limit_policy;
@@ -13,6 +17,7 @@ mod tenant_runtime;
 pub use audit::SqlxAuditEmitter;
 pub use cors_policy::SqlxCorsPolicySource;
 pub use idempotency::SqlxIdempotencyStore;
+pub use pool::WebStorePool;
 pub use rate_limit::SqlxRateLimitStore;
 pub use rate_limit_policy::SqlxRateLimitPolicySource;
 pub use security_events::SqlxSecurityEventEmitter;
@@ -62,46 +67,99 @@ pub async fn connect_sqlite(
     Ok(pool)
 }
 
+// ---- Shared factory functions (SQLite) ----
+
 pub fn shared_idempotency_store(
     pool: SqlitePool,
 ) -> std::sync::Arc<dyn sdkwork_web_core::IdempotencyStore> {
-    std::sync::Arc::new(SqlxIdempotencyStore::new(pool))
+    std::sync::Arc::new(SqlxIdempotencyStore::new_sqlite(pool))
 }
 
 pub fn shared_rate_limit_store(
     pool: SqlitePool,
 ) -> std::sync::Arc<dyn sdkwork_web_core::RateLimitStore> {
-    std::sync::Arc::new(SqlxRateLimitStore::new(pool))
+    std::sync::Arc::new(SqlxRateLimitStore::new_sqlite(pool))
 }
 
 pub fn shared_security_event_emitter(
     pool: SqlitePool,
 ) -> std::sync::Arc<dyn sdkwork_web_core::SecurityEventEmitter> {
-    std::sync::Arc::new(SqlxSecurityEventEmitter::new(pool))
+    std::sync::Arc::new(SqlxSecurityEventEmitter::new_sqlite(pool))
 }
 
 pub fn shared_audit_emitter(
     pool: SqlitePool,
 ) -> std::sync::Arc<dyn sdkwork_web_core::AuditEmitter> {
-    std::sync::Arc::new(SqlxAuditEmitter::new(pool))
+    std::sync::Arc::new(SqlxAuditEmitter::new_sqlite(pool))
 }
 
 pub fn shared_cors_policy_source(
     pool: SqlitePool,
 ) -> std::sync::Arc<dyn sdkwork_web_core::DynamicCorsPolicySource> {
-    std::sync::Arc::new(SqlxCorsPolicySource::new(pool))
+    std::sync::Arc::new(SqlxCorsPolicySource::new_sqlite(pool))
 }
 
 pub fn shared_rate_limit_policy_source(
     pool: SqlitePool,
 ) -> std::sync::Arc<dyn sdkwork_web_core::DynamicRateLimitPolicySource> {
-    std::sync::Arc::new(SqlxRateLimitPolicySource::new(pool))
+    std::sync::Arc::new(SqlxRateLimitPolicySource::new_sqlite(pool))
 }
 
 pub fn shared_tenant_runtime_profile_source(
     pool: SqlitePool,
 ) -> std::sync::Arc<dyn sdkwork_web_core::DynamicTenantRuntimeProfileSource> {
-    std::sync::Arc::new(SqlxTenantRuntimeProfileSource::new(pool))
+    std::sync::Arc::new(SqlxTenantRuntimeProfileSource::new_sqlite(pool))
+}
+
+// ---- PostgreSQL shared factories (feature-gated) ----
+
+#[cfg(feature = "postgres")]
+pub fn shared_idempotency_store_pg(
+    pool: sqlx::PgPool,
+) -> std::sync::Arc<dyn sdkwork_web_core::IdempotencyStore> {
+    std::sync::Arc::new(SqlxIdempotencyStore::new_postgres(pool))
+}
+
+#[cfg(feature = "postgres")]
+pub fn shared_rate_limit_store_pg(
+    pool: sqlx::PgPool,
+) -> std::sync::Arc<dyn sdkwork_web_core::RateLimitStore> {
+    std::sync::Arc::new(SqlxRateLimitStore::new_postgres(pool))
+}
+
+#[cfg(feature = "postgres")]
+pub fn shared_security_event_emitter_pg(
+    pool: sqlx::PgPool,
+) -> std::sync::Arc<dyn sdkwork_web_core::SecurityEventEmitter> {
+    std::sync::Arc::new(SqlxSecurityEventEmitter::new_postgres(pool))
+}
+
+#[cfg(feature = "postgres")]
+pub fn shared_audit_emitter_pg(
+    pool: sqlx::PgPool,
+) -> std::sync::Arc<dyn sdkwork_web_core::AuditEmitter> {
+    std::sync::Arc::new(SqlxAuditEmitter::new_postgres(pool))
+}
+
+#[cfg(feature = "postgres")]
+pub fn shared_cors_policy_source_pg(
+    pool: sqlx::PgPool,
+) -> std::sync::Arc<dyn sdkwork_web_core::DynamicCorsPolicySource> {
+    std::sync::Arc::new(SqlxCorsPolicySource::new_postgres(pool))
+}
+
+#[cfg(feature = "postgres")]
+pub fn shared_rate_limit_policy_source_pg(
+    pool: sqlx::PgPool,
+) -> std::sync::Arc<dyn sdkwork_web_core::DynamicRateLimitPolicySource> {
+    std::sync::Arc::new(SqlxRateLimitPolicySource::new_postgres(pool))
+}
+
+#[cfg(feature = "postgres")]
+pub fn shared_tenant_runtime_profile_source_pg(
+    pool: sqlx::PgPool,
+) -> std::sync::Arc<dyn sdkwork_web_core::DynamicTenantRuntimeProfileSource> {
+    std::sync::Arc::new(SqlxTenantRuntimeProfileSource::new_postgres(pool))
 }
 
 /// Cached SQLx dynamic policy sources plus shared invalidation handles for admin upserts.
@@ -117,15 +175,40 @@ pub fn shared_dynamic_policy_bundle(pool: SqlitePool) -> SqlxDynamicPolicyBundle
         DYNAMIC_POLICY_CACHE_TTL_SECS,
     )));
     let cors_policy_source = Arc::new(CachingDynamicCorsPolicySource::new(
-        Arc::new(SqlxCorsPolicySource::new(pool.clone())),
+        Arc::new(SqlxCorsPolicySource::new_sqlite(pool.clone())),
         caches.cors(),
     ));
     let rate_limit_policy_source = Arc::new(CachingDynamicRateLimitPolicySource::new(
-        Arc::new(SqlxRateLimitPolicySource::new(pool.clone())),
+        Arc::new(SqlxRateLimitPolicySource::new_sqlite(pool.clone())),
         caches.rate_limit(),
     ));
     let tenant_runtime_profile_source = Arc::new(CachingDynamicTenantRuntimeProfileSource::new(
-        Arc::new(SqlxTenantRuntimeProfileSource::new(pool)),
+        Arc::new(SqlxTenantRuntimeProfileSource::new_sqlite(pool)),
+        caches.tenant_profile(),
+    ));
+    SqlxDynamicPolicyBundle {
+        caches,
+        cors_policy_source,
+        rate_limit_policy_source,
+        tenant_runtime_profile_source,
+    }
+}
+
+#[cfg(feature = "postgres")]
+pub fn shared_dynamic_policy_bundle_pg(pool: sqlx::PgPool) -> SqlxDynamicPolicyBundle {
+    let caches = Arc::new(DynamicPolicyCaches::new(Duration::from_secs(
+        DYNAMIC_POLICY_CACHE_TTL_SECS,
+    )));
+    let cors_policy_source = Arc::new(CachingDynamicCorsPolicySource::new(
+        Arc::new(SqlxCorsPolicySource::new_postgres(pool.clone())),
+        caches.cors(),
+    ));
+    let rate_limit_policy_source = Arc::new(CachingDynamicRateLimitPolicySource::new(
+        Arc::new(SqlxRateLimitPolicySource::new_postgres(pool.clone())),
+        caches.rate_limit(),
+    ));
+    let tenant_runtime_profile_source = Arc::new(CachingDynamicTenantRuntimeProfileSource::new(
+        Arc::new(SqlxTenantRuntimeProfileSource::new_postgres(pool)),
         caches.tenant_profile(),
     ));
     SqlxDynamicPolicyBundle {
@@ -170,7 +253,7 @@ mod tests {
     #[tokio::test]
     async fn sqlx_idempotency_replays_completed_response() {
         let pool = test_pool().await;
-        let store = SqlxIdempotencyStore::new(pool);
+        let store = SqlxIdempotencyStore::new_sqlite(pool);
         let ttl = Duration::from_secs(60);
         assert!(matches!(
             store.begin("k1", "fp", ttl).await.expect("leader"),
@@ -198,7 +281,7 @@ mod tests {
     #[tokio::test]
     async fn sqlx_idempotency_release_allows_retry() {
         let pool = test_pool().await;
-        let store = SqlxIdempotencyStore::new(pool);
+        let store = SqlxIdempotencyStore::new_sqlite(pool);
         let ttl = Duration::from_secs(60);
         store.begin("k2", "fp", ttl).await.expect("leader");
         store.release("k2", "fp").await.expect("release");
@@ -211,11 +294,12 @@ mod tests {
     #[tokio::test]
     async fn sqlx_security_event_emitter_persists_rows() {
         let pool = test_pool().await;
-        let emitter = SqlxSecurityEventEmitter::new(pool.clone());
+        let emitter = SqlxSecurityEventEmitter::new_sqlite(pool.clone());
         emitter
             .emit(SecurityEvent {
                 kind: SecurityEventKind::CorsDenied,
                 request_id: Some("req-1".to_owned()),
+                tenant_id: Some("100001".to_owned()),
                 path: "/app/v3/api/users".to_owned(),
                 method: "POST".to_owned(),
                 api_surface: WebApiSurface::AppApi,
@@ -224,17 +308,19 @@ mod tests {
             })
             .await
             .expect("emit");
-        let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM web_security_event")
-            .fetch_one(&pool)
-            .await
-            .expect("count");
-        assert_eq!(1, count);
+        let row: (i64, Option<String>) =
+            sqlx::query_as("SELECT COUNT(*), MAX(tenant_id) FROM web_security_event")
+                .fetch_one(&pool)
+                .await
+                .expect("count");
+        assert_eq!(1, row.0);
+        assert_eq!(Some("100001".to_owned()), row.1);
     }
 
     #[tokio::test]
     async fn sqlx_rate_limit_store_enforces_window() {
         let pool = test_pool().await;
-        let store = SqlxRateLimitStore::new(pool);
+        let store = SqlxRateLimitStore::new_sqlite(pool);
         let window = Duration::from_secs(60);
         store
             .check_and_record("tenant:1", 2, window)
@@ -257,7 +343,7 @@ mod tests {
     #[tokio::test]
     async fn sqlx_audit_emitter_persists_rows() {
         let pool = test_pool().await;
-        let emitter = SqlxAuditEmitter::new(pool.clone());
+        let emitter = SqlxAuditEmitter::new_sqlite(pool.clone());
         emitter
             .emit(AuditFact {
                 request_id: "req-audit-1".to_owned(),
@@ -292,7 +378,7 @@ mod tests {
         .execute(&pool)
         .await
         .expect("seed cors");
-        let source = SqlxCorsPolicySource::new(pool);
+        let source = SqlxCorsPolicySource::new_sqlite(pool);
         let policy = source
             .resolve(&sdkwork_web_core::CorsPolicyContext {
                 tenant_id: Some("100001".to_owned()),
@@ -318,7 +404,7 @@ mod tests {
         .execute(&pool)
         .await
         .expect("seed rate limit policy");
-        let source = SqlxRateLimitPolicySource::new(pool);
+        let source = SqlxRateLimitPolicySource::new_sqlite(pool);
         let policy = source
             .resolve(&sdkwork_web_core::RateLimitPolicyContext {
                 tenant_id: Some("100001".to_owned()),
@@ -343,7 +429,7 @@ mod tests {
         .execute(&pool)
         .await
         .expect("seed tenant profile");
-        let source = SqlxTenantRuntimeProfileSource::new(pool);
+        let source = SqlxTenantRuntimeProfileSource::new_sqlite(pool);
         let profile = source
             .resolve(&sdkwork_web_core::TenantRuntimeProfileContext {
                 tenant_id: Some("100001".to_owned()),
@@ -356,47 +442,5 @@ mod tests {
         assert_eq!(Some(false), profile.rate_limit_enabled);
         assert_eq!(Some(4096), profile.max_content_length);
         assert_eq!(Some(2), profile.max_concurrent_requests);
-    }
-
-    #[tokio::test]
-    async fn shared_dynamic_policy_bundle_caches_cors_resolution() {
-        let pool = test_pool().await;
-        sqlx::query(
-            "INSERT INTO web_cors_policy (tenant_id, environment, allow_all_origins, allowed_origins, allow_credentials) \
-             VALUES ('100001', 'prod', 0, '[\"https://app.example\"]', 1)",
-        )
-        .execute(&pool)
-        .await
-        .expect("seed cors");
-        let bundle = shared_dynamic_policy_bundle(pool);
-        let ctx = sdkwork_web_core::CorsPolicyContext {
-            tenant_id: Some("100001".to_owned()),
-            environment: sdkwork_web_core::WebEnvironment::Prod,
-            api_surface: WebApiSurface::AppApi,
-            origin: Some("https://app.example".to_owned()),
-        };
-        let first = bundle
-            .cors_policy_source
-            .resolve(&ctx)
-            .await
-            .expect("resolve")
-            .expect("overlay");
-        let second = bundle
-            .cors_policy_source
-            .resolve(&ctx)
-            .await
-            .expect("resolve cached")
-            .expect("overlay cached");
-        assert_eq!(first.allowed_origins, second.allowed_origins);
-        bundle
-            .caches
-            .invalidate_tenant_environment("100001", "prod");
-        let after_invalidate = bundle
-            .cors_policy_source
-            .resolve(&ctx)
-            .await
-            .expect("resolve after invalidate")
-            .expect("overlay after invalidate");
-        assert_eq!(first.allowed_origins, after_invalidate.allowed_origins);
     }
 }

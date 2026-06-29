@@ -6,9 +6,9 @@ use axum::routing::get;
 use axum::Router;
 use sdkwork_web_axum::with_web_request_context;
 use sdkwork_web_bootstrap::{
-    assemble_multi_surface_router, build_openapi_document, contract_fallback_handler, service_router,
-    ContractFallbackConfig, HttpMethod, HttpRoute, ReadinessCheck, ReadinessFuture, RouteAuth,
-    ServiceRouterConfig, WebFramework, READINESS_DEPENDENCY_UNAVAILABLE,
+    assemble_multi_surface_router, build_openapi_document, contract_fallback_handler,
+    service_router, ContractFallbackConfig, HttpMethod, HttpRoute, ReadinessCheck, ReadinessFuture,
+    RouteAuth, ServiceRouterConfig, WebFramework, READINESS_DEPENDENCY_UNAVAILABLE,
 };
 use sdkwork_web_core::DefaultWebRequestContextResolver;
 use sdkwork_web_core::{bootstrap_access_token_jwt, HttpRouteManifest, WebRequestContextProfile};
@@ -351,15 +351,14 @@ async fn assemble_multi_surface_router_mounts_infra_once() {
     for path in ["/healthz", "/livez", "/readyz", "/metrics"] {
         let response = app
             .clone()
-            .oneshot(
-                Request::builder()
-                    .uri(path)
-                    .body(Body::empty())
-                    .unwrap(),
-            )
+            .oneshot(Request::builder().uri(path).body(Body::empty()).unwrap())
             .await
             .expect(path);
-        assert_eq!(StatusCode::OK, response.status(), "expected {path} to succeed");
+        assert_eq!(
+            StatusCode::OK,
+            response.status(),
+            "expected {path} to succeed"
+        );
     }
 }
 
@@ -412,7 +411,7 @@ async fn contract_fallback_returns_501_for_manifest_only_route() {
         "https://sdkwork.dev/problems/not-implemented",
         payload["type"].as_str().unwrap()
     );
-    assert!(payload["requestId"]
+    assert!(payload["traceId"]
         .as_str()
         .is_some_and(|value| !value.is_empty()));
 }

@@ -8,7 +8,7 @@ M3 production-readiness alignment for the platform web framework (Phase I exit).
 
 ### Added
 
-- **Problem correlation (E/G):** `ProblemCorrelation`, `WebRequestContext::trace_id`, server-owned `requestId` on every Problem+json response; W3C `traceparent` propagation into `traceId`.
+- **Problem correlation (E/G):** `ProblemCorrelation`, `WebRequestContext::trace_id`, numeric `code` and server-owned `traceId` on every Problem+json response; W3C `traceparent` propagation into `traceId`.
 - **Correlation-safe Axum surface:** `WebFrameworkRejection` for extractors; handler helpers `finish_api_json` / `finish_api_response`; removed bare `IntoResponse` for `WebFrameworkError` and `ApiProblem`.
 - **Contract fallback (F3):** `ContractFallbackConfig`, auto-wiring from `WebFrameworkBuilder::route_manifest`, Axum `.fallback()` via `service_router`; `NotImplemented` (501) and manifest-aware 404 with standard Problem type URIs.
 - **Observability bootstrap:** `init_tracing_from_env()`; admin-server `otel` feature gate.

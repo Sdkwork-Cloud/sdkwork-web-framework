@@ -1,40 +1,58 @@
 use axum::{
-    http::StatusCode,
+    http::{HeaderName, HeaderValue, StatusCode},
     response::{IntoResponse, Response},
     Json,
 };
+use sdkwork_utils_rust::SdkWorkApiResponse;
 use sdkwork_web_core::{
     problem_response, WebFrameworkError, WebFrameworkErrorKind, WebRequestContext,
 };
 use serde::Serialize;
 
-#[derive(Debug, Serialize)]
-pub struct ApiEnvelope<T> {
-    pub success: bool,
-    pub data: T,
+pub type ApiResult<T> = Result<T, ApiProblem>;
+
+pub fn ok_json<T>(data: T) -> ApiResult<T> {
+    Ok(data)
 }
 
-impl<T: Serialize> ApiEnvelope<T> {
-    pub fn ok(data: T) -> Self {
-        Self {
-            success: true,
-            data,
-        }
+pub fn created_json<T: Serialize>(
+    ctx: &WebRequestContext,
+    data: T,
+) -> Result<Response, ApiProblem> {
+    success_response(ctx, StatusCode::CREATED, data)
+}
+
+pub fn success_json<T: Serialize>(
+    ctx: &WebRequestContext,
+    data: T,
+) -> Result<Response, ApiProblem> {
+    success_response(ctx, StatusCode::OK, data)
+}
+
+pub fn no_content(ctx: &WebRequestContext) -> Result<Response, ApiProblem> {
+    let mut response = StatusCode::NO_CONTENT.into_response();
+    attach_trace_header(&mut response, &ctx.resolved_trace_id());
+    Ok(response)
+}
+
+fn success_response<T: Serialize>(
+    ctx: &WebRequestContext,
+    status: StatusCode,
+    data: T,
+) -> Result<Response, ApiProblem> {
+    let trace_id = ctx.resolved_trace_id();
+    let envelope = SdkWorkApiResponse::success(data, trace_id.clone());
+    let mut response = (status, Json(envelope)).into_response();
+    attach_trace_header(&mut response, &trace_id);
+    Ok(response)
+}
+
+fn attach_trace_header(response: &mut Response, trace_id: &str) {
+    if let Ok(value) = HeaderValue::from_str(trace_id) {
+        response
+            .headers_mut()
+            .insert(HeaderName::from_static("x-sdkwork-trace-id"), value);
     }
-}
-
-pub type ApiResult<T> = Result<Json<ApiEnvelope<T>>, ApiProblem>;
-
-pub fn ok_json<T: Serialize>(data: T) -> ApiResult<T> {
-    Ok(Json(ApiEnvelope::ok(data)))
-}
-
-pub fn created_json<T: Serialize>(data: T) -> Result<Response, ApiProblem> {
-    Ok((StatusCode::CREATED, Json(ApiEnvelope::ok(data))).into_response())
-}
-
-pub fn no_content() -> Result<Response, ApiProblem> {
-    Ok(StatusCode::NO_CONTENT.into_response())
 }
 
 #[derive(Debug)]
@@ -117,7 +135,9 @@ impl ApiProblem {
 /// Finish a JSON handler `Result` with request-scoped Problem correlation.
 pub fn finish_api_json<T: Serialize>(ctx: &WebRequestContext, result: ApiResult<T>) -> Response {
     match result {
-        Ok(envelope) => envelope.into_response(),
+        Ok(data) => {
+            success_json(ctx, data).unwrap_or_else(|problem| problem.into_response_for(ctx))
+        }
         Err(problem) => problem.into_response_for(ctx),
     }
 }
@@ -137,7 +157,6 @@ pub fn finish_api_response(
 mod tests {
     use super::*;
     use axum::body::to_bytes;
-    use axum::http::header;
     use sdkwork_web_core::{ServerRequestId, WebApiSurface, WebAuthMode, WebTransportFacts};
 
     fn test_context() -> WebRequestContext {
@@ -147,58 +166,7 @@ mod tests {
             auth_mode: WebAuthMode::DualToken,
             principal: None,
             transport: WebTransportFacts {
-                path: "/backend/v3/api/web-framework/cors-policies".to_owned(),
-                method: "GET".to_owned(),
-                auth_token_present: true,
-                access_token_present: true,
-                api_key_present: false,
-                oauth_bearer_present: false,
-                agent_token_present: false,
-            },
-            locale: None,
-            client_kind: None,
-            operation: None,
-            trace_id: None,
-        }
-    }
-
-    #[tokio::test]
-    async fn api_problem_uses_problem_json_content_type() {
-        let response =
-            ApiProblem::forbidden("missing permission").into_response_for(&test_context());
-        assert_eq!(
-            "application/problem+json",
-            response
-                .headers()
-                .get(header::CONTENT_TYPE)
-                .and_then(|value| value.to_str().ok())
-                .unwrap_or_default()
-        );
-        let body = to_bytes(response.into_body(), usize::MAX)
-            .await
-            .expect("body");
-        let payload: serde_json::Value = serde_json::from_slice(&body).expect("json");
-        assert_eq!(403, payload["status"].as_u64().unwrap());
-        assert!(payload["detail"]
-            .as_str()
-            .unwrap()
-            .contains("missing permission"));
-        assert!(!payload.to_string().contains("backtrace"));
-    }
-
-    #[tokio::test]
-    async fn api_problem_into_response_for_includes_request_correlation() {
-        use sdkwork_web_core::{
-            ServerRequestId, WebApiSurface, WebAuthMode, WebRequestContext, WebTransportFacts,
-        };
-
-        let ctx = WebRequestContext {
-            request_id: ServerRequestId("handler-req-42".to_owned()),
-            api_surface: WebApiSurface::BackendApi,
-            auth_mode: WebAuthMode::DualToken,
-            principal: None,
-            transport: WebTransportFacts {
-                path: "/backend/v3/api/web-framework/cors-policies".to_owned(),
+                path: "/backend/v3/api/web-framework/cors_policies".to_owned(),
                 method: "GET".to_owned(),
                 auth_token_present: true,
                 access_token_present: true,
@@ -210,17 +178,63 @@ mod tests {
             client_kind: None,
             operation: None,
             trace_id: Some("trace-from-context-abc".to_owned()),
-        };
+        }
+    }
+
+    #[tokio::test]
+    async fn success_json_uses_sdkwork_api_response_envelope() {
+        let response =
+            success_json(&test_context(), serde_json::json!({ "item": 1 })).expect("response");
+        let body = to_bytes(response.into_body(), usize::MAX)
+            .await
+            .expect("body");
+        let payload: serde_json::Value = serde_json::from_slice(&body).expect("json");
+        assert_eq!(0, payload["code"].as_i64().unwrap());
+        assert_eq!(
+            "trace-from-context-abc",
+            payload["traceId"].as_str().unwrap()
+        );
+        assert_eq!(1, payload["data"]["item"].as_i64().unwrap());
+    }
+
+    #[tokio::test]
+    async fn api_problem_uses_problem_json_content_type() {
+        let response =
+            ApiProblem::forbidden("missing permission").into_response_for(&test_context());
+        assert_eq!(
+            "application/problem+json",
+            response
+                .headers()
+                .get(axum::http::header::CONTENT_TYPE)
+                .and_then(|value| value.to_str().ok())
+                .unwrap_or_default()
+        );
+        let body = to_bytes(response.into_body(), usize::MAX)
+            .await
+            .expect("body");
+        let payload: serde_json::Value = serde_json::from_slice(&body).expect("json");
+        assert_eq!(403, payload["status"].as_u64().unwrap());
+        assert_eq!(40301, payload["code"].as_i64().unwrap());
+        assert!(payload["detail"]
+            .as_str()
+            .unwrap()
+            .contains("missing permission"));
+        assert!(!payload.to_string().contains("backtrace"));
+    }
+
+    #[tokio::test]
+    async fn api_problem_into_response_for_includes_request_correlation() {
+        let ctx = test_context();
         let response = ApiProblem::forbidden("missing permission").into_response_for(&ctx);
         let body = to_bytes(response.into_body(), usize::MAX)
             .await
             .expect("body");
         let payload: serde_json::Value = serde_json::from_slice(&body).expect("json");
-        assert_eq!("handler-req-42", payload["requestId"].as_str().unwrap());
         assert_eq!(
             "trace-from-context-abc",
             payload["traceId"].as_str().unwrap()
         );
+        assert!(payload.get("requestId").is_none());
     }
 
     #[tokio::test]
@@ -232,6 +246,7 @@ mod tests {
             .expect("body");
         let payload: serde_json::Value = serde_json::from_slice(&body).expect("json");
         assert_eq!(404, payload["status"].as_u64().unwrap());
+        assert_eq!(40401, payload["code"].as_i64().unwrap());
         assert_eq!(
             "https://sdkwork.dev/problems/not-found",
             payload["type"].as_str().unwrap()
@@ -240,8 +255,9 @@ mod tests {
 
     #[tokio::test]
     async fn no_content_response_has_no_body() {
-        let response = no_content().expect("response");
+        let response = no_content(&test_context()).expect("response");
         assert_eq!(StatusCode::NO_CONTENT, response.status());
+        assert!(response.headers().get("x-sdkwork-trace-id").is_some());
         let body = to_bytes(response.into_body(), usize::MAX)
             .await
             .expect("body");
@@ -257,6 +273,7 @@ mod tests {
             .expect("body");
         let payload: serde_json::Value = serde_json::from_slice(&body).expect("json");
         assert_eq!(503, payload["status"].as_u64().unwrap());
+        assert_eq!(50301, payload["code"].as_i64().unwrap());
         assert_eq!(
             "https://sdkwork.dev/problems/dependency-unavailable",
             payload["type"].as_str().unwrap()

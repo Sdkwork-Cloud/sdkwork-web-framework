@@ -65,10 +65,9 @@ node tests/contract/pc-admin-e2e-build.contract.test.mjs
 echo "Running PC admin Playwright integration E2E..."
 (cd "$PC_APP" && npm run test:e2e:integration)
 
-if [ -n "${SDKWORK_REDIS_TEST_URL:-}" ]; then
-  echo "Running live Redis integration tests..."
-  cargo test -p sdkwork-web-store-redis --test redis_live -- --ignored
-fi
+# Live Redis integration tests run as part of `cargo test --workspace` above:
+# when SDKWORK_REDIS_TEST_URL is set the tests exercise a live Redis,
+# otherwise they self-skip (see crates/sdkwork-web-store-redis/tests/redis_live.rs).
 
 echo "Running release pipeline benchmark..."
 "$(dirname "$0")/benchmark-pipeline.sh"

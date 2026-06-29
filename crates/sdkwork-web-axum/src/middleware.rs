@@ -376,7 +376,13 @@ where
     {
         release_concurrent_admission(&layer.runtime, &state).await;
         release_idempotency_leader(&layer.runtime, &state).await;
-        let response = problem_response(&error, state.problem_correlation());
+        let mut response = problem_response(&error, state.problem_correlation());
+        // 即使 before 失败也执行 after，确保 Audit/ResponseIdentity/HeaderSecurity
+        // 为失败请求留痕。SECURITY_SPEC §5.1 审计完整性。
+        let _ = layer
+            .call_chain
+            .after(&state, &mut response, &layer.runtime)
+            .await;
         return finalize_response(&layer, &state, response).await;
     }
 

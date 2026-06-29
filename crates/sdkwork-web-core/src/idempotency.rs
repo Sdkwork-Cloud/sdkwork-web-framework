@@ -33,6 +33,11 @@ pub fn content_length_from_headers(headers: &HeaderMap) -> Option<u64> {
 }
 
 /// Resolve idempotency fingerprint — prefers explicit body hash headers (D6).
+///
+/// 安全契约（API_SPEC §17 / SECURITY_SPEC §5.1）：
+/// - 有 body 时必须携带 `X-Content-SHA256` 或 `X-Idempotency-Fingerprint`，否则拒绝。
+/// - 无 body 时用 method+path+operation_id 稳定指纹。
+/// - 禁止用 `content_length` 做指纹（同长度不同 body 会碰撞，导致复用错误响应）。
 pub fn resolve_idempotency_fingerprint(
     method: &str,
     path: &str,
@@ -53,31 +58,24 @@ pub fn resolve_idempotency_fingerprint(
         .get(header::TRANSFER_ENCODING)
         .and_then(|value| value.to_str().ok())
         .is_some_and(|value| value.eq_ignore_ascii_case("chunked"));
-    if require_body_hash_when_payload && (content_length.unwrap_or(0) > 0 || has_chunked_body) {
+    let has_payload = content_length.unwrap_or(0) > 0 || has_chunked_body;
+
+    if require_body_hash_when_payload && has_payload {
         return Err(WebFrameworkError::bad_request(
             "requests with a body must include X-Content-SHA256 or X-Idempotency-Fingerprint for idempotent commands",
         ));
     }
 
-    Ok(idempotency_fingerprint(
-        method,
-        path,
-        content_length,
-        operation_id,
-    ))
+    // 无 body 或未强制要求 body hash 时，用 method+path+operation_id 稳定指纹。
+    // 不再使用 content_length —— 同长度不同 body 会碰撞导致复用错误响应。
+    Ok(idempotency_fingerprint(method, path, operation_id))
 }
 
-/// Stable fingerprint for method + path + operation + payload size metadata.
-pub fn idempotency_fingerprint(
-    method: &str,
-    path: &str,
-    content_length: Option<u64>,
-    operation_id: Option<&str>,
-) -> String {
+/// Stable fingerprint for method + path + operation (no content_length — avoids collision).
+pub fn idempotency_fingerprint(method: &str, path: &str, operation_id: Option<&str>) -> String {
     hash_key_material(&format!(
-        "{method}:{path}:op={}:len={}",
-        operation_id.unwrap_or(""),
-        content_length.unwrap_or(0)
+        "{method}:{path}:op={}",
+        operation_id.unwrap_or("")
     ))
 }
 
@@ -103,6 +101,13 @@ pub fn idempotency_replay_response(
                 .insert(crate::constants::REQUEST_ID_HEADER, value);
         }
     }
+
+    // Idempotent-Replayed header (Stripe-compatible signal).
+    response.headers_mut().insert(
+        axum::http::HeaderName::from_static("idempotent-replayed"),
+        HeaderValue::from_static("true"),
+    );
+
     Ok(response)
 }
 
@@ -112,9 +117,39 @@ mod tests {
     use axum::http::HeaderMap;
 
     #[test]
-    fn fingerprint_changes_with_content_length() {
-        let a = idempotency_fingerprint("POST", "/app/v3/api/orders", Some(10), None);
-        let b = idempotency_fingerprint("POST", "/app/v3/api/orders", Some(20), None);
+    fn fingerprint_stable_without_content_length() {
+        // 不再使用 content_length —— 同 method+path+op 产生相同指纹。
+        let a = idempotency_fingerprint("POST", "/app/v3/api/orders", None);
+        let b = idempotency_fingerprint("POST", "/app/v3/api/orders", None);
+        assert_eq!(a, b);
+    }
+
+    #[test]
+    fn fingerprint_changes_with_operation_id() {
+        let a = idempotency_fingerprint("POST", "/app/v3/api/orders", Some("orders.create"));
+        let b = idempotency_fingerprint("POST", "/app/v3/api/orders", Some("orders.update"));
+        assert_ne!(a, b);
+    }
+
+    #[test]
+    fn fingerprint_changes_with_body_hash() {
+        // 有 body hash 时指纹区分不同 body。
+        let mut headers_a = HeaderMap::new();
+        headers_a.insert(
+            crate::constants::CONTENT_SHA256_HEADER,
+            "hash_a".parse().unwrap(),
+        );
+        let a =
+            resolve_idempotency_fingerprint("POST", "/app/v3/api/orders", None, &headers_a, true)
+                .expect("fingerprint a");
+        let mut headers_b = HeaderMap::new();
+        headers_b.insert(
+            crate::constants::CONTENT_SHA256_HEADER,
+            "hash_b".parse().unwrap(),
+        );
+        let b =
+            resolve_idempotency_fingerprint("POST", "/app/v3/api/orders", None, &headers_b, true)
+                .expect("fingerprint b");
         assert_ne!(a, b);
     }
 

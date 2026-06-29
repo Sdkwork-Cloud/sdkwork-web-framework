@@ -55,6 +55,21 @@ fn is_valid_traceparent(value: &str) -> bool {
         && parts[2].chars().all(|c| c.is_ascii_hexdigit())
 }
 
+/// Resolve the trace id exposed on Problem+json responses.
+pub fn resolve_problem_trace_id(request_id: &str, trace_id: Option<&str>) -> String {
+    if let Some(trace_id) = trace_id.map(str::trim).filter(|value| !value.is_empty()) {
+        return trace_id.to_owned();
+    }
+    trace_id_from_traceparent(&synthetic_traceparent(request_id))
+        .map(str::to_owned)
+        .unwrap_or_else(|| {
+            request_id
+                .chars()
+                .filter(|c| c.is_ascii_hexdigit())
+                .collect()
+        })
+}
+
 fn synthetic_traceparent(request_id: &str) -> String {
     let trace_id = pad_hex(
         &request_id

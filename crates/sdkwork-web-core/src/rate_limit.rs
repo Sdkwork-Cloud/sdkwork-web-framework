@@ -20,6 +20,26 @@ pub fn limits_for_tier(tier: RateLimitTier) -> ResolvedRateLimitPolicy {
             max_requests: 120,
             window_secs: 60,
         },
+        RateLimitTier::Upload => ResolvedRateLimitPolicy {
+            max_requests: 30,
+            window_secs: 60,
+        },
+        RateLimitTier::Search => ResolvedRateLimitPolicy {
+            max_requests: 60,
+            window_secs: 60,
+        },
+        RateLimitTier::Bulk => ResolvedRateLimitPolicy {
+            max_requests: 20,
+            window_secs: 60,
+        },
+        RateLimitTier::Worker => ResolvedRateLimitPolicy {
+            max_requests: 100,
+            window_secs: 60,
+        },
+        RateLimitTier::Internal => ResolvedRateLimitPolicy {
+            max_requests: 500,
+            window_secs: 60,
+        },
     }
 }
 
@@ -85,6 +105,7 @@ mod tests {
             concurrent_admission_key: None,
             accepted_at: None,
             forbid_credential_headers: false,
+            before_failure: None,
         }
     }
 

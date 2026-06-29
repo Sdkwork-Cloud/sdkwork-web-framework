@@ -71,7 +71,7 @@ fn my_business_router() -> Router {
 
 async fn list_items(ctx: WebRequestContext) -> impl axum::response::IntoResponse {
     // ctx.principal, ctx.tenancy — 已由 18 阶段 pipeline 填充
-    axum::Json(serde_json::json!({ "requestId": ctx.request_id.0 }))
+    axum::Json(serde_json::json!({ "traceId": ctx.resolved_trace_id() }))
 }
 ```
 

@@ -12,10 +12,11 @@ use crate::services::validation::{
     validate_control_node_register, validate_cors_upsert, validate_rate_limit_upsert,
     validate_tenant_runtime_profile_upsert,
 };
-use crate::tenant_scope::AuditEventListScope;
+use crate::tenant_scope::{AuditEventListScope, SecurityEventListScope};
 use sdkwork_web_core::{DynamicPolicyCaches, SecurityPolicy, WebFrameworkOptionalFeatures};
 use sdkwork_web_framework_admin_repository_sqlx::{
-    AuditEventListScope as RepoAuditScope, RegisterControlNodeRecord, UpsertCorsPolicyRecord,
+    AuditEventListScope as RepoAuditScope, RegisterControlNodeRecord,
+    SecurityEventListScope as RepoSecurityScope, UpsertCorsPolicyRecord,
     UpsertRateLimitPolicyRecord, UpsertTenantRuntimeProfileRecord, WebFrameworkAdminRepository,
 };
 use std::sync::Arc;
@@ -63,6 +64,7 @@ impl WebFrameworkAdminService {
                         allow_all_origins: row.allow_all_origins,
                         allowed_origins: row.allowed_origins,
                         allow_credentials: row.allow_credentials,
+                        version: row.version,
                     })
                     .collect()
             })
@@ -91,6 +93,7 @@ impl WebFrameworkAdminService {
             allow_all_origins: record.allow_all_origins,
             allowed_origins: record.allowed_origins,
             allow_credentials: record.allow_credentials,
+            version: record.version,
         })
     }
 
@@ -113,6 +116,7 @@ impl WebFrameworkAdminService {
                         max_requests: row.max_requests,
                         window_secs: row.window_secs,
                         enabled: row.enabled,
+                        version: row.version,
                     })
                     .collect()
             })
@@ -143,6 +147,7 @@ impl WebFrameworkAdminService {
             max_requests: record.max_requests,
             window_secs: record.window_secs,
             enabled: record.enabled,
+            version: record.version,
         })
     }
 
@@ -164,6 +169,7 @@ impl WebFrameworkAdminService {
                         rate_limit_enabled: row.rate_limit_enabled,
                         max_content_length: row.max_content_length,
                         max_concurrent_requests: row.max_concurrent_requests,
+                        version: row.version,
                     })
                     .collect()
             })
@@ -192,15 +198,21 @@ impl WebFrameworkAdminService {
             rate_limit_enabled: record.rate_limit_enabled,
             max_content_length: record.max_content_length,
             max_concurrent_requests: record.max_concurrent_requests,
+            version: record.version,
         })
     }
 
     pub async fn list_security_events(
         &self,
+        scope: SecurityEventListScope,
         limit: u32,
     ) -> Result<Vec<SecurityEventRecord>, ApiProblem> {
+        let repo_scope = match scope {
+            SecurityEventListScope::Tenant(tenant_id) => RepoSecurityScope::Tenant(tenant_id),
+            SecurityEventListScope::PlatformAll => RepoSecurityScope::PlatformAll,
+        };
         self.repository
-            .list_security_events(limit)
+            .list_security_events(repo_scope, limit)
             .await
             .map_err(map_repository_error)
             .map(|rows| {
@@ -209,6 +221,7 @@ impl WebFrameworkAdminService {
                         id: row.id,
                         kind: row.kind,
                         request_id: row.request_id,
+                        tenant_id: row.tenant_id,
                         path: row.path,
                         method: row.method,
                         api_surface: row.api_surface,
@@ -350,17 +363,17 @@ impl WebFrameworkAdminService {
         let default = SecurityPolicy::default();
         RuntimeDefaultsSnapshot {
             production_security_policy: serde_json::json!({
-                "rate_limit_enabled": production.rate_limit.enabled,
-                "rate_limit_max_requests": production.rate_limit.max_requests_per_window,
-                "json_content_type_enabled": production.json_content_type.enabled,
-                "cors_allow_all_origins": production.cors.allow_all_origins,
-                "hsts_configured": production.header_security.strict_transport_security.is_some(),
+                "rateLimitEnabled": production.rate_limit.enabled,
+                "rateLimitMaxRequests": production.rate_limit.max_requests_per_window,
+                "jsonContentTypeEnabled": production.json_content_type.enabled,
+                "corsAllowAllOrigins": production.cors.allow_all_origins,
+                "hstsConfigured": production.header_security.strict_transport_security.is_some(),
             }),
             default_security_policy: serde_json::json!({
-                "rate_limit_enabled": default.rate_limit.enabled,
-                "rate_limit_max_requests": default.rate_limit.max_requests_per_window,
-                "json_content_type_enabled": default.json_content_type.enabled,
-                "cors_allow_all_origins": default.cors.allow_all_origins,
+                "rateLimitEnabled": default.rate_limit.enabled,
+                "rateLimitMaxRequests": default.rate_limit.max_requests_per_window,
+                "jsonContentTypeEnabled": default.json_content_type.enabled,
+                "corsAllowAllOrigins": default.cors.allow_all_origins,
             }),
             optional_features_production_sqlx: WebFrameworkOptionalFeatures::production_sqlx(),
         }

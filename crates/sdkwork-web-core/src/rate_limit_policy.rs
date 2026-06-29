@@ -41,6 +41,11 @@ pub fn rate_limit_tier_key(tier: Option<RateLimitTier>) -> &'static str {
     match tier {
         Some(RateLimitTier::AuthCritical) => "auth_critical",
         Some(RateLimitTier::OpenApiDefault) => "open_api_default",
+        Some(RateLimitTier::Upload) => "upload",
+        Some(RateLimitTier::Search) => "search",
+        Some(RateLimitTier::Bulk) => "bulk",
+        Some(RateLimitTier::Worker) => "worker",
+        Some(RateLimitTier::Internal) => "internal",
         None => "default",
     }
 }

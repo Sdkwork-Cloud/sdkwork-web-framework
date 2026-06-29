@@ -79,7 +79,7 @@ The console does NOT authenticate users. Credentials flow in through
 `createBackendSdkTransport(baseUrl, provider)` is the single HTTP egress point. It:
 - Attaches `Authorization: Bearer <authToken>` and `Access-Token: <accessToken>` headers.
 - Parses `application/problem+json` error responses into `BackendSdkError` with
-  `status`, `problemType`, `requestId`, `traceId`.
+  `status`, `problemType`, `code`, `traceId`.
 - Calls `provider.onUnauthorized()` on 401 to clear local session.
 
 UI code MUST consume the SDK facade (`WebFrameworkAdminBackendSdk`), never the transport
@@ -134,20 +134,20 @@ apps/sdkwork-web-framework-pc/
 
 | Operation | HTTP | Path |
 |-----------|------|------|
-| List CORS policies | GET | `/backend/v3/api/web-framework/cors-policies` |
-| Upsert CORS policy | PUT | `/backend/v3/api/web-framework/cors-policies` |
-| List rate-limit policies | GET | `/backend/v3/api/web-framework/rate-limit-policies` |
-| Upsert rate-limit policy | PUT | `/backend/v3/api/web-framework/rate-limit-policies` |
-| List tenant profiles | GET | `/backend/v3/api/web-framework/tenant-runtime-profiles` |
-| Upsert tenant profile | PUT | `/backend/v3/api/web-framework/tenant-runtime-profiles` |
-| List control nodes | GET | `/backend/v3/api/web-framework/control-nodes` |
-| Register control node | POST | `/backend/v3/api/web-framework/control-nodes` |
-| Heartbeat control node | POST | `/backend/v3/api/web-framework/control-nodes/{id}/heartbeat` |
-| Delete control node | DELETE | `/backend/v3/api/web-framework/control-nodes/{id}` |
-| List security events | GET | `/backend/v3/api/web-framework/security-events` |
-| List audit events | GET | `/backend/v3/api/web-framework/audit-events` |
-| Runtime defaults snapshot | GET | `/backend/v3/api/web-framework/runtime-defaults` |
-| Optional features snapshot | GET | `/backend/v3/api/web-framework/optional-features` |
+| List CORS policies | GET | `/backend/v3/api/web-framework/cors_policies` |
+| Upsert CORS policy | PUT | `/backend/v3/api/web-framework/cors_policies` |
+| List rate-limit policies | GET | `/backend/v3/api/web-framework/rate_limit_policies` |
+| Upsert rate-limit policy | PUT | `/backend/v3/api/web-framework/rate_limit_policies` |
+| List tenant profiles | GET | `/backend/v3/api/web-framework/tenant_runtime_profiles` |
+| Upsert tenant profile | PUT | `/backend/v3/api/web-framework/tenant_runtime_profiles` |
+| List control nodes | GET | `/backend/v3/api/web-framework/control_nodes` |
+| Register control node | POST | `/backend/v3/api/web-framework/control_nodes` |
+| Heartbeat control node | POST | `/backend/v3/api/web-framework/control_nodes/{nodeId}/heartbeat` |
+| Delete control node | DELETE | `/backend/v3/api/web-framework/control_nodes/{nodeId}` |
+| List security events | GET | `/backend/v3/api/web-framework/security_events` |
+| List audit events | GET | `/backend/v3/api/web-framework/audit_events` |
+| Runtime defaults snapshot | GET | `/backend/v3/api/web-framework/runtime_defaults` |
+| Optional features snapshot | GET | `/backend/v3/api/web-framework/optional_features` |
 
 ## 6. Security, Privacy, And Observability
 
@@ -166,7 +166,7 @@ apps/sdkwork-web-framework-pc/
 ### Observability
 
 - **Problem+json error contract**: All backend errors arrive as RFC 9457 Problem+json with
-  `requestId` and `traceId`. The transport surfaces these in `BackendSdkError` for
+  numeric `code` and server-owned `traceId` (`API_SPEC.md` §15). The transport surfaces these in `BackendSdkError` for
   operator correlation.
 - **Epoch guard**: `refreshEpoch` ref prevents stale responses from overwriting the
   current view during rapid tab/environment switching (FRONTEND_CODE_SPEC §4).

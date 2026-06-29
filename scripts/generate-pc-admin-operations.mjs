@@ -53,11 +53,11 @@ function pathToExpression(fullPath, apiPrefix) {
   }
   const params = [...new Set(paramMatch.map((token) => token.slice(1, -1)))];
   assert.ok(
-    params.every((name) => name === 'node_id'),
-    `only {node_id} path params are supported in generator: ${fullPath}`,
+    params.every((name) => name === 'nodeId'),
+    `only {nodeId} path params are supported in generator: ${fullPath}`,
   );
   const argName = 'nodeId';
-  const template = suffix.replace(/\{node_id\}/g, '${encodeURIComponent(nodeId)}');
+  const template = suffix.replace(/\{nodeId\}/g, '${encodeURIComponent(nodeId)}');
   return `(${argName}: string) =>\n      \`\${WEB_FRAMEWORK_ADMIN_API_PREFIX}${template}\``;
 }
 

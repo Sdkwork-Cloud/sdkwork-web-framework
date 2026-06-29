@@ -53,7 +53,7 @@ function extractStaticPaths(source) {
 }
 
 function normalizeManifestPath(pathValue) {
-  return pathValue.replace('{node_id}', '{nodeId}');
+  return pathValue;
 }
 
 function normalizeOperationsPath(pathValue) {

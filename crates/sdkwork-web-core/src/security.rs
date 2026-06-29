@@ -2,6 +2,7 @@ use crate::error::WebFrameworkError;
 use axum::extract::Request;
 use axum::http::{HeaderName, HeaderValue, Method};
 use axum::response::Response;
+use percent_encoding::percent_decode_str;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CorsPolicy {
@@ -203,7 +204,22 @@ impl Default for SqlInjectionGuardPolicy {
     fn default() -> Self {
         Self {
             enabled: true,
-            inspected_headers: vec!["x-api-key".to_owned()],
+            // 扫描所有 inbound 凭证/上下文头，避免攻击者经未扫描头注入 SQL。
+            // SECURITY_SPEC §5.1 / OWASP API8。
+            inspected_headers: vec![
+                "x-api-key".to_owned(),
+                "authorization".to_owned(),
+                "access-token".to_owned(),
+                "idempotency-key".to_owned(),
+                "x-idempotency-fingerprint".to_owned(),
+                "x-content-sha256".to_owned(),
+                "x-sdkwork-agent-token".to_owned(),
+                "cookie".to_owned(),
+                "referer".to_owned(),
+                "x-forwarded-for".to_owned(),
+                "x-real-ip".to_owned(),
+                "user-agent".to_owned(),
+            ],
         }
     }
 }
@@ -467,10 +483,17 @@ impl SecurityPolicy {
         if !self.sql_injection_guard.enabled {
             return Ok(());
         }
-        let mut inspected = vec![
-            request.uri().path().to_owned(),
-            request.uri().query().unwrap_or_default().to_owned(),
-        ];
+        // URL-decode path 与 query 后再匹配，避免 `%27%20or%20` 绕过。
+        // SECURITY_SPEC §5.1 / OWASP API8。
+        let raw_path = request.uri().path();
+        let decoded_path = percent_decode_str(raw_path)
+            .decode_utf8_lossy()
+            .into_owned();
+        let raw_query = request.uri().query().unwrap_or_default();
+        let decoded_query = percent_decode_str(raw_query)
+            .decode_utf8_lossy()
+            .into_owned();
+        let mut inspected = vec![decoded_path, decoded_query];
         for header in &self.sql_injection_guard.inspected_headers {
             if let Some(value) = request
                 .headers()

@@ -187,7 +187,8 @@ pub fn build_openapi_document(title: &str, routes: &[HttpRoute]) -> Value {
                     "name": "X-SDKWork-Agent-Token",
                     "description": "Backend agent bootstrap token for /backend/v3/api/agent/* routes. Resolves via api-key auth-mode without dual-token JWT."
                 }
-            }
+            },
+            "schemas": openapi_envelope_component_schemas()
         },
         "paths": paths
     });
@@ -428,42 +429,285 @@ fn route_deletes_resource(route: &HttpRoute) -> bool {
 fn openapi_responses_for_route(route: &HttpRoute) -> Value {
     let mut responses = Map::new();
     if route_creates_resource(route) {
-        responses.insert("201".to_owned(), json!({ "description": "Created" }));
+        responses.insert("201".to_owned(), openapi_success_response(route, "Created"));
         if route_post_collection_may_return_ok(route) {
-            responses.insert("200".to_owned(), json!({ "description": "Success" }));
+            responses.insert("200".to_owned(), openapi_success_response(route, "Success"));
         }
     } else if route_deletes_resource(route) {
         responses.insert("204".to_owned(), json!({ "description": "No Content" }));
     } else {
-        responses.insert("200".to_owned(), json!({ "description": "Success" }));
+        responses.insert("200".to_owned(), openapi_success_response(route, "Success"));
     }
-    responses.insert("401".to_owned(), json!({ "description": "Unauthorized" }));
-    responses.insert("403".to_owned(), json!({ "description": "Forbidden" }));
+    responses.insert("401".to_owned(), openapi_problem_response("Unauthorized"));
+    responses.insert("403".to_owned(), openapi_problem_response("Forbidden"));
     responses.insert(
         "429".to_owned(),
-        json!({ "description": "Too Many Requests" }),
+        openapi_problem_response("Too Many Requests"),
     );
     if route_accepts_request_body(route) || route_supports_list_query(route) {
-        responses.insert("400".to_owned(), json!({ "description": "Bad Request" }));
+        responses.insert("400".to_owned(), openapi_problem_response("Bad Request"));
         if route_accepts_request_body(route) {
             responses.insert(
                 "413".to_owned(),
-                json!({ "description": "Payload Too Large" }),
+                openapi_problem_response("Payload Too Large"),
             );
         }
     }
     if route_may_return_not_found(route) {
-        responses.insert("404".to_owned(), json!({ "description": "Not Found" }));
+        responses.insert("404".to_owned(), openapi_problem_response("Not Found"));
     }
     responses.insert(
         "503".to_owned(),
-        json!({ "description": "Service Unavailable" }),
+        openapi_problem_response("Service Unavailable"),
     );
     responses.insert(
         "500".to_owned(),
-        json!({ "description": "Internal Server Error" }),
+        openapi_problem_response("Internal Server Error"),
     );
     Value::Object(responses)
+}
+
+fn openapi_success_response(route: &HttpRoute, description: &str) -> Value {
+    json!({
+        "description": description,
+        "content": {
+            "application/json": {
+                "schema": success_envelope_ref_for_route(route)
+            }
+        }
+    })
+}
+
+fn openapi_problem_response(description: &str) -> Value {
+    json!({
+        "description": description,
+        "content": {
+            "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+            }
+        }
+    })
+}
+
+fn success_envelope_ref_for_route(route: &HttpRoute) -> Value {
+    if route.operation_id.ends_with(".list") {
+        return json!({ "$ref": "#/components/schemas/SdkWorkListResponse" });
+    }
+    if is_command_operation(route) {
+        return json!({ "$ref": "#/components/schemas/SdkWorkCommandResponse" });
+    }
+    json!({ "$ref": "#/components/schemas/SdkWorkResourceResponse" })
+}
+
+fn is_command_operation(route: &HttpRoute) -> bool {
+    if route_creates_resource(route) {
+        return false;
+    }
+    if route.method != HttpMethod::Post {
+        return false;
+    }
+    let action = route.operation_id.rsplit('.').next().unwrap_or_default();
+    matches!(
+        action,
+        "revoke"
+            | "enable"
+            | "disable"
+            | "delete"
+            | "heartbeat"
+            | "verify"
+            | "refresh"
+            | "logout"
+            | "provision"
+    ) && !route.operation_id.ends_with(".create")
+}
+
+fn openapi_envelope_component_schemas() -> Map<String, Value> {
+    let mut schemas = Map::new();
+    schemas.insert(
+        "SdkWorkApiResponse".to_owned(),
+        json!({
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code", "data", "traceId"],
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "format": "int32",
+                    "enum": [0],
+                    "default": 0,
+                    "minimum": 0,
+                    "maximum": 0
+                },
+                "data": {
+                    "description": "Operation-specific payload typed per response schema."
+                },
+                "traceId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "Server-owned request correlation id."
+                }
+            }
+        }),
+    );
+    schemas.insert(
+        "SdkWorkResourceData".to_owned(),
+        json!({
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["item"],
+            "properties": {
+                "item": {
+                    "type": "object",
+                    "additionalProperties": true,
+                    "description": "Typed domain resource for the operation."
+                }
+            }
+        }),
+    );
+    schemas.insert(
+        "SdkWorkPageData".to_owned(),
+        json!({
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["items", "pageInfo"],
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": { "type": "object", "additionalProperties": true }
+                },
+                "pageInfo": { "$ref": "#/components/schemas/PageInfo" }
+            }
+        }),
+    );
+    schemas.insert(
+        "SdkWorkCommandData".to_owned(),
+        json!({
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["accepted"],
+            "properties": {
+                "accepted": { "type": "boolean", "const": true },
+                "resourceId": { "type": "string" },
+                "status": { "type": "string" }
+            }
+        }),
+    );
+    schemas.insert(
+        "PageInfo".to_owned(),
+        json!({
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["mode"],
+            "properties": {
+                "mode": { "type": "string", "enum": ["offset", "cursor"] },
+                "page": { "type": "integer", "minimum": 1 },
+                "pageSize": { "type": "integer", "minimum": 1, "maximum": 200 },
+                "totalItems": { "type": "string", "pattern": "^[0-9]+$" },
+                "totalPages": { "type": "integer", "minimum": 0 },
+                "nextCursor": { "type": ["string", "null"] },
+                "hasMore": { "type": "boolean" }
+            }
+        }),
+    );
+    schemas.insert(
+        "SdkWorkPlatformErrorCode".to_owned(),
+        json!({
+            "type": "integer",
+            "format": "int32",
+            "minimum": 40001,
+            "maximum": 79999,
+            "description": "Platform or domain error code per API_SPEC.md §15.3."
+        }),
+    );
+    schemas.insert(
+        "ProblemDetail".to_owned(),
+        json!({
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["type", "title", "status", "code", "traceId"],
+            "properties": {
+                "type": { "type": "string", "format": "uri-reference" },
+                "title": { "type": "string" },
+                "status": { "type": "integer", "minimum": 100, "maximum": 599 },
+                "detail": { "type": "string" },
+                "instance": { "type": "string" },
+                "code": { "$ref": "#/components/schemas/SdkWorkPlatformErrorCode" },
+                "traceId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "Server-owned request correlation id."
+                },
+                "errors": {
+                    "type": "array",
+                    "items": { "$ref": "#/components/schemas/FieldError" }
+                }
+            }
+        }),
+    );
+    schemas.insert(
+        "FieldError".to_owned(),
+        json!({
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["field", "message"],
+            "properties": {
+                "field": { "type": "string" },
+                "message": { "type": "string" },
+                "code": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 40011,
+                    "maximum": 40099
+                }
+            }
+        }),
+    );
+    schemas.insert(
+        "SdkWorkResourceResponse".to_owned(),
+        json!({
+            "allOf": [
+                { "$ref": "#/components/schemas/SdkWorkApiResponse" },
+                {
+                    "type": "object",
+                    "required": ["data"],
+                    "properties": {
+                        "data": { "$ref": "#/components/schemas/SdkWorkResourceData" }
+                    }
+                }
+            ]
+        }),
+    );
+    schemas.insert(
+        "SdkWorkListResponse".to_owned(),
+        json!({
+            "allOf": [
+                { "$ref": "#/components/schemas/SdkWorkApiResponse" },
+                {
+                    "type": "object",
+                    "required": ["data"],
+                    "properties": {
+                        "data": { "$ref": "#/components/schemas/SdkWorkPageData" }
+                    }
+                }
+            ]
+        }),
+    );
+    schemas.insert(
+        "SdkWorkCommandResponse".to_owned(),
+        json!({
+            "allOf": [
+                { "$ref": "#/components/schemas/SdkWorkApiResponse" },
+                {
+                    "type": "object",
+                    "required": ["data"],
+                    "properties": {
+                        "data": { "$ref": "#/components/schemas/SdkWorkCommandData" }
+                    }
+                }
+            ]
+        }),
+    );
+    schemas
 }
 
 fn api_surface_label(surface: ApiSurface) -> &'static str {
@@ -505,6 +749,11 @@ fn rate_limit_tier_label(tier: RateLimitTier) -> &'static str {
     match tier {
         RateLimitTier::AuthCritical => "auth-critical",
         RateLimitTier::OpenApiDefault => "open-api-default",
+        RateLimitTier::Upload => "upload",
+        RateLimitTier::Search => "search",
+        RateLimitTier::Bulk => "bulk",
+        RateLimitTier::Worker => "worker",
+        RateLimitTier::Internal => "internal",
     }
 }
 
@@ -528,7 +777,7 @@ mod tests {
     fn openapi_resource_mutation_declares_not_found_response() {
         let route = HttpRoute::dual_token(
             HttpMethod::Delete,
-            "/backend/v3/api/web-framework/control-nodes/{node_id}",
+            "/backend/v3/api/web-framework/control_nodes/{nodeId}",
             "WebFramework",
             "webFramework.controlNodes.delete",
         )
@@ -546,7 +795,7 @@ mod tests {
     fn openapi_delete_declares_no_content_response() {
         let route = HttpRoute::dual_token(
             HttpMethod::Delete,
-            "/backend/v3/api/web-framework/control-nodes/{node_id}",
+            "/backend/v3/api/web-framework/control_nodes/{nodeId}",
             "WebFramework",
             "webFramework.controlNodes.delete",
         )
@@ -564,7 +813,7 @@ mod tests {
     fn openapi_post_collection_declares_created_response() {
         let route = HttpRoute::dual_token(
             HttpMethod::Post,
-            "/backend/v3/api/web-framework/control-nodes",
+            "/backend/v3/api/web-framework/control_nodes",
             "WebFramework",
             "webFramework.controlNodes.register",
         )
@@ -582,7 +831,7 @@ mod tests {
     fn openapi_mutation_declares_bad_request_and_dependency_unavailable() {
         let route = HttpRoute::dual_token(
             HttpMethod::Put,
-            "/backend/v3/api/web-framework/cors-policies",
+            "/backend/v3/api/web-framework/cors_policies",
             "WebFramework",
             "webFramework.corsPolicies.upsert",
         )

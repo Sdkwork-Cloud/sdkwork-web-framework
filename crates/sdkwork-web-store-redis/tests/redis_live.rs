@@ -19,10 +19,11 @@ fn unique_key(prefix: &str) -> String {
 }
 
 #[tokio::test]
-#[ignore = "requires live Redis at SDKWORK_REDIS_TEST_URL"]
 async fn redis_rate_limit_store_enforces_max_requests() {
-    let redis_url =
-        redis_test_url().expect("SDKWORK_REDIS_TEST_URL must be set for live Redis tests");
+    let Some(redis_url) = redis_test_url() else {
+        eprintln!("skip: SDKWORK_REDIS_TEST_URL not set; live Redis test bypassed");
+        return;
+    };
     let store = shared_rate_limit_store(&redis_url, "sdkwork:test:rl").expect("redis store");
     let key = unique_key("tenant");
     let window = Duration::from_secs(60);
@@ -43,10 +44,11 @@ async fn redis_rate_limit_store_enforces_max_requests() {
 }
 
 #[tokio::test]
-#[ignore = "requires live Redis at SDKWORK_REDIS_TEST_URL"]
 async fn redis_idempotency_store_replays_completed_response() {
-    let redis_url =
-        redis_test_url().expect("SDKWORK_REDIS_TEST_URL must be set for live Redis tests");
+    let Some(redis_url) = redis_test_url() else {
+        eprintln!("skip: SDKWORK_REDIS_TEST_URL not set; live Redis test bypassed");
+        return;
+    };
     let store = shared_idempotency_store(&redis_url, "sdkwork:test:idem").expect("redis store");
     let key = unique_key("order");
     let fingerprint = "fp-1";

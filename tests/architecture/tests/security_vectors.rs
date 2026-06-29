@@ -722,7 +722,7 @@ async fn protected_route_rejects_mismatched_tenant_path_resource_id() {
 
     const ROUTES: &[HttpRoute] = &[HttpRoute::dual_token(
         HttpMethod::Get,
-        "/backend/v3/api/web-framework/tenants/{tenantId}/runtime-defaults",
+        "/backend/v3/api/web-framework/tenants/{tenantId}/runtime_defaults",
         "web-framework",
         "runtimeDefaults.byTenant",
     )
@@ -735,7 +735,7 @@ async fn protected_route_rejects_mismatched_tenant_path_resource_id() {
     let chain = WebCallInterceptorChain::standard();
     let mut request = Request::builder()
         .method("GET")
-        .uri("/backend/v3/api/web-framework/tenants/100002/runtime-defaults")
+        .uri("/backend/v3/api/web-framework/tenants/100002/runtime_defaults")
         .header("Authorization", auth)
         .header("Access-Token", access)
         .body(Body::empty())

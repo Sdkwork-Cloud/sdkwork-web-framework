@@ -1,38 +1,32 @@
+use crate::pool::WebStorePool;
 use async_trait::async_trait;
 use sdkwork_web_core::{
     rate_limit::ResolvedRateLimitPolicy,
     rate_limit_policy::{DynamicRateLimitPolicySource, RateLimitPolicyContext},
     WebFrameworkError,
 };
-use sqlx::SqlitePool;
 
-use crate::purge::sqlx_error;
-
+/// Dynamic rate limit policy source backed by SQLx (SQLite or PostgreSQL).
 pub struct SqlxRateLimitPolicySource {
-    pool: SqlitePool,
+    pool: WebStorePool,
 }
 
 impl SqlxRateLimitPolicySource {
-    pub fn new(pool: SqlitePool) -> Self {
-        Self { pool }
+    pub fn new_sqlite(pool: sqlx::SqlitePool) -> Self {
+        Self {
+            pool: WebStorePool::Sqlite(pool),
+        }
     }
 
-    async fn lookup_row(
-        &self,
-        tenant_id: &str,
-        environment: &str,
-        tier_key: &str,
-    ) -> Result<Option<RateLimitPolicyRow>, WebFrameworkError> {
-        sqlx::query_as::<_, RateLimitPolicyRow>(
-            "SELECT max_requests, window_secs, enabled FROM web_rate_limit_policy \
-             WHERE tenant_id = ? AND environment = ? AND tier_key = ?",
-        )
-        .bind(tenant_id)
-        .bind(environment)
-        .bind(tier_key)
-        .fetch_optional(&self.pool)
-        .await
-        .map_err(sqlx_error)
+    #[cfg(feature = "postgres")]
+    pub fn new_postgres(pool: sqlx::PgPool) -> Self {
+        Self {
+            pool: WebStorePool::Postgres(pool),
+        }
+    }
+
+    pub fn new(pool: WebStorePool) -> Self {
+        Self { pool }
     }
 }
 
@@ -53,31 +47,73 @@ impl DynamicRateLimitPolicySource for SqlxRateLimitPolicySource {
         let tier_key = ctx.tier_key();
         let tenant = ctx.tenant_scope();
 
-        let candidates = [
+        // Fallback chain: tenant+tier -> tenant+default -> platform+tier -> platform+default
+        let candidates: &[(&str, &str)] = &[
             (tenant, tier_key),
             (tenant, "default"),
             ("0", tier_key),
             ("0", "default"),
         ];
 
-        for (tenant_id, tier) in candidates {
-            let Some(row) = self.lookup_row(tenant_id, environment, tier).await? else {
-                continue;
-            };
-            if row.enabled == 0 {
-                return Ok(Some(ResolvedRateLimitPolicy {
-                    max_requests: 0,
-                    window_secs: row.window_secs.max(1) as u64,
-                }));
+        match &self.pool {
+            WebStorePool::Sqlite(pool) => {
+                for (tenant_id, tier) in candidates {
+                    let row = sqlx::query_as::<_, RateLimitPolicyRow>(
+                        "SELECT max_requests, window_secs, enabled FROM web_rate_limit_policy \
+                         WHERE tenant_id = ? AND environment = ? AND tier_key = ? LIMIT 1",
+                    )
+                    .bind(tenant_id)
+                    .bind(environment)
+                    .bind(tier)
+                    .fetch_optional(pool)
+                    .await
+                    .map_err(sqlx_error)?;
+                    if let Some(r) = row {
+                        return policy_from_row(r);
+                    }
+                }
+                Ok(None)
             }
-            return Ok(Some(ResolvedRateLimitPolicy {
-                max_requests: row.max_requests.max(0) as u32,
-                window_secs: row.window_secs.max(1) as u64,
-            }));
+            #[cfg(feature = "postgres")]
+            WebStorePool::Postgres(pool) => {
+                for (tenant_id, tier) in candidates {
+                    let row = sqlx::query_as::<_, RateLimitPolicyRow>(
+                        "SELECT max_requests, window_secs, enabled FROM web_rate_limit_policy \
+                         WHERE tenant_id = $1 AND environment = $2 AND tier_key = $3 LIMIT 1",
+                    )
+                    .bind(tenant_id)
+                    .bind(environment)
+                    .bind(tier)
+                    .fetch_optional(pool)
+                    .await
+                    .map_err(sqlx_error)?;
+                    if let Some(r) = row {
+                        return policy_from_row(r);
+                    }
+                }
+                Ok(None)
+            }
         }
-
-        Ok(None)
     }
+}
+
+fn policy_from_row(
+    row: RateLimitPolicyRow,
+) -> Result<Option<ResolvedRateLimitPolicy>, WebFrameworkError> {
+    if row.enabled == 0 {
+        return Ok(Some(ResolvedRateLimitPolicy {
+            max_requests: 0,
+            window_secs: row.window_secs.max(1) as u64,
+        }));
+    }
+    Ok(Some(ResolvedRateLimitPolicy {
+        max_requests: row.max_requests.max(0) as u32,
+        window_secs: row.window_secs.max(1) as u64,
+    }))
+}
+
+fn sqlx_error(error: sqlx::Error) -> WebFrameworkError {
+    WebFrameworkError::dependency_unavailable(format!("sqlx store error: {error}"))
 }
 
 #[cfg(test)]

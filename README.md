@@ -84,6 +84,7 @@ Or run individual gates (workspace tests, architecture tests, contract tests, PC
 | --- | --- |
 | `sdkwork-web-framework` | **Is** this repository |
 | `sdkwork-database` | Pool creation in `sdkwork-web-store-sqlx` via `sdkwork-database-sqlx` |
+| `sdkwork-utils` | `SdkWorkApiResponse`, `SdkWorkResultCode`, `serde_int64`, trace header constants |
 | `sdkwork-discovery` | Not required (no RPC/gRPC services) |
 
 ## Standards

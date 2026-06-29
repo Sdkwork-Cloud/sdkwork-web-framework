@@ -81,7 +81,7 @@ readinessProbe:
 ## 5. 指标与关联
 
 - Prometheus scrape：`GET /metrics`
-- Problem+json 响应含服务端 `requestId` 与 W3C `traceparent` 传播的 `traceId`
+- Problem+json 响应含 numeric `code` 与服务端 `traceId`（`X-SdkWork-Trace-Id`；W3C `traceparent` 传播）
 - 日志字段与 `WebRequestContext` 对齐；禁止向客户端泄露栈跟踪
 
 ## 6. 优雅关闭
@@ -112,7 +112,7 @@ readinessProbe:
 | 启动 panic `production assembly is unsafe` | dev resolver / 非 HA store / 缺 readiness | 检查 builder 与 env；见 `validate_production_assembly` 消息 |
 | `/readyz` 503 | DB 或 Redis 不可用 | 检查 `SDKWORK_WEB_FRAMEWORK_STORE_URL` / `REDIS_URL` |
 | 501 Problem `not-implemented` | manifest 路由未挂载 handler | 预期 contract fallback；实现 handler 或调整 manifest |
-| 401/403 无 traceId | 客户端未传 traceparent | 正常；服务端仍生成 requestId |
+| 401/403 无 traceId | 客户端未传 traceparent | 正常；服务端仍生成 `traceId` |
 | OTEL 无 span | 未设 endpoint 或未启用 otel feature | 检查 env 与 binary features |
 
 ## 9. 发布门禁

@@ -24,9 +24,9 @@ async function mockWebFrameworkBackend(page: Page): Promise<void> {
   await page.route("**/backend/v3/api/web-framework/**", async (route) => {
     const url = route.request().url();
     let data: unknown = [];
-    if (url.includes("/runtime-defaults")) {
+    if (url.includes("/runtime_defaults")) {
       data = RUNTIME_DEFAULTS;
-    } else if (url.includes("/optional-features")) {
+    } else if (url.includes("/optional_features")) {
       data = OPTIONAL_FEATURES;
     }
     await route.fulfill({

@@ -58,7 +58,7 @@ mod tests {
             )
             .await
             .expect("response");
-        assert_eq!(StatusCode::GATEWAY_TIMEOUT, response.status());
+        assert_eq!(StatusCode::REQUEST_TIMEOUT, response.status());
     }
 
     #[tokio::test]
@@ -92,12 +92,9 @@ mod tests {
             .expect("body");
         let payload: serde_json::Value = serde_json::from_slice(&body).expect("json");
         assert_eq!(
-            "req-timeout-integration",
-            payload["requestId"].as_str().unwrap()
-        );
-        assert_eq!(
             "4bf92f3577b34da6a3ce929d0e0e4736",
             payload["traceId"].as_str().unwrap()
         );
+        assert!(payload.get("requestId").is_none());
     }
 }

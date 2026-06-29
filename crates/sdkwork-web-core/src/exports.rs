@@ -139,7 +139,7 @@ pub use crate::security::{
 };
 pub use crate::stores::{
     memory_concurrent_admission_store, memory_idempotency_store, memory_rate_limit_store,
-    ConcurrentAdmissionStore, IdempotencyStore, MemoryConcurrentAdmissionStore,
+    ConcurrentAdmissionStore, IdempotencyGuard, IdempotencyStore, MemoryConcurrentAdmissionStore,
     MemoryIdempotencyStore, MemoryRateLimitStore, RateLimitStore,
 };
 pub use crate::surface::{

@@ -1,7 +1,7 @@
 use crate::error::RepositoryError;
 use crate::models::{
     AuditEventListScope, AuditEventRecord, ControlNodeRecord, CorsPolicyRecord,
-    RateLimitPolicyRecord, RegisterControlNodeRecord, SecurityEventRecord,
+    RateLimitPolicyRecord, RegisterControlNodeRecord, SecurityEventListScope, SecurityEventRecord,
     TenantRuntimeProfileRecord, UpsertCorsPolicyRecord, UpsertRateLimitPolicyRecord,
     UpsertTenantRuntimeProfileRecord,
 };
@@ -56,8 +56,11 @@ pub trait WebFrameworkAdminRepository: Send + Sync {
         body: UpsertTenantRuntimeProfileRecord,
     ) -> Result<TenantRuntimeProfileRecord, RepositoryError>;
 
+    /// Lists security events with tenant scoping. `scope` mirrors
+    /// [`AuditEventListScope`] semantics for tenant isolation (migration 010).
     async fn list_security_events(
         &self,
+        scope: SecurityEventListScope,
         limit: u32,
     ) -> Result<Vec<SecurityEventRecord>, RepositoryError>;
 
@@ -117,8 +120,8 @@ impl WebFrameworkAdminRepository for SqlxWebFrameworkAdminRepository {
         environment: Option<String>,
         limit: u32,
     ) -> Result<Vec<CorsPolicyRecord>, RepositoryError> {
-        let rows = sqlx::query_as::<_, (String, String, i64, String, i64)>(
-            "SELECT tenant_id, environment, allow_all_origins, allowed_origins, allow_credentials \
+        let rows = sqlx::query_as::<_, (String, String, i64, String, i64, i64)>(
+            "SELECT tenant_id, environment, allow_all_origins, allowed_origins, allow_credentials, version \
              FROM web_cors_policy \
              WHERE (?1 IS NULL OR environment = ?1) AND tenant_id = ?2 \
              ORDER BY tenant_id, environment \
@@ -141,6 +144,7 @@ impl WebFrameworkAdminRepository for SqlxWebFrameworkAdminRepository {
                 allow_all_origins: row.2 != 0,
                 allowed_origins: origins,
                 allow_credentials: row.4 != 0,
+                version: row.5,
             });
         }
         Ok(items)
@@ -153,20 +157,23 @@ impl WebFrameworkAdminRepository for SqlxWebFrameworkAdminRepository {
         let origins_json = serde_json::to_string(&body.allowed_origins).map_err(|_| {
             RepositoryError::StoredJson("allowed_origins payload is invalid".into())
         })?;
-        sqlx::query(
-            "INSERT INTO web_cors_policy (tenant_id, environment, allow_all_origins, allowed_origins, allow_credentials) \
-             VALUES (?, ?, ?, ?, ?) \
+        // UPSERT 自增 version（migration 014 乐观锁）。新插入行 version=1。
+        let row = sqlx::query_as::<_, (i64,)>(
+            "INSERT INTO web_cors_policy (tenant_id, environment, allow_all_origins, allowed_origins, allow_credentials, version) \
+             VALUES (?, ?, ?, ?, ?, 1) \
              ON CONFLICT(tenant_id, environment) DO UPDATE SET \
                allow_all_origins = excluded.allow_all_origins, \
                allowed_origins = excluded.allowed_origins, \
-               allow_credentials = excluded.allow_credentials",
+               allow_credentials = excluded.allow_credentials, \
+               version = web_cors_policy.version + 1 \
+             RETURNING version",
         )
         .bind(&body.tenant_id)
         .bind(&body.environment)
         .bind(i64::from(body.allow_all_origins))
         .bind(&origins_json)
         .bind(i64::from(body.allow_credentials))
-        .execute(&self.pool)
+        .fetch_one(&self.pool)
         .await
         .map_err(map_sqlx_error)?;
 
@@ -176,6 +183,7 @@ impl WebFrameworkAdminRepository for SqlxWebFrameworkAdminRepository {
             allow_all_origins: body.allow_all_origins,
             allowed_origins: body.allowed_origins,
             allow_credentials: body.allow_credentials,
+            version: row.0,
         })
     }
 
@@ -185,8 +193,8 @@ impl WebFrameworkAdminRepository for SqlxWebFrameworkAdminRepository {
         environment: Option<String>,
         limit: u32,
     ) -> Result<Vec<RateLimitPolicyRecord>, RepositoryError> {
-        let rows = sqlx::query_as::<_, (String, String, String, i64, i64, i64)>(
-            "SELECT tenant_id, environment, tier_key, max_requests, window_secs, enabled \
+        let rows = sqlx::query_as::<_, (String, String, String, i64, i64, i64, i64)>(
+            "SELECT tenant_id, environment, tier_key, max_requests, window_secs, enabled, version \
              FROM web_rate_limit_policy \
              WHERE (?1 IS NULL OR environment = ?1) AND tenant_id = ?2 \
              ORDER BY tenant_id, environment, tier_key \
@@ -208,6 +216,7 @@ impl WebFrameworkAdminRepository for SqlxWebFrameworkAdminRepository {
                 max_requests: row.3.max(0) as u32,
                 window_secs: row.4.max(1) as u64,
                 enabled: row.5 != 0,
+                version: row.6,
             })
             .collect())
     }
@@ -216,13 +225,15 @@ impl WebFrameworkAdminRepository for SqlxWebFrameworkAdminRepository {
         &self,
         body: UpsertRateLimitPolicyRecord,
     ) -> Result<RateLimitPolicyRecord, RepositoryError> {
-        sqlx::query(
-            "INSERT INTO web_rate_limit_policy (tenant_id, environment, tier_key, max_requests, window_secs, enabled) \
-             VALUES (?, ?, ?, ?, ?, ?) \
+        let row = sqlx::query_as::<_, (i64,)>(
+            "INSERT INTO web_rate_limit_policy (tenant_id, environment, tier_key, max_requests, window_secs, enabled, version) \
+             VALUES (?, ?, ?, ?, ?, ?, 1) \
              ON CONFLICT(tenant_id, environment, tier_key) DO UPDATE SET \
                max_requests = excluded.max_requests, \
                window_secs = excluded.window_secs, \
-               enabled = excluded.enabled",
+               enabled = excluded.enabled, \
+               version = web_rate_limit_policy.version + 1 \
+             RETURNING version",
         )
         .bind(&body.tenant_id)
         .bind(&body.environment)
@@ -230,7 +241,7 @@ impl WebFrameworkAdminRepository for SqlxWebFrameworkAdminRepository {
         .bind(i64::from(body.max_requests))
         .bind(body.window_secs as i64)
         .bind(i64::from(body.enabled))
-        .execute(&self.pool)
+        .fetch_one(&self.pool)
         .await
         .map_err(map_sqlx_error)?;
 
@@ -241,6 +252,7 @@ impl WebFrameworkAdminRepository for SqlxWebFrameworkAdminRepository {
             max_requests: body.max_requests,
             window_secs: body.window_secs,
             enabled: body.enabled,
+            version: row.0,
         })
     }
 
@@ -250,19 +262,20 @@ impl WebFrameworkAdminRepository for SqlxWebFrameworkAdminRepository {
         environment: Option<String>,
         limit: u32,
     ) -> Result<Vec<TenantRuntimeProfileRecord>, RepositoryError> {
-        let rows = sqlx::query_as::<_, (String, String, Option<i64>, Option<i64>, Option<i64>)>(
-            "SELECT tenant_id, environment, rate_limit_enabled, max_content_length, max_concurrent_requests \
-             FROM web_tenant_runtime_profile \
-             WHERE (?1 IS NULL OR environment = ?1) AND tenant_id = ?2 \
-             ORDER BY tenant_id, environment \
-             LIMIT ?3",
-        )
-        .bind(environment)
-        .bind(tenant_id)
-        .bind(i64::from(limit))
-        .fetch_all(&self.pool)
-        .await
-        .map_err(map_sqlx_error)?;
+        let rows =
+            sqlx::query_as::<_, (String, String, Option<i64>, Option<i64>, Option<i64>, i64)>(
+                "SELECT tenant_id, environment, rate_limit_enabled, max_content_length, max_concurrent_requests, version \
+                 FROM web_tenant_runtime_profile \
+                 WHERE (?1 IS NULL OR environment = ?1) AND tenant_id = ?2 \
+                 ORDER BY tenant_id, environment \
+                 LIMIT ?3",
+            )
+            .bind(environment)
+            .bind(tenant_id)
+            .bind(i64::from(limit))
+            .fetch_all(&self.pool)
+            .await
+            .map_err(map_sqlx_error)?;
 
         Ok(rows
             .into_iter()
@@ -270,8 +283,9 @@ impl WebFrameworkAdminRepository for SqlxWebFrameworkAdminRepository {
                 tenant_id: row.0,
                 environment: row.1,
                 rate_limit_enabled: row.2.map(|value| value != 0),
-                max_content_length: row.3.and_then(|value| u64::try_from(value.max(0)).ok()),
+                max_content_length: row.3,
                 max_concurrent_requests: row.4.and_then(|value| u32::try_from(value.max(0)).ok()),
+                version: row.5,
             })
             .collect())
     }
@@ -281,22 +295,23 @@ impl WebFrameworkAdminRepository for SqlxWebFrameworkAdminRepository {
         body: UpsertTenantRuntimeProfileRecord,
     ) -> Result<TenantRuntimeProfileRecord, RepositoryError> {
         let rate_limit = body.rate_limit_enabled.map(i64::from);
-        let max_len = body.max_content_length.map(|value| value as i64);
         let max_concurrent = body.max_concurrent_requests.map(|value| value as i64);
-        sqlx::query(
-            "INSERT INTO web_tenant_runtime_profile (tenant_id, environment, rate_limit_enabled, max_content_length, max_concurrent_requests) \
-             VALUES (?, ?, ?, ?, ?) \
+        let row = sqlx::query_as::<_, (i64,)>(
+            "INSERT INTO web_tenant_runtime_profile (tenant_id, environment, rate_limit_enabled, max_content_length, max_concurrent_requests, version) \
+             VALUES (?, ?, ?, ?, ?, 1) \
              ON CONFLICT(tenant_id, environment) DO UPDATE SET \
                rate_limit_enabled = excluded.rate_limit_enabled, \
                max_content_length = excluded.max_content_length, \
-               max_concurrent_requests = excluded.max_concurrent_requests",
+               max_concurrent_requests = excluded.max_concurrent_requests, \
+               version = web_tenant_runtime_profile.version + 1 \
+             RETURNING version",
         )
         .bind(&body.tenant_id)
         .bind(&body.environment)
         .bind(rate_limit)
-        .bind(max_len)
+        .bind(body.max_content_length)
         .bind(max_concurrent)
-        .execute(&self.pool)
+        .fetch_one(&self.pool)
         .await
         .map_err(map_sqlx_error)?;
 
@@ -306,34 +321,68 @@ impl WebFrameworkAdminRepository for SqlxWebFrameworkAdminRepository {
             rate_limit_enabled: body.rate_limit_enabled,
             max_content_length: body.max_content_length,
             max_concurrent_requests: body.max_concurrent_requests,
+            version: row.0,
         })
     }
 
     async fn list_security_events(
         &self,
+        scope: SecurityEventListScope,
         limit: u32,
     ) -> Result<Vec<SecurityEventRecord>, RepositoryError> {
         let limit = i64::from(limit);
-        let rows = sqlx::query_as::<
-            _,
-            (
-                i64,
-                String,
-                Option<String>,
-                String,
-                String,
-                String,
-                Option<String>,
-                String,
-                i64,
-            ),
-        >(
-            "SELECT id, kind, request_id, path, method, api_surface, origin, detail, created_at \
-             FROM web_security_event ORDER BY id DESC LIMIT ?",
-        )
-        .bind(limit)
-        .fetch_all(&self.pool)
-        .await
+        let rows = match scope {
+            SecurityEventListScope::Tenant(tenant_id) => {
+                sqlx::query_as::<
+                    _,
+                    (
+                        i64,
+                        String,
+                        Option<String>,
+                        Option<String>,
+                        String,
+                        String,
+                        String,
+                        Option<String>,
+                        String,
+                        i64,
+                    ),
+                >(
+                    "SELECT id, kind, request_id, tenant_id, path, method, api_surface, origin, detail, created_at \
+                     FROM web_security_event \
+                     WHERE tenant_id = ?1 \
+                     ORDER BY id DESC LIMIT ?2",
+                )
+                .bind(&tenant_id)
+                .bind(limit)
+                .fetch_all(&self.pool)
+                .await
+            }
+            SecurityEventListScope::PlatformAll => {
+                sqlx::query_as::<
+                    _,
+                    (
+                        i64,
+                        String,
+                        Option<String>,
+                        Option<String>,
+                        String,
+                        String,
+                        String,
+                        Option<String>,
+                        String,
+                        i64,
+                    ),
+                >(
+                    "SELECT id, kind, request_id, tenant_id, path, method, api_surface, origin, detail, created_at \
+                     FROM web_security_event \
+                     ORDER BY id DESC LIMIT ?1",
+                )
+                .bind(limit)
+                .fetch_all(&self.pool)
+                .await
+            }
+        }
         .map_err(map_sqlx_error)?;
 
         Ok(rows
@@ -342,12 +391,13 @@ impl WebFrameworkAdminRepository for SqlxWebFrameworkAdminRepository {
                 id: row.0,
                 kind: row.1,
                 request_id: row.2,
-                path: row.3,
-                method: row.4,
-                api_surface: row.5,
-                origin: row.6,
-                detail: row.7,
-                created_at: row.8,
+                tenant_id: row.3,
+                path: row.4,
+                method: row.5,
+                api_surface: row.6,
+                origin: row.7,
+                detail: row.8,
+                created_at: row.9,
             })
             .collect())
     }
@@ -634,6 +684,8 @@ mod repository_tests {
             vec!["https://console.example".to_owned()],
             saved.allowed_origins
         );
+        // migration 014：新插入行 version=1，每次 upsert 自增。
+        assert_eq!(1, saved.version);
 
         let listed = repo
             .list_cors_policies("100001", Some("prod".to_owned()), 10)
@@ -645,6 +697,78 @@ mod repository_tests {
         assert_eq!(saved.allow_all_origins, listed[0].allow_all_origins);
         assert_eq!(saved.allowed_origins, listed[0].allowed_origins);
         assert_eq!(saved.allow_credentials, listed[0].allow_credentials);
+        assert_eq!(saved.version, listed[0].version);
+    }
+
+    #[tokio::test]
+    async fn upsert_cors_policy_increments_version_on_update() {
+        // migration 014：乐观锁版本号在每次 upsert 冲突更新时自增。
+        let repo = test_repository().await;
+        let body = UpsertCorsPolicyRecord {
+            tenant_id: "100001".to_owned(),
+            environment: "prod".to_owned(),
+            allow_all_origins: false,
+            allowed_origins: vec!["https://console.example".to_owned()],
+            allow_credentials: true,
+        };
+        let v1 = repo.upsert_cors_policy(body.clone()).await.expect("insert");
+        assert_eq!(1, v1.version);
+        let v2 = repo.upsert_cors_policy(body.clone()).await.expect("update");
+        assert_eq!(2, v2.version);
+        let v3 = repo.upsert_cors_policy(body).await.expect("update 2");
+        assert_eq!(3, v3.version);
+
+        let listed = repo
+            .list_cors_policies("100001", None, 10)
+            .await
+            .expect("list");
+        assert_eq!(1, listed.len());
+        assert_eq!(3, listed[0].version);
+    }
+
+    #[tokio::test]
+    async fn upsert_rate_limit_policy_increments_version_on_update() {
+        let repo = test_repository().await;
+        let body = UpsertRateLimitPolicyRecord {
+            tenant_id: "100001".to_owned(),
+            environment: "prod".to_owned(),
+            tier_key: "default".to_owned(),
+            max_requests: 100,
+            window_secs: 60,
+            enabled: true,
+        };
+        let v1 = repo
+            .upsert_rate_limit_policy(body.clone())
+            .await
+            .expect("insert");
+        assert_eq!(1, v1.version);
+        let v2 = repo
+            .upsert_rate_limit_policy(body.clone())
+            .await
+            .expect("update");
+        assert_eq!(2, v2.version);
+    }
+
+    #[tokio::test]
+    async fn upsert_tenant_runtime_profile_increments_version_on_update() {
+        let repo = test_repository().await;
+        let body = UpsertTenantRuntimeProfileRecord {
+            tenant_id: "100001".to_owned(),
+            environment: "prod".to_owned(),
+            rate_limit_enabled: Some(true),
+            max_content_length: Some(4096),
+            max_concurrent_requests: Some(2),
+        };
+        let v1 = repo
+            .upsert_tenant_runtime_profile(body.clone())
+            .await
+            .expect("insert");
+        assert_eq!(1, v1.version);
+        let v2 = repo
+            .upsert_tenant_runtime_profile(body)
+            .await
+            .expect("update");
+        assert_eq!(2, v2.version);
     }
 
     #[tokio::test]

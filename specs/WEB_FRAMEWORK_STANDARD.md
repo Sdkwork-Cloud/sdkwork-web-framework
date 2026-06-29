@@ -180,7 +180,7 @@ Route crates for **business** capabilities `MUST NOT` live in `sdkwork-web-frame
 
 - Logs `MUST` redact tokens and API keys.
 - Metrics and logs `SHOULD` include `request_id`, `trace_id` (when known), `api_surface`, `operation_id` when known.
-- All framework Problem+json error surfaces (pipeline, extractors, handlers, contract fallback, timeouts) `MUST` include server-owned `requestId` and `traceId` when available via `WebRequestContext` or inbound W3C `traceparent`.
+- All framework Problem+json error surfaces (pipeline, extractors, handlers, contract fallback, timeouts) `MUST` include `traceId` when available via `WebRequestContext` or inbound W3C `traceparent`.
 - Raw URL paths with identifiers `MUST NOT` be logged; use route templates.
 
 ## 11. Verification

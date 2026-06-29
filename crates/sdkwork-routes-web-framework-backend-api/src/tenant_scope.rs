@@ -15,6 +15,16 @@ pub enum AuditEventListScope {
     PlatformAll,
 }
 
+/// Security event list scope — control-plane permission only.
+/// SECURITY_SPEC §5.1：安全事件为平台级敏感数据，租户管理员不可越权访问。
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum SecurityEventListScope {
+    /// 控制台管理员下钻到指定租户的安全事件。
+    Tenant(String),
+    /// 跨租户全量视图（仅 `web-framework.control-plane` 权限）。
+    PlatformAll,
+}
+
 pub fn require_control_plane(ctx: &WebRequestContext) -> Result<(), ApiProblem> {
     if ctx.has_permission(PERM_CONTROL_PLANE) {
         return Ok(());
@@ -112,6 +122,20 @@ pub fn resolve_audit_event_list_scope(
     Ok(AuditEventListScope::Tenant(tenant.to_owned()))
 }
 
+/// Resolves the security event list scope. Requires `web-framework.control-plane`
+/// permission. Platform-wide read when no `tenant_id` query parameter is supplied;
+/// otherwise narrowed to the requested tenant. SECURITY_SPEC §5.1.
+pub fn resolve_security_event_list_scope(
+    ctx: &WebRequestContext,
+    query_tenant_id: Option<&str>,
+) -> Result<SecurityEventListScope, ApiProblem> {
+    require_control_plane(ctx)?;
+    if let Some(requested) = query_tenant_id.filter(|value| !value.is_empty()) {
+        return Ok(SecurityEventListScope::Tenant(requested.to_owned()));
+    }
+    Ok(SecurityEventListScope::PlatformAll)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -205,5 +229,25 @@ mod tests {
             AuditEventListScope::PlatformTenant("100002".to_owned()),
             scope
         );
+    }
+
+    #[test]
+    fn security_event_scope_requires_control_plane() {
+        let ctx = ctx_with_permissions(&["web-framework.tenant.admin"]);
+        assert!(resolve_security_event_list_scope(&ctx, None).is_err());
+    }
+
+    #[test]
+    fn security_event_scope_platform_all_default() {
+        let ctx = ctx_with_permissions(&["web-framework.control-plane"]);
+        let scope = resolve_security_event_list_scope(&ctx, None).expect("scope");
+        assert_eq!(SecurityEventListScope::PlatformAll, scope);
+    }
+
+    #[test]
+    fn security_event_scope_narrows_to_requested_tenant() {
+        let ctx = ctx_with_permissions(&["web-framework.control-plane"]);
+        let scope = resolve_security_event_list_scope(&ctx, Some("100002")).expect("scope");
+        assert_eq!(SecurityEventListScope::Tenant("100002".to_owned()), scope);
     }
 }

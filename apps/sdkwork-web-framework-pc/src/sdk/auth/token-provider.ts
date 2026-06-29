@@ -47,14 +47,14 @@ function reloadAfterSignOut(): void {
 }
 
 /**
- * Development / E2E provider: auth token in sessionStorage, access token baked
- * via the Vite-exposed `VITE_SDKWORK_ACCESS_TOKEN` env. Used only when the Vite
+ * Development / E2E provider: auth token in sessionStorage, access token injected
+ * via the Vite `process.env.SDKWORK_ACCESS_TOKEN` define. Used only when the Vite
  * dev server is running, or when an E2E build explicitly bakes the access token.
  */
 export class DevSessionTokenProvider implements BackendTokenProvider {
   getCredentials(): BackendAuthCredentials | null {
     const authToken = readDevAuthToken();
-    const accessToken = (import.meta.env.VITE_SDKWORK_ACCESS_TOKEN ?? "").trim();
+    const accessToken = (process.env.SDKWORK_ACCESS_TOKEN ?? "").trim();
     if (!authToken && !accessToken) {
       return null;
     }
@@ -114,12 +114,12 @@ function readInjectedCredentials(): BackendAuthCredentials | null {
 /**
  * Resolve the active token provider.
  *
- * - Vite dev server, or an E2E build that bakes `VITE_SDKWORK_ACCESS_TOKEN`
+ * - Vite dev server, or an E2E build that bakes `process.env.SDKWORK_ACCESS_TOKEN`
  *   → {@link DevSessionTokenProvider}
  * - Otherwise (production) → {@link RuntimeCredentialsTokenProvider}
  */
 export function resolveBackendTokenProvider(): BackendTokenProvider {
-  const bakedAccessToken = (import.meta.env.VITE_SDKWORK_ACCESS_TOKEN ?? "").trim();
+  const bakedAccessToken = (process.env.SDKWORK_ACCESS_TOKEN ?? "").trim();
   if (import.meta.env.DEV || bakedAccessToken.length > 0) {
     return new DevSessionTokenProvider();
   }

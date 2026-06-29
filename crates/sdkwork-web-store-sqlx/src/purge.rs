@@ -1,36 +1,89 @@
-use sqlx::SqlitePool;
+use crate::now_epoch_secs;
+use crate::pool::WebStorePool;
+use sdkwork_web_core::WebFrameworkError;
 use std::sync::atomic::{AtomicI64, Ordering};
 use std::sync::Arc;
 
-use crate::now_epoch_secs;
-use sdkwork_web_core::WebFrameworkError;
-
 const DEFAULT_PURGE_INTERVAL_SECS: i64 = 60;
 
+/// Generic throttled purge that deletes expired rows from a single table.
+///
+/// `table_sql` must be a parameterised DELETE with a single `?` (SQLite) / `$1` (PostgreSQL)
+/// placeholder for the expiry timestamp.
 #[derive(Clone)]
-pub(crate) struct ThrottledPurge {
-    pool: SqlitePool,
+pub struct ThrottledPurge {
+    pool: WebStorePool,
     table_sql: Arc<str>,
     last_purge_secs: Arc<AtomicI64>,
     interval_secs: i64,
 }
 
 impl ThrottledPurge {
-    pub(crate) fn idempotency(pool: SqlitePool) -> Self {
+    pub(crate) fn idempotency(pool: WebStorePool) -> Self {
+        let pool_clone = pool.clone();
         Self::new(
-            pool,
-            "DELETE FROM web_idempotency_record WHERE expires_at <= ?",
+            pool_clone,
+            match &pool {
+                WebStorePool::Sqlite(_) => {
+                    "DELETE FROM web_idempotency_record WHERE expires_at <= ?"
+                }
+                #[cfg(feature = "postgres")]
+                WebStorePool::Postgres(_) => {
+                    "DELETE FROM web_idempotency_record WHERE expires_at <= $1"
+                }
+            },
         )
     }
 
-    pub(crate) fn rate_limit(pool: SqlitePool) -> Self {
+    pub(crate) fn rate_limit(pool: WebStorePool) -> Self {
+        let pool_clone = pool.clone();
         Self::new(
-            pool,
-            "DELETE FROM web_rate_limit_bucket WHERE expires_at <= ?",
+            pool_clone,
+            match &pool {
+                WebStorePool::Sqlite(_) => {
+                    "DELETE FROM web_rate_limit_bucket WHERE expires_at <= ?"
+                }
+                #[cfg(feature = "postgres")]
+                WebStorePool::Postgres(_) => {
+                    "DELETE FROM web_rate_limit_bucket WHERE expires_at <= $1"
+                }
+            },
         )
     }
 
-    fn new(pool: SqlitePool, table_sql: &'static str) -> Self {
+    pub(crate) fn audit(pool: WebStorePool) -> Self {
+        let pool_clone = pool.clone();
+        Self::new(
+            pool_clone,
+            match &pool {
+                WebStorePool::Sqlite(_) => {
+                    "DELETE FROM web_audit_event WHERE expires_at IS NOT NULL AND expires_at <= ?"
+                }
+                #[cfg(feature = "postgres")]
+                WebStorePool::Postgres(_) => {
+                    "DELETE FROM web_audit_event WHERE expires_at IS NOT NULL AND expires_at <= $1"
+                }
+            },
+        )
+    }
+
+    pub(crate) fn security_event(pool: WebStorePool) -> Self {
+        let pool_clone = pool.clone();
+        Self::new(
+            pool_clone,
+            match &pool {
+                WebStorePool::Sqlite(_) => {
+                    "DELETE FROM web_security_event WHERE expires_at IS NOT NULL AND expires_at <= ?"
+                }
+                #[cfg(feature = "postgres")]
+                WebStorePool::Postgres(_) => {
+                    "DELETE FROM web_security_event WHERE expires_at IS NOT NULL AND expires_at <= $1"
+                }
+            },
+        )
+    }
+
+    fn new(pool: WebStorePool, table_sql: &'static str) -> Self {
         Self {
             pool,
             table_sql: Arc::from(table_sql),
@@ -52,11 +105,24 @@ impl ThrottledPurge {
         {
             return Ok(());
         }
-        sqlx::query(self.table_sql.as_ref())
-            .bind(now)
-            .execute(&self.pool)
-            .await
-            .map_err(sqlx_error)?;
+
+        match &self.pool {
+            WebStorePool::Sqlite(pool) => {
+                sqlx::query(self.table_sql.as_ref())
+                    .bind(now)
+                    .execute(pool)
+                    .await
+                    .map_err(sqlx_error)?;
+            }
+            #[cfg(feature = "postgres")]
+            WebStorePool::Postgres(pool) => {
+                sqlx::query(self.table_sql.as_ref())
+                    .bind(now)
+                    .execute(pool)
+                    .await
+                    .map_err(sqlx_error)?;
+            }
+        }
         Ok(())
     }
 }

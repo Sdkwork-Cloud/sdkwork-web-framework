@@ -23,8 +23,8 @@
 scripts/verify.ps1          # Windows
 # scripts/verify.sh       # Unix
 
-# 可选：Live Redis 证据（CI/预发环境设置 SDKWORK_REDIS_TEST_URL）
-# cargo test -p sdkwork-web-store-redis --test redis_live -- --ignored
+# 可选：Live Redis 证据（设置 SDKWORK_REDIS_TEST_URL=redis://localhost:6379 后由
+# cargo test --workspace 自动执行；未设置时测试自动跳过。CI Linux job 已注入 Redis service）
 ```
 
 ### 运行时探针（所有嵌入服务）
@@ -76,7 +76,7 @@ scripts/verify.ps1          # Windows
 - [ ] 使用 `production_defaults()` + `validate_production_assembly` 通过
 - [ ] backend-api 使用 **ORGANIZATION** `login_scope`（非 TENANT 个人会话）
 - [ ] Redis HA store（SaaS）或 control-plane SQLx profile（standalone admin）
-- [ ] Problem+json 含 `requestId` / `traceId`
+- [ ] Problem+json 含 numeric `code` 与 `traceId`
 - [ ] 消费者 runbook 链接到框架 [TECH-21-operations-runbook.md](./TECH-21-operations-runbook.md)
 
 ## 4. 安全与合规交叉引用

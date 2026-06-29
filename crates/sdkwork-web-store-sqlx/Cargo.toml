@@ -3,7 +3,7 @@ name = "sdkwork-web-store-sqlx"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "SQLx-backed RateLimitStore, IdempotencyStore, and SecurityEventEmitter (web_* tables only)."
+description = "SQLx-backed RateLimitStore, IdempotencyStore, and SecurityEventEmitter (web_* tables only). Supports SQLite and PostgreSQL."
 
 [lib]
 name = "sdkwork_web_store_sqlx"
@@ -20,6 +20,11 @@ sdkwork-web-core.workspace = true
 sdkwork-webstore-database-host = { path = "../sdkwork-webstore-database-host" }
 tokio.workspace = true
 tracing.workspace = true
+
+[features]
+default = ["sqlite"]
+sqlite = ["sqlx/sqlite"]
+postgres = ["sqlx/postgres"]
 
 [dev-dependencies]
 tokio.workspace = true

@@ -36,7 +36,7 @@ const OPTIONAL_FEATURES = {
 };
 
 /**
- * Mock the defaults-tab requests (runtime-defaults + optional-features) as
+ * Mock the defaults-tab requests (runtime_defaults + optional_features) as
  * successful so the initial page render is stable. Error-path mocks are
  * layered on top per-test for non-defaults tabs.
  */
@@ -44,9 +44,9 @@ async function mockDefaultsOk(page: Page): Promise<void> {
   await page.route("**/backend/v3/api/web-framework/**", async (route) => {
     const url = route.request().url();
     let data: unknown = [];
-    if (url.includes("/runtime-defaults")) {
+    if (url.includes("/runtime_defaults")) {
       data = RUNTIME_DEFAULTS;
-    } else if (url.includes("/optional-features")) {
+    } else if (url.includes("/optional_features")) {
       data = OPTIONAL_FEATURES;
     } else {
       await route.fulfill({
@@ -85,9 +85,9 @@ async function mockErrorForPath(
     }
     // Fall through to the defaults mock for other paths.
     let data: unknown = [];
-    if (url.includes("/runtime-defaults")) {
+    if (url.includes("/runtime_defaults")) {
       data = RUNTIME_DEFAULTS;
-    } else if (url.includes("/optional-features")) {
+    } else if (url.includes("/optional_features")) {
       data = OPTIONAL_FEATURES;
     }
     await route.fulfill({
@@ -124,14 +124,14 @@ test.describe("Web Framework PC console error paths (Problem+json)", () => {
 
     await mockErrorForPath(
       page,
-      "/cors-policies",
+      "/cors_policies",
       401,
       problemJson(
         "https://sdkwork.dev/problems/missing-credentials",
         "Unauthorized",
         401,
         "Auth token is missing or expired",
-        { requestId: "req-401-test", traceId: "trace-401-test" },
+        { traceId: "trace-401-test" },
       ),
     );
 
@@ -164,14 +164,14 @@ test.describe("Web Framework PC console error paths (Problem+json)", () => {
   }) => {
     await mockErrorForPath(
       page,
-      "/cors-policies",
+      "/cors_policies",
       403,
       problemJson(
         "https://sdkwork.dev/problems/forbidden",
         "Forbidden",
         403,
         "Tenant does not have control-plane access",
-        { requestId: "req-403-test" },
+        { traceId: "trace-403-test" },
       ),
     );
 
@@ -197,14 +197,14 @@ test.describe("Web Framework PC console error paths (Problem+json)", () => {
   }) => {
     await mockErrorForPath(
       page,
-      "/cors-policies",
+      "/cors_policies",
       429,
       problemJson(
         "https://sdkwork.dev/problems/rate-limit-exceeded",
         "Too Many Requests",
         429,
         "Rate limit exceeded; retry after backoff",
-        { requestId: "req-429-test" },
+        { traceId: "trace-429-test" },
       ),
       { "retry-after": "30" },
     );
@@ -223,14 +223,14 @@ test.describe("Web Framework PC console error paths (Problem+json)", () => {
   }) => {
     await mockErrorForPath(
       page,
-      "/cors-policies",
+      "/cors_policies",
       503,
       problemJson(
         "https://sdkwork.dev/problems/dependency-unavailable",
         "Service Unavailable",
         503,
         "A required dependency is temporarily unavailable",
-        { requestId: "req-503-test", traceId: "trace-503-test" },
+        { traceId: "trace-503-test" },
       ),
     );
 
@@ -253,7 +253,7 @@ test.describe("Web Framework PC console error paths (Problem+json)", () => {
   }) => {
     // Only CORS errors; defaults tab must remain functional.
     await mockDefaultsOk(page);
-    await page.route("**/backend/v3/api/web-framework/cors-policies**", (route) =>
+    await page.route("**/backend/v3/api/web-framework/cors_policies**", (route) =>
       route.fulfill({
         status: 503,
         contentType: "application/problem+json",

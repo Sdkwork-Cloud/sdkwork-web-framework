@@ -65,7 +65,7 @@ The admin-server verifies dual-token JWTs with `SDKWORK_WEB_FRAMEWORK_JWT_HS256_
 1. Generate new secret: `openssl rand -base64 48`
 2. Update env on all admin-server instances simultaneously (rolling restart).
 3. Update `window.__SDKWORK_ADMIN_CREDENTIALS__` injection in hosting page (IAM portal).
-4. Verify: `curl -H "Authorization: Bearer <new-auth-token>" -H "Access-Token: <new-access-token>" http://<admin-host>:<port>/backend/v3/api/web-framework/runtime-defaults`
+4. Verify: `curl -H "Authorization: Bearer <new-auth-token>" -H "Access-Token: <new-access-token>" http://<admin-host>:<port>/backend/v3/api/web-framework/runtime_defaults`
 5. Monitor 401 rate for 15 minutes; if spike, verify all instances rotated.
 
 ### Dev sessionStorage token
@@ -83,7 +83,7 @@ cross-tenant upsert.
 
 ### Triage
 
-1. Check audit log: `GET /backend/v3/api/web-framework/audit-events?tenant_id=<A>` —
+1. Check audit log: `GET /backend/v3/api/web-framework/audit_events?tenant_id=<A>` —
    verify the request's `tenant_id` claim matches the resource `tenant_id`.
 2. Check the JWT `login_scope` claim: `ORGANIZATION` vs `TENANT`. Organization scope
    allows cross-tenant access only with `web-framework.platform.read`.
@@ -94,7 +94,7 @@ cross-tenant upsert.
 - If JWT claims are wrong: revoke the session, rotate signing key.
 - If policy is misconfigured: verify `runtime.optional_features.tenant_isolation` is
   enabled in admin-server.
-- File incident in audit log with `requestId` / `traceId` correlation.
+- File incident in audit log with `traceId` correlation (and internal server request id in store rows when present).
 
 ## Migration Rollback
 

@@ -12,7 +12,7 @@ use sdkwork_web_axum::{
 };
 use sdkwork_web_core::{
     DefaultWebRequestContextResolver, WebRequestContext, WebRequestContextProfile,
-    WebSocketCallInterceptorChain, WebSocketCallRuntime, WebSocketSession, REQUEST_ID_HEADER,
+    WebSocketCallInterceptorChain, WebSocketCallRuntime, WebSocketSession, SDKWORK_TRACE_ID_HEADER,
 };
 use std::sync::Arc;
 use tower::ServiceExt;
@@ -85,7 +85,7 @@ async fn handler_supports_web_request_context_with_other_extractors() {
 }
 
 /// `tower::ServiceExt::oneshot` cannot complete a WebSocket handshake; this test verifies
-/// the WS route is registered and the HTTP pipeline runs (request-id header present).
+/// the WS route is registered and the HTTP pipeline runs (`X-SdkWork-Trace-Id` header present).
 #[tokio::test]
 async fn websocket_route_runs_http_pipeline_before_upgrade_extractor() {
     let resolver = DefaultWebRequestContextResolver::default();
@@ -123,7 +123,7 @@ async fn websocket_route_runs_http_pipeline_before_upgrade_extractor() {
         response.status()
     );
     assert!(
-        response.headers().get(REQUEST_ID_HEADER).is_some(),
+        response.headers().get(SDKWORK_TRACE_ID_HEADER).is_some(),
         "HTTP pipeline must run before the upgrade handler"
     );
 }
@@ -164,7 +164,8 @@ async fn pipeline_problem_response_includes_trace_id_from_traceparent() {
         "4bf92f3577b34da6a3ce929d0e0e4736",
         payload["traceId"].as_str().unwrap()
     );
-    assert!(payload["requestId"].as_str().is_some());
+    assert!(payload.get("requestId").is_none());
+    assert!(payload["traceId"].as_str().is_some());
 }
 
 #[tokio::test]
@@ -207,7 +208,8 @@ async fn extractor_rejection_includes_trace_id_without_pipeline_context() {
         "4bf92f3577b34da6a3ce929d0e0e4736",
         payload["traceId"].as_str().unwrap()
     );
-    assert!(payload["requestId"].as_str().is_some());
+    assert!(payload.get("requestId").is_none());
+    assert!(payload["traceId"].as_str().is_some());
 }
 
 async fn ws_upgrade(

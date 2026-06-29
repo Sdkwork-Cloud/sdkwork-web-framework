@@ -35,7 +35,7 @@
 | --- | --- |
 | sdkwork-appbase | `sdkwork-routes-iam-app-api` |
 | sdkwork-clawrouter | `sdkwork-routes-clawrouter-app-api`（产品域） |
-| sdkwork-commerce | `sdkwork-routes-commerce-app-api` |
+| sdkwork-commerce (deleted) | `sdkwork-routes-commerce-app-api` |
 
 ## 4. 框架基础设施路径（sdkwork-web-bootstrap）
 

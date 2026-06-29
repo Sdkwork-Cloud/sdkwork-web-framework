@@ -46,7 +46,7 @@ Complete before promoting a consumer service to production:
 
 - [ ] CORS: production profile must not set `allow_all_origins`; use explicit origin allowlists.
 - [ ] Request body size, timeout, concurrent admission, and WebSocket message limits set explicitly for the deployment profile.
-- [ ] Problem+json responses must include server-owned `requestId` and propagated `traceId` — no bare error mapping bypassing `WebRequestContext`.
+- [ ] Problem+json responses must include numeric `code` and server-owned `traceId` per `API_SPEC.md` §15 — no bare error mapping bypassing `WebRequestContext`.
 
 ### 6. Handoff artifacts
 

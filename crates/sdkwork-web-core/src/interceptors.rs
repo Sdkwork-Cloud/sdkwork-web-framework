@@ -19,6 +19,7 @@ use crate::trace::resolve_trace_context;
 use async_trait::async_trait;
 use axum::extract::Request;
 use axum::http::HeaderMap;
+use axum::http::HeaderName;
 use axum::response::Response;
 use sdkwork_web_contract::RouteAuth;
 use std::time::Duration;
@@ -217,7 +218,7 @@ where
                             SecurityEventKind::CorsDenied,
                             error.message.clone(),
                         )
-                        .await;
+                        .await?;
                         return Err(error);
                     }
                 }
@@ -242,7 +243,7 @@ where
                         SecurityEventKind::CorsDenied,
                         error.message.clone(),
                     )
-                    .await;
+                    .await?;
                     return Err(error);
                 }
             }
@@ -274,7 +275,15 @@ where
                 .await?;
             }
             StandardWebCallInterceptorKind::RateLimit => {
-                if runtime.rate_limit_globally_enabled(state)
+                // Skip rate limiting for health check and metrics endpoints.
+                // These paths are critical for monitoring and orchestration systems
+                // and must not be throttled. SECURITY_SPEC §4.3 / WEB_FRAMEWORK_STANDARD §6.
+                let is_health_or_metrics = matches!(
+                    state.path.as_str(),
+                    "/healthz" | "/readyz" | "/livez" | "/metrics" | "/favicon.ico"
+                );
+                if !is_health_or_metrics
+                    && runtime.rate_limit_globally_enabled(state)
                     && runtime.security_policy.rate_limit.pre_auth_rate_limit
                 {
                     resolve_dynamic_rate_limit(state, runtime).await?;
@@ -346,7 +355,7 @@ where
                         SecurityEventKind::AuthenticationFailed,
                         error.message.clone(),
                     )
-                    .await;
+                    .await?;
                     return Err(error);
                 }
                 if runtime.optional_features.dynamic_tenant_runtime_profile {
@@ -367,7 +376,7 @@ where
                             SecurityEventKind::AuthorizationDenied,
                             error.message.clone(),
                         )
-                        .await;
+                        .await?;
                         return Err(error);
                     }
                     if runtime.rate_limit_globally_enabled(state)
@@ -396,7 +405,7 @@ where
                                     SecurityEventKind::TenantIsolationDenied,
                                     error.message.clone(),
                                 )
-                                .await;
+                                .await?;
                                 return Err(error);
                             }
                         }
@@ -411,7 +420,7 @@ where
                             SecurityEventKind::TenantIsolationDenied,
                             error.message.clone(),
                         )
-                        .await;
+                        .await?;
                         return Err(error);
                     }
                 }
@@ -507,12 +516,21 @@ where
                 }
             }
             StandardWebCallInterceptorKind::ResponseIdentity => {
-                if let Some(request_id) = state.request_id_value() {
-                    response.headers_mut().insert(
-                        crate::constants::REQUEST_ID_HEADER,
-                        axum::http::HeaderValue::from_str(request_id)
-                            .expect("generated request ids are valid header values"),
-                    );
+                let trace_id = state
+                    .traceparent
+                    .as_deref()
+                    .and_then(crate::trace::trace_id_from_traceparent)
+                    .map(str::to_owned)
+                    .or_else(|| state.request_id_value().map(str::to_owned));
+                if let Some(trace_id) = trace_id {
+                    if let Ok(value) = axum::http::HeaderValue::from_str(&trace_id) {
+                        response.headers_mut().insert(
+                            HeaderName::from_static(
+                                crate::constants::SDKWORK_TRACE_ID_HEADER_LOWER,
+                            ),
+                            value,
+                        );
+                    }
                 }
                 if let Some(traceparent) = &state.traceparent {
                     if let Ok(value) = axum::http::HeaderValue::from_str(traceparent) {
@@ -791,7 +809,7 @@ where
                 SecurityEventKind::RateLimitExceeded,
                 error.message.clone(),
             )
-            .await;
+            .await?;
         }
         return Err(error);
     }
@@ -853,19 +871,24 @@ async fn emit_security_event<R>(
     state: &WebCallState,
     kind: SecurityEventKind,
     detail: String,
-) where
+) -> Result<(), WebFrameworkError>
+where
     R: WebRequestContextResolver + Clone,
 {
     let event = SecurityEvent {
         kind,
         request_id: state.request_id_value().map(str::to_owned),
+        tenant_id: state
+            .principal
+            .as_ref()
+            .map(|principal| principal.tenant_id().to_owned()),
         path: redact_path_template(&state.path),
         method: state.method.clone(),
         api_surface: state.api_surface.clone(),
         origin: state.origin.clone(),
         detail,
     };
-    if let Err(error) = runtime.security_event_emitter.emit(event).await {
-        tracing::warn!(?error, "security event emission failed");
-    }
+    // fail-closed：安全事件 emit 失败时返回 503 DependencyUnavailable，
+    // 而非静默丢弃。SECURITY_SPEC §5.1 / WEB_FRAMEWORK_STANDARD §9。
+    runtime.security_event_emitter.emit(event).await
 }

@@ -42,7 +42,7 @@ fn web_request_context_json_matches_schema_vocabulary() {
         auth_mode: WebAuthMode::DualToken,
         principal: None,
         transport: WebTransportFacts {
-            path: "/backend/v3/api/web-framework/cors-policies".to_owned(),
+            path: "/backend/v3/api/web-framework/cors_policies".to_owned(),
             method: "GET".to_owned(),
             auth_token_present: true,
             access_token_present: true,
@@ -54,7 +54,7 @@ fn web_request_context_json_matches_schema_vocabulary() {
         client_kind: Some(WebClientKind::Browser),
         operation: Some(WebOperationBinding {
             operation_id: "webFramework.corsPolicies.list".to_owned(),
-            route_template: "/backend/v3/api/web-framework/cors-policies".to_owned(),
+            route_template: "/backend/v3/api/web-framework/cors_policies".to_owned(),
             rate_limit_tier: Some(RateLimitTier::OpenApiDefault),
             idempotent: false,
         }),

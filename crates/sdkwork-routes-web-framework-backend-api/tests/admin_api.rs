@@ -57,11 +57,11 @@ async fn response_json(response: axum::response::Response) -> serde_json::Value 
 }
 
 fn control_node_by_id(node_id: &str) -> String {
-    paths::control_nodes::BY_ID.replace("{node_id}", node_id)
+    paths::control_nodes::BY_ID.replace("{nodeId}", node_id)
 }
 
 fn control_node_heartbeat(node_id: &str) -> String {
-    paths::control_nodes::HEARTBEAT.replace("{node_id}", node_id)
+    paths::control_nodes::HEARTBEAT.replace("{nodeId}", node_id)
 }
 
 fn audit_events_query(limit: Option<u32>) -> String {
@@ -112,7 +112,7 @@ async fn admin_api_upserts_cors_policy() {
                 "PUT",
                 paths::cors::PATH,
                 Some(
-                    r#"{"tenant_id":"100001","environment":"prod","allow_all_origins":false,"allowed_origins":["https://app.example"],"allow_credentials":true}"#,
+                    r#"{"tenantId":"100001","environment":"prod","allowAllOrigins":false,"allowedOrigins":["https://app.example"],"allowCredentials":true}"#,
                 ),
             ),
         )
@@ -130,14 +130,14 @@ async fn admin_api_upserts_rate_limit_policy() {
             "PUT",
             paths::rate_limit::PATH,
             Some(
-                r#"{"tenant_id":"100001","environment":"prod","tier_key":"default","max_requests":100,"window_secs":60,"enabled":true}"#,
+                r#"{"tenantId":"100001","environment":"prod","tierKey":"default","maxRequests":100,"windowSecs":60,"enabled":true}"#,
             ),
         ))
         .await
         .unwrap();
     assert_eq!(StatusCode::OK, response.status());
     let payload = response_json(response).await;
-    assert_eq!(100, payload["data"]["max_requests"].as_u64().unwrap());
+    assert_eq!(100, payload["data"]["maxRequests"].as_u64().unwrap());
 }
 
 #[tokio::test]
@@ -149,7 +149,7 @@ async fn admin_api_upserts_tenant_runtime_profile() {
             "PUT",
             paths::tenant_runtime::PATH,
             Some(
-                r#"{"tenant_id":"100001","environment":"prod","rate_limit_enabled":true,"max_content_length":1048576,"max_concurrent_requests":32}"#,
+                r#"{"tenantId":"100001","environment":"prod","rateLimitEnabled":true,"maxContentLength":"1048576","maxConcurrentRequests":32}"#,
             ),
         ))
         .await
@@ -158,7 +158,7 @@ async fn admin_api_upserts_tenant_runtime_profile() {
     let payload = response_json(response).await;
     assert_eq!(
         32,
-        payload["data"]["max_concurrent_requests"].as_u64().unwrap()
+        payload["data"]["maxConcurrentRequests"].as_u64().unwrap()
     );
 }
 
@@ -172,7 +172,7 @@ async fn admin_api_rejects_cross_tenant_cors_upsert() {
                 "PUT",
                 paths::cors::PATH,
                 Some(
-                    r#"{"tenant_id":"other-tenant","environment":"prod","allow_all_origins":false,"allowed_origins":["https://evil.example"],"allow_credentials":false}"#,
+                    r#"{"tenantId":"other-tenant","environment":"prod","allowAllOrigins":false,"allowedOrigins":["https://evil.example"],"allowCredentials":false}"#,
                 ),
             ),
         )
@@ -191,7 +191,7 @@ async fn admin_api_rejects_unsafe_prod_cors_policy() {
                 "PUT",
                 paths::cors::PATH,
                 Some(
-                    r#"{"tenant_id":"100001","environment":"prod","allow_all_origins":true,"allowed_origins":[],"allow_credentials":true}"#,
+                    r#"{"tenantId":"100001","environment":"prod","allowAllOrigins":true,"allowedOrigins":[],"allowCredentials":true}"#,
                 ),
             ),
         )
@@ -208,9 +208,7 @@ async fn admin_api_rejects_invalid_tenant_runtime_profile() {
         .oneshot(dual_token_request(
             "PUT",
             paths::tenant_runtime::PATH,
-            Some(
-                r#"{"tenant_id":"100001","environment":"prod","max_content_length":999999999999}"#,
-            ),
+            Some(r#"{"tenantId":"100001","environment":"prod","maxContentLength":"999999999999"}"#),
         ))
         .await
         .unwrap();
@@ -227,7 +225,7 @@ async fn admin_api_rejects_invalid_rate_limit_policy() {
                 "PUT",
                 paths::rate_limit::PATH,
                 Some(
-                    r#"{"tenant_id":"100001","environment":"prod","tier_key":"default","max_requests":0,"window_secs":60,"enabled":true}"#,
+                    r#"{"tenantId":"100001","environment":"prod","tierKey":"default","maxRequests":0,"windowSecs":60,"enabled":true}"#,
                 ),
             ),
         )
@@ -244,7 +242,7 @@ async fn admin_api_registers_control_node() {
         .oneshot(dual_token_request_with_auth(
             "POST",
             paths::control_nodes::COLLECTION,
-            Some(r#"{"node_id":"node-1","base_url":"https://node.example","environment":"prod"}"#),
+            Some(r#"{"nodeId":"node-1","baseUrl":"https://node.example","environment":"prod"}"#),
             fixtures::auth_token_control_plane(),
         ))
         .await
@@ -257,7 +255,7 @@ async fn admin_api_reregister_control_node_returns_ok_and_preserves_created_at()
     let pool = test_pool().await;
     let app = protected_app(pool.clone());
     let body =
-        r#"{"node_id":"node-reregister","base_url":"https://node.example","environment":"prod"}"#;
+        r#"{"nodeId":"node-reregister","baseUrl":"https://node.example","environment":"prod"}"#;
     let first = app
         .clone()
         .oneshot(dual_token_request_with_auth(
@@ -270,9 +268,9 @@ async fn admin_api_reregister_control_node_returns_ok_and_preserves_created_at()
         .unwrap();
     assert_eq!(StatusCode::CREATED, first.status());
     let first_json = response_json(first).await;
-    let created_at = first_json["data"]["created_at"]
-        .as_i64()
-        .expect("created_at");
+    // API_SPEC §13: int64 fields serialize as string
+    let created_at_str = first_json["data"]["createdAt"].as_str().expect("createdAt");
+    let created_at: i64 = created_at_str.parse().expect("createdAt parse");
 
     tokio::time::sleep(std::time::Duration::from_millis(1100)).await;
 
@@ -281,7 +279,7 @@ async fn admin_api_reregister_control_node_returns_ok_and_preserves_created_at()
             "POST",
             paths::control_nodes::COLLECTION,
             Some(
-                r#"{"node_id":"node-reregister","base_url":"https://node2.example","environment":"prod"}"#,
+                r#"{"nodeId":"node-reregister","baseUrl":"https://node2.example","environment":"prod"}"#,
             ),
             fixtures::auth_token_control_plane(),
         ))
@@ -289,14 +287,21 @@ async fn admin_api_reregister_control_node_returns_ok_and_preserves_created_at()
         .unwrap();
     assert_eq!(StatusCode::OK, second.status());
     let second_json = response_json(second).await;
-    assert_eq!(
-        created_at,
-        second_json["data"]["created_at"].as_i64().unwrap()
-    );
-    assert!(second_json["data"]["last_heartbeat_at"].as_i64().unwrap() >= created_at);
+    let second_created_at: i64 = second_json["data"]["createdAt"]
+        .as_str()
+        .expect("createdAt")
+        .parse()
+        .unwrap();
+    assert_eq!(created_at, second_created_at);
+    let last_heartbeat: i64 = second_json["data"]["lastHeartbeatAt"]
+        .as_str()
+        .expect("lastHeartbeatAt")
+        .parse()
+        .unwrap();
+    assert!(last_heartbeat >= created_at);
     assert_eq!(
         "https://node2.example",
-        second_json["data"]["base_url"].as_str().unwrap()
+        second_json["data"]["baseUrl"].as_str().unwrap()
     );
 }
 
@@ -309,7 +314,7 @@ async fn admin_api_heartbeats_and_deletes_control_node() {
         .oneshot(dual_token_request_with_auth(
             "POST",
             paths::control_nodes::COLLECTION,
-            Some(r#"{"node_id":"node-2","base_url":"https://node2.example","environment":"prod"}"#),
+            Some(r#"{"nodeId":"node-2","baseUrl":"https://node2.example","environment":"prod"}"#),
             fixtures::auth_token_control_plane(),
         ))
         .await
@@ -393,7 +398,7 @@ async fn admin_api_audit_events_exclude_null_tenant_rows_for_tenant_admin() {
     let payload = response_json(response).await;
     let rows = payload["data"].as_array().expect("audit rows");
     assert_eq!(1, rows.len());
-    assert_eq!("100001", rows[0]["tenant_id"].as_str().unwrap());
+    assert_eq!("100001", rows[0]["tenantId"].as_str().unwrap());
 }
 
 #[tokio::test]
@@ -421,7 +426,7 @@ async fn admin_api_platform_read_can_list_global_audit_rows() {
     let payload = response_json(response).await;
     let rows = payload["data"].as_array().expect("audit rows");
     assert_eq!(1, rows.len());
-    assert!(rows[0]["tenant_id"].is_null());
+    assert!(rows[0]["tenantId"].is_null());
 }
 
 #[tokio::test]
@@ -450,7 +455,7 @@ async fn admin_api_rejects_invalid_control_node_base_url() {
         .oneshot(dual_token_request_with_auth(
             "POST",
             paths::control_nodes::COLLECTION,
-            Some(r#"{"node_id":"node-a","base_url":"not-a-url","environment":"prod"}"#),
+            Some(r#"{"nodeId":"node-a","baseUrl":"not-a-url","environment":"prod"}"#),
             fixtures::auth_token_control_plane(),
         ))
         .await
@@ -479,10 +484,10 @@ async fn admin_api_rejects_tenant_admin_on_control_plane_routes() {
         let payload = response_json(response).await;
         assert_eq!(403, payload["status"].as_u64().unwrap());
         assert!(
-            payload["requestId"]
+            payload["traceId"]
                 .as_str()
                 .is_some_and(|value| !value.is_empty()),
-            "handler Problem+json must include requestId"
+            "handler Problem+json must include traceId"
         );
     }
 }
@@ -516,10 +521,10 @@ async fn admin_handler_problem_includes_trace_id_from_context() {
     assert_eq!(StatusCode::FORBIDDEN, response.status());
     let payload = response_json(response).await;
     assert!(
-        payload["requestId"]
+        payload["traceId"]
             .as_str()
             .is_some_and(|value| !value.is_empty()),
-        "handler Problem+json must include server-owned requestId"
+        "handler Problem+json must include traceId"
     );
     assert_eq!(
         "4bf92f3577b34da6a3ce929d0e0e4736",
@@ -535,11 +540,11 @@ async fn admin_api_rejects_oversized_cors_origin_list() {
         .map(|index| format!("https://origin-{index}.example"))
         .collect::<Vec<_>>();
     let body = serde_json::json!({
-        "tenant_id": "100001",
+        "tenantId": "100001",
         "environment": "prod",
-        "allow_all_origins": false,
-        "allowed_origins": origins,
-        "allow_credentials": false,
+        "allowAllOrigins": false,
+        "allowedOrigins": origins,
+        "allowCredentials": false,
     });
     let response = app
         .oneshot(dual_token_request(
@@ -561,7 +566,7 @@ async fn admin_api_rejects_empty_tenant_id_on_upsert() {
             "PUT",
             paths::cors::PATH,
             Some(
-                r#"{"tenant_id":"   ","environment":"prod","allow_all_origins":false,"allowed_origins":["https://app.example"],"allow_credentials":false}"#,
+                r#"{"tenantId":"   ","environment":"prod","allowAllOrigins":false,"allowedOrigins":["https://app.example"],"allowCredentials":false}"#,
             ),
         ))
         .await
@@ -642,7 +647,7 @@ async fn admin_api_rejects_allow_all_origins_without_credentials_in_prod() {
             "PUT",
             paths::cors::PATH,
             Some(
-                r#"{"tenant_id":"100002","environment":"prod","allow_all_origins":true,"allowed_origins":[],"allow_credentials":false}"#,
+                r#"{"tenantId":"100002","environment":"prod","allowAllOrigins":true,"allowedOrigins":[],"allowCredentials":false}"#,
             ),
             fixtures::auth_token_platform_read(),
         ))
@@ -660,7 +665,7 @@ async fn admin_api_platform_read_can_upsert_other_tenant_cors_policy() {
             "PUT",
             paths::cors::PATH,
             Some(
-                r#"{"tenant_id":"100002","environment":"prod","allow_all_origins":false,"allowed_origins":["https://other.example"],"allow_credentials":false}"#,
+                r#"{"tenantId":"100002","environment":"prod","allowAllOrigins":false,"allowedOrigins":["https://other.example"],"allowCredentials":false}"#,
             ),
             fixtures::auth_token_platform_read(),
         ))
@@ -668,7 +673,7 @@ async fn admin_api_platform_read_can_upsert_other_tenant_cors_policy() {
         .unwrap();
     assert_eq!(StatusCode::OK, response.status());
     let payload = response_json(response).await;
-    assert_eq!("100002", payload["data"]["tenant_id"].as_str().unwrap());
+    assert_eq!("100002", payload["data"]["tenantId"].as_str().unwrap());
 }
 
 #[tokio::test]
@@ -755,6 +760,72 @@ async fn admin_api_control_plane_can_list_security_events() {
     assert_eq!(StatusCode::OK, response.status());
     let payload = response_json(response).await;
     assert!(payload["data"].is_array());
+}
+
+#[tokio::test]
+async fn admin_api_security_event_scope_narrows_to_requested_tenant() {
+    // SECURITY_SPEC §5.1 / DATABASE_SPEC §6.3：tenant_id 隔离字段生效，
+    // control-plane 可下钻到指定租户视图。
+    let pool = test_pool().await;
+    sqlx::query(
+        "INSERT INTO web_security_event \
+         (kind, request_id, tenant_id, path, method, api_surface, origin, detail, created_at, expires_at) \
+         VALUES \
+           ('cors_denied', 'req-a', '100001', '/app/v3/api/users', 'POST', 'AppApi', 'https://evil.example', 'denied', 1, 1), \
+           ('cors_denied', 'req-b', '100002', '/app/v3/api/users', 'POST', 'AppApi', 'https://evil.example', 'denied', 2, 2), \
+           ('rate_limit_exceeded', 'req-c', '0', '/app/v3/api/auth/login', 'POST', 'AppApi', NULL, 'denied', 3, 3)",
+    )
+    .execute(&pool)
+    .await
+    .expect("seed");
+    let app = protected_app(pool);
+    // Narrowed view: only tenant 100001 row.
+    let uri = format!("{}?tenant_id=100001", paths::security_events::PATH);
+    let response = app
+        .clone()
+        .oneshot(dual_token_request_with_auth(
+            "GET",
+            &uri,
+            None,
+            fixtures::auth_token_control_plane(),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(StatusCode::OK, response.status());
+    let payload = response_json(response).await;
+    let rows = payload["data"].as_array().expect("array");
+    assert_eq!(1, rows.len());
+    assert_eq!("100001", rows[0]["tenantId"].as_str().expect("tenant_id"));
+
+    // Platform-wide view: all three rows.
+    let response = app
+        .oneshot(dual_token_request_with_auth(
+            "GET",
+            paths::security_events::PATH,
+            None,
+            fixtures::auth_token_control_plane(),
+        ))
+        .await
+        .unwrap();
+    let payload = response_json(response).await;
+    let rows = payload["data"].as_array().expect("array");
+    assert_eq!(3, rows.len());
+}
+
+#[tokio::test]
+async fn admin_api_security_event_rejects_tenant_admin() {
+    // SECURITY_SPEC §5.1：安全事件为平台级敏感数据，tenant_admin 不可访问。
+    let pool = test_pool().await;
+    let app = protected_app(pool);
+    let response = app
+        .oneshot(dual_token_request(
+            "GET",
+            paths::security_events::PATH,
+            None,
+        ))
+        .await
+        .unwrap();
+    assert_eq!(StatusCode::FORBIDDEN, response.status());
 }
 
 #[tokio::test]

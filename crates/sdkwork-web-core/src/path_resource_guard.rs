@@ -198,12 +198,12 @@ mod tests {
             "100001",
             None,
             &["web-framework.cors-policies.write"],
-            "/backend/v3/api/web-framework/tenants/100002/cors-policies",
+            "/backend/v3/api/web-framework/tenants/100002/cors_policies",
         );
         ctx.api_surface = WebApiSurface::BackendApi;
         verify_path_resource_ids_match_principal(
             &ctx,
-            "/backend/v3/api/web-framework/tenants/{tenantId}/cors-policies",
+            "/backend/v3/api/web-framework/tenants/{tenantId}/cors_policies",
             Some("web-framework.cors-policies.write"),
         )
         .expect("platform permission authorizes target tenant");
