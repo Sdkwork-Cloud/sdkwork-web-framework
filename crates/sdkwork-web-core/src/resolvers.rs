@@ -221,6 +221,11 @@ where
             auth.app_id.as_deref(),
             Some(access.app_id.as_str()),
         )?;
+        require_optional_match(
+            "subject_type",
+            auth.subject_type.as_deref(),
+            access.subject_type.as_deref(),
+        )?;
         if auth.login_scope != access.login_scope {
             return Err(WebFrameworkError::forbidden(
                 "auth token and access token login_scope contexts do not match",
@@ -247,7 +252,12 @@ where
             } else {
                 access.permission_scope
             })
-            .subject_type(WebSubjectType::User)
+            .subject_type(parse_subject_type(
+                access
+                    .subject_type
+                    .as_deref()
+                    .or(auth.subject_type.as_deref()),
+            ))
             .build())
     }
 

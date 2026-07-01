@@ -1,4 +1,5 @@
 # SDKWork Web Framework
+repository-kind: foundation-dependency
 
 Rust SaaS HTTP/WebSocket framework for SDKWork API surfaces. Zero business dependencies.
 

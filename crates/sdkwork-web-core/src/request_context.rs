@@ -420,6 +420,20 @@ impl WebRequestContext {
             Some(self.request_id.0.as_str()),
             self.trace_id.as_deref(),
         )
+        .with_routing(
+            Some(self.transport.method.as_str()),
+            self.operation
+                .as_ref()
+                .map(|operation| operation.route_template.as_str()),
+            Some(self.transport.path.as_str()),
+            self.operation
+                .as_ref()
+                .map(|operation| operation.operation_id.as_str()),
+        )
+    }
+
+    pub fn problem_routing(&self) -> sdkwork_utils_rust::SdkWorkProblemRouting {
+        self.problem_correlation().routing()
     }
 
     /// Server-owned correlation id for success envelopes and Problem+json.

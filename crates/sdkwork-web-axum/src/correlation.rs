@@ -18,26 +18,47 @@ fn read_header(headers: &axum::http::HeaderMap, name: &str) -> Option<String> {
 pub struct OwnedProblemCorrelation {
     pub request_id: String,
     pub trace_id: Option<String>,
+    pub method: Option<String>,
+    pub route_template: Option<String>,
+    pub fallback_path: Option<String>,
+    pub operation_id: Option<String>,
 }
 
 impl OwnedProblemCorrelation {
     pub fn from_request(request: &Request) -> Self {
-        let request_id = request
-            .extensions()
-            .get::<WebRequestContext>()
-            .map(|context| context.request_id.0.clone())
-            .or_else(|| read_header(request.headers(), REQUEST_ID_HEADER))
-            .unwrap_or_else(new_request_id);
+        if let Some(context) = request.extensions().get::<WebRequestContext>() {
+            let correlation = context.problem_correlation();
+            return Self {
+                request_id: context.request_id.0.clone(),
+                trace_id: correlation.trace_id.map(str::to_owned),
+                method: correlation.method.map(str::to_owned),
+                route_template: correlation.route_template.map(str::to_owned),
+                fallback_path: correlation.fallback_path.map(str::to_owned),
+                operation_id: correlation.operation_id.map(str::to_owned),
+            };
+        }
+        let request_id =
+            read_header(request.headers(), REQUEST_ID_HEADER).unwrap_or_else(new_request_id);
         let trace_id = read_header(request.headers(), TRACEPARENT_HEADER)
             .and_then(|traceparent| trace_id_from_traceparent(&traceparent).map(str::to_owned));
         Self {
             request_id,
             trace_id,
+            method: Some(request.method().to_string()),
+            route_template: None,
+            fallback_path: Some(request.uri().path().to_owned()),
+            operation_id: None,
         }
     }
 
     pub fn as_correlation(&self) -> ProblemCorrelation<'_> {
         ProblemCorrelation::new(Some(self.request_id.as_str()), self.trace_id.as_deref())
+            .with_routing(
+                self.method.as_deref(),
+                self.route_template.as_deref(),
+                self.fallback_path.as_deref(),
+                self.operation_id.as_deref(),
+            )
     }
 }
 

@@ -466,6 +466,12 @@ impl WebCallState {
                 .as_deref()
                 .and_then(crate::trace::trace_id_from_traceparent),
         )
+        .with_routing(
+            Some(self.method.as_str()),
+            self.route_template.as_deref(),
+            Some(self.path.as_str()),
+            self.operation_id.as_deref(),
+        )
     }
 
     pub fn to_context(&self) -> Result<WebRequestContext, WebFrameworkError> {

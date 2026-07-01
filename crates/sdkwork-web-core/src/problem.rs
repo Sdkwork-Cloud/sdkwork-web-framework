@@ -1,50 +1,39 @@
 use crate::error::{WebFrameworkError, WebFrameworkErrorKind};
 use crate::trace::resolve_problem_trace_id;
+use axum::body::Body;
 use axum::http::{header, HeaderName, HeaderValue};
 use axum::response::{IntoResponse, Response};
-use serde_json::json;
+use axum::Json;
+use sdkwork_utils_rust::{SdkWorkProblemDetail, SdkWorkProblemRouting, SdkWorkResultCode};
 
-fn problem_type_uri(kind: &WebFrameworkErrorKind) -> &'static str {
-    match kind {
-        WebFrameworkErrorKind::MissingCredentials => {
-            "https://sdkwork.dev/problems/missing-credentials"
-        }
-        WebFrameworkErrorKind::InvalidCredentials => {
-            "https://sdkwork.dev/problems/invalid-credentials"
-        }
-        WebFrameworkErrorKind::Forbidden => "https://sdkwork.dev/problems/forbidden",
-        WebFrameworkErrorKind::BadRequest => "https://sdkwork.dev/problems/bad-request",
-        WebFrameworkErrorKind::Conflict => "https://sdkwork.dev/problems/conflict",
-        WebFrameworkErrorKind::PayloadTooLarge => "https://sdkwork.dev/problems/payload-too-large",
-        WebFrameworkErrorKind::RateLimitExceeded => {
-            "https://sdkwork.dev/problems/rate-limit-exceeded"
-        }
-        WebFrameworkErrorKind::DependencyUnavailable => {
-            "https://sdkwork.dev/problems/dependency-unavailable"
-        }
-        WebFrameworkErrorKind::RequestTimeout => "https://sdkwork.dev/problems/request-timeout",
-        WebFrameworkErrorKind::MethodNotAllowed => {
-            "https://sdkwork.dev/problems/method-not-allowed"
-        }
-        WebFrameworkErrorKind::NotFound => "https://sdkwork.dev/problems/not-found",
-        WebFrameworkErrorKind::NotImplemented => "https://sdkwork.dev/problems/not-implemented",
-        WebFrameworkErrorKind::InternalServerError => {
-            "https://sdkwork.dev/problems/internal-server-error"
-        }
-        WebFrameworkErrorKind::ContextNotInjected => {
-            "https://sdkwork.dev/problems/context-not-injected"
-        }
-        WebFrameworkErrorKind::WebSocketRejected => {
-            "https://sdkwork.dev/problems/websocket-rejected"
-        }
+const PROBLEM_RESPONSE_ENRICHMENT_MAX_BYTES: usize = 64 * 1024;
+
+fn map_result_code(code: i32) -> SdkWorkResultCode {
+    match code {
+        40001 => SdkWorkResultCode::ValidationError,
+        40101 => SdkWorkResultCode::AuthenticationRequired,
+        40103 => SdkWorkResultCode::InvalidToken,
+        40301 => SdkWorkResultCode::PermissionRequired,
+        40401 => SdkWorkResultCode::NotFound,
+        40501 => SdkWorkResultCode::MethodNotAllowed,
+        40801 => SdkWorkResultCode::RequestTimeout,
+        40901 => SdkWorkResultCode::Conflict,
+        41301 => SdkWorkResultCode::PayloadTooLarge,
+        42901 => SdkWorkResultCode::RateLimitExceeded,
+        50301 => SdkWorkResultCode::ServiceUnavailable,
+        _ => SdkWorkResultCode::InternalError,
     }
 }
 
-/// Correlation fields for RFC 7807 Problem+JSON (`OBSERVABILITY_SPEC` §1).
+/// Correlation and routing fields for RFC 9457 Problem+JSON (`API_SPEC.md` §15.2).
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct ProblemCorrelation<'a> {
     pub request_id: Option<&'a str>,
     pub trace_id: Option<&'a str>,
+    pub method: Option<&'a str>,
+    pub route_template: Option<&'a str>,
+    pub fallback_path: Option<&'a str>,
+    pub operation_id: Option<&'a str>,
 }
 
 impl<'a> ProblemCorrelation<'a> {
@@ -52,7 +41,22 @@ impl<'a> ProblemCorrelation<'a> {
         Self {
             request_id,
             trace_id,
+            ..Self::default()
         }
+    }
+
+    pub fn with_routing(
+        mut self,
+        method: Option<&'a str>,
+        route_template: Option<&'a str>,
+        fallback_path: Option<&'a str>,
+        operation_id: Option<&'a str>,
+    ) -> Self {
+        self.method = method;
+        self.route_template = route_template;
+        self.fallback_path = fallback_path;
+        self.operation_id = operation_id;
+        self
     }
 
     pub fn resolved_trace_id(&self) -> Option<String> {
@@ -62,6 +66,15 @@ impl<'a> ProblemCorrelation<'a> {
         self.request_id
             .map(|request_id| resolve_problem_trace_id(request_id, None))
     }
+
+    pub fn routing(&self) -> SdkWorkProblemRouting {
+        SdkWorkProblemRouting::from_parts(
+            self.method,
+            self.route_template,
+            self.fallback_path,
+            self.operation_id,
+        )
+    }
 }
 
 impl<'a> From<Option<&'a str>> for ProblemCorrelation<'a> {
@@ -69,6 +82,7 @@ impl<'a> From<Option<&'a str>> for ProblemCorrelation<'a> {
         Self {
             request_id: None,
             trace_id,
+            ..Self::default()
         }
     }
 }
@@ -76,7 +90,9 @@ impl<'a> From<Option<&'a str>> for ProblemCorrelation<'a> {
 /// Client-safe Problem `detail` — internal failures must not leak implementation details.
 pub fn client_safe_problem_detail(error: &WebFrameworkError) -> &str {
     match error.kind {
-        WebFrameworkErrorKind::InternalServerError => "An internal error occurred",
+        WebFrameworkErrorKind::InternalServerError | WebFrameworkErrorKind::ContextNotInjected => {
+            "An internal error occurred"
+        }
         WebFrameworkErrorKind::DependencyUnavailable => {
             "A required dependency is temporarily unavailable"
         }
@@ -84,7 +100,73 @@ pub fn client_safe_problem_detail(error: &WebFrameworkError) -> &str {
     }
 }
 
-/// Build RFC 9457 Problem+json with required numeric `code` and `traceId`.
+/// Adds RFC 9457 routing fields to Problem+json bodies when handlers omitted them.
+pub fn enrich_problem_detail_value(
+    payload: &mut serde_json::Value,
+    routing: &SdkWorkProblemRouting,
+) {
+    fn field_missing(payload: &serde_json::Value, field: &str) -> bool {
+        payload
+            .get(field)
+            .map(|value| value.is_null())
+            .unwrap_or(true)
+    }
+
+    if field_missing(payload, "instance") {
+        if let Some(instance) = routing.instance() {
+            payload["instance"] = serde_json::Value::String(instance);
+        }
+    }
+    if field_missing(payload, "operationId") {
+        if let Some(operation_id) = routing.operation_id.as_deref() {
+            payload["operationId"] = serde_json::Value::String(operation_id.to_owned());
+        }
+    }
+}
+
+/// Enriches an HTTP response body when it is `application/problem+json`.
+pub async fn enrich_problem_response(
+    correlation: ProblemCorrelation<'_>,
+    response: &mut Response,
+) -> Result<(), WebFrameworkError> {
+    let is_problem_json = response
+        .headers()
+        .get(header::CONTENT_TYPE)
+        .and_then(|value| value.to_str().ok())
+        .map(|value| {
+            value.starts_with("application/problem+json")
+                || value.starts_with("application/problem+json;")
+        })
+        .unwrap_or(false);
+    if !is_problem_json {
+        return Ok(());
+    }
+
+    let (parts, body) = std::mem::replace(response, Response::new(Body::empty())).into_parts();
+    let bytes = axum::body::to_bytes(body, PROBLEM_RESPONSE_ENRICHMENT_MAX_BYTES)
+        .await
+        .map_err(|_| {
+            WebFrameworkError::internal_server_error("failed to read problem response body")
+        })?;
+    if bytes.is_empty() {
+        *response = Response::from_parts(parts, Body::from(bytes));
+        return Ok(());
+    }
+
+    let mut payload: serde_json::Value = serde_json::from_slice(&bytes).map_err(|error| {
+        WebFrameworkError::internal_server_error(format!("invalid problem response json: {error}"))
+    })?;
+    enrich_problem_detail_value(&mut payload, &correlation.routing());
+    let encoded = serde_json::to_vec(&payload).map_err(|error| {
+        WebFrameworkError::internal_server_error(format!(
+            "failed to encode problem response: {error}"
+        ))
+    })?;
+    *response = Response::from_parts(parts, Body::from(encoded));
+    Ok(())
+}
+
+/// Build RFC 9457 Problem+json with required numeric `code`, `traceId`, `instance`, and `operationId`.
 pub fn problem_response(
     error: &WebFrameworkError,
     correlation: ProblemCorrelation<'_>,
@@ -93,19 +175,19 @@ pub fn problem_response(
     let trace_id = correlation
         .resolved_trace_id()
         .unwrap_or_else(|| "unknown".to_owned());
-    let payload = json!({
-        "type": problem_type_uri(&error.kind),
-        "title": status.canonical_reason().unwrap_or("Request context error"),
-        "status": status.as_u16(),
-        "code": error.result_code(),
-        "traceId": trace_id,
-        "detail": client_safe_problem_detail(error),
-    });
-    let mut response = (status, axum::Json(payload)).into_response();
-    response.headers_mut().insert(
-        header::CONTENT_TYPE,
-        HeaderValue::from_static("application/problem+json"),
+    let result_code = map_result_code(error.result_code());
+    let problem = SdkWorkProblemDetail::platform_enriched(
+        result_code,
+        client_safe_problem_detail(error),
+        trace_id.clone(),
+        correlation.routing(),
     );
+    let mut response = (
+        status,
+        [(header::CONTENT_TYPE, "application/problem+json")],
+        Json(problem),
+    )
+        .into_response();
     if let Ok(value) = HeaderValue::from_str(&trace_id) {
         response.headers_mut().insert(
             HeaderName::from_static(crate::constants::SDKWORK_TRACE_ID_HEADER_LOWER),
@@ -124,21 +206,7 @@ pub fn problem_response(
 
 /// Redact numeric/uuid-like path segments for logging (observability spec §10).
 pub fn redact_path_template(path: &str) -> String {
-    path.split('/')
-        .map(|segment| {
-            if segment.is_empty() {
-                return String::new();
-            }
-            if segment.chars().all(|ch| ch.is_ascii_digit())
-                || segment.len() >= 32 && segment.chars().all(|c| c.is_ascii_hexdigit() || c == '-')
-            {
-                "{id}".to_owned()
-            } else {
-                segment.to_owned()
-            }
-        })
-        .collect::<Vec<_>>()
-        .join("/")
+    sdkwork_utils_rust::redact_http_path_segments(path)
 }
 
 #[cfg(test)]
@@ -208,6 +276,91 @@ mod tests {
         assert_eq!(
             "4bf92f3577b34da6a3ce929d0e0e4736",
             payload["traceId"].as_str().unwrap()
+        );
+    }
+
+    #[test]
+    fn problem_response_includes_instance_and_operation_id() {
+        let error = WebFrameworkError::internal_server_error("db down");
+        let response = problem_response(
+            &error,
+            ProblemCorrelation::new(Some("req-trace"), Some("trace-abc")).with_routing(
+                Some("GET"),
+                Some("/app/v3/api/wallet/transactions"),
+                None,
+                Some("wallet.transactions.list"),
+            ),
+        );
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .expect("runtime");
+        let bytes = rt
+            .block_on(async { axum::body::to_bytes(response.into_body(), usize::MAX).await })
+            .expect("body");
+        let payload: serde_json::Value = serde_json::from_slice(&bytes).expect("json");
+        assert_eq!(
+            "GET /app/v3/api/wallet/transactions",
+            payload["instance"].as_str().unwrap()
+        );
+        assert_eq!(
+            "wallet.transactions.list",
+            payload["operationId"].as_str().unwrap()
+        );
+        assert_eq!(
+            "https://docs.sdkwork.com/problems/50001",
+            payload["type"].as_str().unwrap()
+        );
+    }
+
+    #[tokio::test]
+    async fn enrich_problem_response_adds_missing_routing_fields() {
+        let routing = SdkWorkProblemRouting::from_parts(
+            Some("GET"),
+            Some("/app/v3/api/wallet/transactions"),
+            None,
+            Some("wallet.transactions.list"),
+        );
+        let mut payload = serde_json::json!({
+            "type": "https://docs.sdkwork.com/problems/50001",
+            "title": "Internal server error",
+            "status": 500,
+            "code": 50001,
+            "traceId": "trace-abc",
+            "detail": "An internal error occurred"
+        });
+        enrich_problem_detail_value(&mut payload, &routing);
+        assert_eq!(
+            "GET /app/v3/api/wallet/transactions",
+            payload["instance"].as_str().unwrap()
+        );
+        assert_eq!(
+            "wallet.transactions.list",
+            payload["operationId"].as_str().unwrap()
+        );
+
+        let correlation = ProblemCorrelation::new(Some("req-1"), Some("trace-abc")).with_routing(
+            Some("GET"),
+            Some("/app/v3/api/wallet/transactions"),
+            None,
+            Some("wallet.transactions.list"),
+        );
+        let mut response = (
+            axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+            [(header::CONTENT_TYPE, "application/problem+json")],
+            axum::Json(payload),
+        )
+            .into_response();
+        enrich_problem_response(correlation, &mut response)
+            .await
+            .expect("enrich");
+        let bytes = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .expect("body");
+        let enriched: serde_json::Value = serde_json::from_slice(&bytes).expect("json");
+        assert_eq!(
+            "wallet.transactions.list",
+            enriched["operationId"].as_str().unwrap()
         );
     }
 

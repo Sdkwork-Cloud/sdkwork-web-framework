@@ -217,6 +217,8 @@ pub struct WebFrameworkRejection {
     pub error: WebFrameworkError,
     request_id: String,
     trace_id: Option<String>,
+    method: String,
+    path: String,
 }
 
 impl WebFrameworkRejection {
@@ -226,6 +228,8 @@ impl WebFrameworkRejection {
             error,
             request_id,
             trace_id,
+            method: parts.method.as_str().to_owned(),
+            path: parts.uri.path().to_owned(),
         }
     }
 }
@@ -234,7 +238,12 @@ impl IntoResponse for WebFrameworkRejection {
     fn into_response(self) -> Response {
         problem_response(
             &self.error,
-            ProblemCorrelation::new(Some(&self.request_id), self.trace_id.as_deref()),
+            ProblemCorrelation::new(Some(&self.request_id), self.trace_id.as_deref()).with_routing(
+                Some(self.method.as_str()),
+                None,
+                Some(self.path.as_str()),
+                None,
+            ),
         )
     }
 }

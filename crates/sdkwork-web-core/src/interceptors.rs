@@ -546,6 +546,17 @@ where
                             .insert(crate::trace::TRACESTATE_HEADER, value);
                     }
                 }
+                if let Err(error) =
+                    crate::problem::enrich_problem_response(state.problem_correlation(), response)
+                        .await
+                {
+                    tracing::warn!(
+                        request_id = ?state.request_id_value(),
+                        operation_id = ?state.operation_id,
+                        error = %error,
+                        "problem response enrichment failed"
+                    );
+                }
             }
             StandardWebCallInterceptorKind::HeaderSecurity => {
                 runtime.security_policy.apply_response_headers(response);

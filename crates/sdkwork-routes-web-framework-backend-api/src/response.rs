@@ -234,6 +234,10 @@ mod tests {
             "trace-from-context-abc",
             payload["traceId"].as_str().unwrap()
         );
+        assert_eq!(
+            "GET /backend/v3/api/web-framework/cors_policies",
+            payload["instance"].as_str().unwrap()
+        );
         assert!(payload.get("requestId").is_none());
     }
 
@@ -248,7 +252,7 @@ mod tests {
         assert_eq!(404, payload["status"].as_u64().unwrap());
         assert_eq!(40401, payload["code"].as_i64().unwrap());
         assert_eq!(
-            "https://sdkwork.dev/problems/not-found",
+            "https://docs.sdkwork.com/problems/40401",
             payload["type"].as_str().unwrap()
         );
     }
@@ -275,7 +279,7 @@ mod tests {
         assert_eq!(503, payload["status"].as_u64().unwrap());
         assert_eq!(50301, payload["code"].as_i64().unwrap());
         assert_eq!(
-            "https://sdkwork.dev/problems/dependency-unavailable",
+            "https://docs.sdkwork.com/problems/50301",
             payload["type"].as_str().unwrap()
         );
     }

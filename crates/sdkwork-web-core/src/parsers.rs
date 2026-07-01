@@ -109,7 +109,8 @@ impl AuthTokenParser for DefaultAuthTokenParser {
             auth_level: parse_auth_level(claims.get("auth_level").map(String::as_str)),
             data_scope: split_claim(claims.get("data_scope")),
             permission_scope: split_claim(claims.get("permission_scope")),
-            subject_type: optional_claim(&claims, "subject_type"),
+            subject_type: optional_claim(&claims, "subject_type")
+                .or_else(|| optional_claim(&claims, "actor_kind")),
             metadata: claims,
         })
     }
@@ -138,7 +139,8 @@ impl AccessTokenParser for DefaultAccessTokenParser {
             ),
             data_scope: split_claim(claims.get("data_scope")),
             permission_scope: split_claim(claims.get("permission_scope")),
-            subject_type: optional_claim(&claims, "subject_type"),
+            subject_type: optional_claim(&claims, "subject_type")
+                .or_else(|| optional_claim(&claims, "actor_kind")),
             metadata: claims,
         })
     }
